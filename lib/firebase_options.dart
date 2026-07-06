@@ -52,37 +52,39 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDN_ROuyy5zCV0HunRaWV_gf3doQ1qLUKA',
-    appId: '1:1059641094292:android:bc27d12a6dfc723e9a4481',
+    appId: '1:1059641094292:android:a32bb1556ff782ad9a4481',
     messagingSenderId: '1059641094292',
     projectId: 'swn-tracen-785a0',
     storageBucket: 'swn-tracen-785a0.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCbxOsHIXvc67XVgu7tw880CPHAyoeunlI',
-    appId: '1:1059641094292:ios:9f8519e5b38571d49a4481',
+    apiKey: 'AIzaSyD76Z52_IoC83FycNtpToaZIJUHnvEaqSw',
+    appId: '1:1059641094292:ios:88ac5392f439b68c9a4481',
     messagingSenderId: '1059641094292',
     projectId: 'swn-tracen-785a0',
     storageBucket: 'swn-tracen-785a0.firebasestorage.app',
-    iosBundleId: 'com.khuslen.tracen',
+    androidClientId: '1059641094292-5vr6t1dg5uemgllb2gv174bhh10p59uk.apps.googleusercontent.com',
+    iosClientId: '1059641094292-qnhs86192mhfabgvvlbg6m7ognejsm15.apps.googleusercontent.com',
+    iosBundleId: 'com.khuslen.aa',
   );
-
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyCbxOsHIXvc67XVgu7tw880CPHAyoeunlI',
-    appId: '1:1059641094292:ios:9f8519e5b38571d49a4481',
+    apiKey: 'AIzaSyD76Z52_IoC83FycNtpToaZIJUHnvEaqSw',
+    appId: '1:1059641094292:ios:88ac5392f439b68c9a4481',
     messagingSenderId: '1059641094292',
     projectId: 'swn-tracen-785a0',
     storageBucket: 'swn-tracen-785a0.firebasestorage.app',
-    iosBundleId: 'com.khuslen.tracen',
+    androidClientId: '1059641094292-5vr6t1dg5uemgllb2gv174bhh10p59uk.apps.googleusercontent.com',
+    iosClientId: '1059641094292-qnhs86192mhfabgvvlbg6m7ognejsm15.apps.googleusercontent.com',
+    iosBundleId: 'com.khuslen.aa',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyBIwKia_pfik7ekVHvbMD9Xgdzv_NQ_9RA',
-    appId: '1:1059641094292:web:c2a589c3f0d04b469a4481',
+    apiKey: 'AIzaSyBb_GCmuis03tRfpf1DVBEpJ2XxgLjK9ww',
+    appId: '1:1059641094292:web:a04dc41a2d08ade79a4481',
     messagingSenderId: '1059641094292',
     projectId: 'swn-tracen-785a0',
     authDomain: 'swn-tracen-785a0.firebaseapp.com',
     storageBucket: 'swn-tracen-785a0.firebasestorage.app',
-    measurementId: 'G-VFQ2Q7Z61D',
+    measurementId: 'G-GWG5V03MJ4',
   );
 }

@@ -1,0 +1,33 @@
+rules_version = '2';
+
+// Tracen Firebase Storage Security Rules
+//
+// 원칙:
+//   - 모든 사진은 users/{uid}/ 하위에만 저장.
+//   - 본인만 자신의 폴더 읽기/쓰기 가능.
+//
+// 적용 방법:
+//   1. Firebase Console → Storage → 규칙 탭
+//   2. 이 파일 내용 전체 복사 → 붙여넣기 → 게시
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ─────────────────────────────────────────────
+    // users/{uid}/... — 사용자별 사진 저장소
+    // ─────────────────────────────────────────────
+    //
+    // 포함 경로:
+    //   users/{uid}/profile/avatar.jpg          (프로필 사진)
+    //   users/{uid}/photos/{routeUuid}/...jpg   (핀 사진)
+    match /users/{uid}/{allPaths=**} {
+      allow read, write: if request.auth != null
+                        && request.auth.uid == uid;
+    }
+
+    // 그 외 모든 경로 차단
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

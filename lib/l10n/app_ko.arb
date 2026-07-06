@@ -1,0 +1,62 @@
+{
+  "@@locale": "ko",
+
+  "onboardingSkip": "건너뛰기",
+  "@onboardingSkip": {"description": "온보딩 건너뛰기 버튼"},
+  "onboardingNext": "다음",
+  "onboardingStart": "시작하기",
+
+  "onboarding1Title": "당신만의 길을\n지도에 남겨보세요",
+  "onboarding1Desc": "산책, 러닝, 여행 — 어디든 AA와 \n함께 걸어요.",
+  "onboarding2Title": "특별한 순간을\n기록해보세요",
+  "onboarding2Desc": "도착한 곳에서 사진과 메모를\n남겨보세요.",
+  "onboarding3Title": "어디서든\n다시 꺼내보세요",
+  "onboarding3Desc": "안전하게 저장되어\n언제든 다시 꺼내볼 수 있어요.",
+
+  "settingsTitle": "설정",
+  "sectionAppearance": "외관",
+  "darkModeTitle": "다크 모드",
+  "darkModeSubtitle": "어두운 배경으로 전환해요",
+
+  "sectionLanguage": "언어",
+  "languageTitle": "앱 언어",
+  "languageSubtitle": "표시 언어를 선택하세요",
+  "languageSystemDefault": "기기 언어 사용",
+
+  "sectionTracking": "추적",
+  "autoTrackingTitle": "자동 발자취 기록",
+  "autoTrackingSubtitle": "앱이 켜진 동안 이동 경로를 지도에 기록해요",
+
+  "sectionNotifications": "알림",
+  "locationNotifTitle": "위치 추적 알림",
+  "locationNotifSubtitle": "경로 기록 중 알림을 받아요",
+  "memoNotifTitle": "메모 저장 알림",
+  "memoNotifSubtitle": "메모가 저장됐을 때 알려드려요",
+  "runningNotifTitle": "러닝 알림",
+  "runningNotifSubtitle": "러닝 완료 시 결과를 알려드려요",
+
+  "sectionAccount": "계정",
+  "resetPasswordTitle": "비밀번호 재설정",
+  "resetPasswordSubtitle": "재설정 링크를 메일로 보내드려요",
+  "noEmail": "이메일 없음",
+  "loggedInAccount": "로그인된 계정",
+
+  "sectionAppInfo": "앱 정보",
+  "privacyPolicy": "개인정보 처리방침",
+  "termsOfService": "서비스 이용약관",
+  "versionLabel": "버전",
+
+  "signOut": "로그아웃",
+  "deleteAccountAction": "회원 탈퇴",
+  "signOutConfirmTitle": "로그아웃 할까요?",
+  "signOutConfirmMessage": "다시 로그인해야 여정 기록을 이용할 수 있어요.",
+  "deleteAccountConfirmTitle": "정말 탈퇴하시겠어요?",
+  "deleteAccountConfirmMessage": "계정과 관련된 모든 정보가 삭제되며,\n복구할 수 없어요.",
+  "cancel": "취소",
+  "confirmDeleteAccount": "탈퇴하기",
+  "errorDeleteAccount": "탈퇴 중 오류가 발생했어요",
+  "errorOpenUrl": "{label} 페이지를 열 수 없어요",
+  "@errorOpenUrl": {
+    "placeholders": {"label": {"type": "String"}}
+  }
+}

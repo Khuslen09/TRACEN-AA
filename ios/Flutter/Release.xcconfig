@@ -1,0 +1,4 @@
+#include? "Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"
+#include "Generated.xcconfig"
+// Secrets.xcconfig 는 .gitignore 등록 — GOOGLE_MAPS_API_KEY 등 민감한 키 저장
+#include? "Secrets.xcconfig"

@@ -1,0 +1,18 @@
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: assets/images/tracen_splash_icon.png
+  color_dark: "#0C0B10"
+  image_dark: assets/images/tracen_splash_icon.png
+
+  android: true
+  ios: true
+  web: true
+  fullscreen: true
+
+  android_12:
+    color: "#FFFFFF"
+    image: assets/images/tracen_android12_icon.png
+    icon_background_color: "#FFFFFF"
+    color_dark: "#0C0B10"
+    image_dark: assets/images/tracen_android12_icon.png
+    icon_background_color_dark: "#0C0B10"

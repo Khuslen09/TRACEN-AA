@@ -1,0 +1,58 @@
+{
+  "@@locale": "en",
+
+  "onboardingSkip": "Skip",
+  "onboardingNext": "Next",
+  "onboardingStart": "Get Started",
+
+  "onboarding1Title": "Trace your own path\non the map",
+  "onboarding1Desc": "Walks, runs, travel — go anywhere\nwith AA by your side.",
+  "onboarding2Title": "Capture special\nmoments",
+  "onboarding2Desc": "Leave a photo and a note\nwherever you go.",
+  "onboarding3Title": "Pick up right where\nyou left off",
+  "onboarding3Desc": "Safely stored in the cloud,\nready whenever you are.",
+
+  "settingsTitle": "Settings",
+  "sectionAppearance": "Appearance",
+  "darkModeTitle": "Dark Mode",
+  "darkModeSubtitle": "Switch to a darker background",
+
+  "sectionLanguage": "Language",
+  "languageTitle": "App Language",
+  "languageSubtitle": "Choose your display language",
+  "languageSystemDefault": "Use device language",
+
+  "sectionTracking": "Tracking",
+  "autoTrackingTitle": "Auto Path Tracking",
+  "autoTrackingSubtitle": "Record your path on the map while the app is running",
+
+  "sectionNotifications": "Notifications",
+  "locationNotifTitle": "Location Tracking Alerts",
+  "locationNotifSubtitle": "Get notified while your route is being recorded",
+  "memoNotifTitle": "Note Saved Alerts",
+  "memoNotifSubtitle": "Get notified when a note is saved",
+  "runningNotifTitle": "Running Alerts",
+  "runningNotifSubtitle": "Get notified when a run is completed",
+
+  "sectionAccount": "Account",
+  "resetPasswordTitle": "Reset Password",
+  "resetPasswordSubtitle": "We'll send a reset link to your email",
+  "noEmail": "No email",
+  "loggedInAccount": "Signed-in account",
+
+  "sectionAppInfo": "About",
+  "privacyPolicy": "Privacy Policy",
+  "termsOfService": "Terms of Service",
+  "versionLabel": "Version",
+
+  "signOut": "Sign Out",
+  "deleteAccountAction": "Delete Account",
+  "signOutConfirmTitle": "Sign out?",
+  "signOutConfirmMessage": "You'll need to sign in again to access your trip history.",
+  "deleteAccountConfirmTitle": "Delete your account?",
+  "deleteAccountConfirmMessage": "All account data will be permanently deleted\nand cannot be recovered.",
+  "cancel": "Cancel",
+  "confirmDeleteAccount": "Delete",
+  "errorDeleteAccount": "Something went wrong while deleting your account",
+  "errorOpenUrl": "Couldn't open {label}"
+}

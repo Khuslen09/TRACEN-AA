@@ -1,0 +1,50 @@
+rules_version = '2';
+
+// Tracen Firestore Security Rules
+//
+// 원칙:
+//   - 모든 데이터는 사용자별 격리. uid가 일치해야 읽기/쓰기 가능.
+//   - users/{uid} 서브컬렉션 구조 (routes, pins) 활용.
+//   - 인증되지 않은 사용자는 어떤 데이터에도 접근 불가.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    match /users/{uid} {
+      allow read, write: if isOwner(uid);
+
+      // 여정 (러닝 기록)
+      match /routes/{routeId} {
+        allow read, write: if isOwner(uid);
+
+        // 러닝 자식 핀
+        match /pins/{pinId} {
+          allow read, write: if isOwner(uid);
+        }
+      }
+
+      // 일반 핀 (러닝과 무관) — users/{uid}/pins/{pinId}
+      match /pins/{pinId} {
+        allow read, write: if isOwner(uid);
+      }
+
+      // 일상 경로 (자동 백그라운드 트래킹) — users/{uid}/dayTracks/{dayId}
+      match /dayTracks/{dayId} {
+        allow read, write: if isOwner(uid);
+      }
+    }
+
+    // 그 외 모든 경로 명시적 거부
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

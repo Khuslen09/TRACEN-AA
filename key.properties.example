@@ -1,0 +1,15 @@
+# ──────────────────────────────────────────────────────────────
+# key.properties — Android 릴리즈 서명 설정
+# 사용법:
+#   1. 이 파일을 key.properties 로 복사
+#       cp key.properties.example key.properties
+#   2. 키스토어 생성 (아직 없다면)
+#       keytool -genkey -v -keystore android/keystore.jks \
+#               -alias tracen -keyalg RSA -keysize 2048 -validity 10000
+#   3. 아래 값을 실제 정보로 채워 넣기
+# ──────────────────────────────────────────────────────────────
+# key.properties 는 .gitignore 에 등록되어 있습니다 — 절대 커밋하지 마세요.
+storePassword=YOUR_KEYSTORE_PASSWORD
+keyPassword=YOUR_KEY_PASSWORD
+keyAlias=tracen
+storeFile=../android/keystore.jks

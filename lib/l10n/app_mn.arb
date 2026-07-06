@@ -1,0 +1,58 @@
+{
+  "@@locale": "mn",
+
+  "onboardingSkip": "Алгасах",
+  "onboardingNext": "Дараах",
+  "onboardingStart": "Эхлүүлэх",
+
+  "onboarding1Title": "Өөрийн замнасан замаа\nгазрын зураг дээр үлдээ",
+  "onboarding1Desc": "Алхалт, гүйлт, аялал — хаана ч байсан\nAA-тай хамт алхаарай.",
+  "onboarding2Title": "Онцгой мөчүүдээ\nтэмдэглэ",
+  "onboarding2Desc": "Хүрсэн газартаа зураг, тэмдэглэл\nхадгалаарай.",
+  "onboarding3Title": "Хаанаас ч дахин\nнээж үзээрэй",
+  "onboarding3Desc": "Аюулгүй хадгалагдсан тул\nхэдийд ч дахин үзэх боломжтой.",
+
+  "settingsTitle": "Тохиргоо",
+  "sectionAppearance": "Гадаад төрх",
+  "darkModeTitle": "Харанхуй горим",
+  "darkModeSubtitle": "Хар дэвсгэр рүү шилжинэ",
+
+  "sectionLanguage": "Хэл",
+  "languageTitle": "Аппын хэл",
+  "languageSubtitle": "Харагдах хэлээ сонгоно уу",
+  "languageSystemDefault": "Төхөөрөмжийн хэлийг ашиглах",
+
+  "sectionTracking": "Замнал бүртгэл",
+  "autoTrackingTitle": "Автомат замнал бүртгэл",
+  "autoTrackingSubtitle": "Апп ажиллаж байх хугацаанд явсан замыг газрын зураг дээр бүртгэнэ",
+
+  "sectionNotifications": "Мэдэгдэл",
+  "locationNotifTitle": "Байршил бүртгэлийн мэдэгдэл",
+  "locationNotifSubtitle": "Зам бүртгэгдэж байх үед мэдэгдэл авна",
+  "memoNotifTitle": "Тэмдэглэл хадгалсан мэдэгдэл",
+  "memoNotifSubtitle": "Тэмдэглэл хадгалагдсан үед мэдэгдэнэ",
+  "runningNotifTitle": "Гүйлтийн мэдэгдэл",
+  "runningNotifSubtitle": "Гүйлт дууссаны дараа үр дүнг мэдэгдэнэ",
+
+  "sectionAccount": "Бүртгэл",
+  "resetPasswordTitle": "Нууц үг сэргээх",
+  "resetPasswordSubtitle": "Сэргээх холбоосыг имэйлээр илгээнэ",
+  "noEmail": "Имэйл алга",
+  "loggedInAccount": "Нэвтэрсэн бүртгэл",
+
+  "sectionAppInfo": "Аппын мэдээлэл",
+  "privacyPolicy": "Нууцлалын бодлого",
+  "termsOfService": "Үйлчилгээний нөхцөл",
+  "versionLabel": "Хувилбар",
+
+  "signOut": "Гарах",
+  "deleteAccountAction": "Бүртгэл устгах",
+  "signOutConfirmTitle": "Гарах уу?",
+  "signOutConfirmMessage": "Замналын түүхээ ашиглахын тулд дахин нэвтрэх шаардлагатай болно.",
+  "deleteAccountConfirmTitle": "Бүртгэлээ үнэхээр устгах уу?",
+  "deleteAccountConfirmMessage": "Бүртгэлтэй холбоотой бүх мэдээлэл устах бөгөөд\nсэргээх боломжгүй.",
+  "cancel": "Цуцлах",
+  "confirmDeleteAccount": "Устгах",
+  "errorDeleteAccount": "Бүртгэл устгах явцад алдаа гарлаа",
+  "errorOpenUrl": "{label} хуудсыг нээж чадсангүй"
+}

@@ -83,7 +83,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _signOut() async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final confirmed = await _confirmDialog(
       title: l10n.signOutConfirmTitle,
       message: l10n.signOutConfirmMessage,
@@ -102,7 +102,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _deleteAccount() async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final confirmed = await _confirmDialog(
       title: l10n.deleteAccountConfirmTitle,
       message: l10n.deleteAccountConfirmMessage,
@@ -136,7 +136,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       if (mounted) {
         _showSnack(
-          AppLocalizations.of(context)!.errorOpenUrl(label),
+          AppLocalizations.of(context).errorOpenUrl(label),
           isError: true,
         );
       }
@@ -160,7 +160,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text(AppLocalizations.of(context)!.cancel),
+            child: Text(AppLocalizations.of(context).cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
@@ -185,7 +185,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _pickLanguage() async {
     final localeProvider = context.read<LocaleProvider>();
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
 
     // 바텀시트 dismiss(바깥 탭/뒤로가기)와 "기기 언어 사용" 선택을 구분하기 위해
     // 결과를 [Locale?] 형태로 감싼다 — 바깥 탭이면 최상위 null, 선택이면 리스트(내부가 null일 수도 있음).
@@ -236,7 +236,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final localeProvider = context.watch<LocaleProvider>();
     final currentLanguageLabel = localeProvider.locale == null
         ? l10n.languageSystemDefault

@@ -455,7 +455,7 @@ class CloudSyncService {
       await RouteDBService.upsertPinFromCloud(pin);
     }
 
-    // **신규**: 일상 경로(DayTrack) 다운로드 — 최근 30일치만.
+    // **신규**: 일상 경로(DayTrack) 다운로드 — 기간 제한 없이 전체.
     // 이 기기에 이미 해당 dayId 데이터가 있으면 이 기기가 "출처"이므로 건너뜀
     // (덮어쓰면 이 기기가 아직 클라우드에 안 올린 최신 점들을 잃을 수 있음).
     final dayTracksSnapshot = await _dayTracksCol(uid).get();

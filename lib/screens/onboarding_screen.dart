@@ -33,7 +33,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   int _index = 0;
 
   List<_OnboardingPageData> _pages(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     return [
       _OnboardingPageData(
         icon: Icons.near_me_rounded,
@@ -92,7 +92,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final pages = _pages(context);
     final isLast = _isLast(context);
 

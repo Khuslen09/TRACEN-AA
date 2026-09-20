@@ -743,30 +743,22 @@ class RouteDBService {
     await batch.commit(noResult: true);
   }
 
-  /// 최근 N일간의 day_tracks를 dayId별로 묶어 반환.
+  /// 전체 day_tracks를 dayId별로 묶어 반환.
+  /// (기간 제한 없음 — 기기에 설치된 이후 기록된 모든 발자취를 표시)
   static Future<Map<String, List<({double lat, double lng})>>>
-  getDayTrackPoints({String? userId, int days = 7}) async {
+  getDayTrackPoints({String? userId}) async {
     final database = await db;
 
-    final now = DateTime.now();
-    final dayIds = List.generate(days, (i) {
-      final d = now.subtract(Duration(days: i));
-      final mm = d.month.toString().padLeft(2, '0');
-      final dd = d.day.toString().padLeft(2, '0');
-      return '${d.year}-$mm-$dd';
-    });
-
-    final placeholders = dayIds.map((_) => '?').join(', ');
-    final args = <Object>[...dayIds];
+    final args = <Object>[];
     String userClause = '';
     if (userId != null) {
-      userClause = 'AND (user_id = ? OR user_id IS NULL)';
+      userClause = 'WHERE (user_id = ? OR user_id IS NULL)';
       args.add(userId);
     }
 
     final rows = await database.rawQuery(
       'SELECT day_id, lat, lng FROM day_tracks '
-      'WHERE day_id IN ($placeholders) $userClause '
+      '$userClause '
       'ORDER BY day_id DESC, time ASC',
       args,
     );

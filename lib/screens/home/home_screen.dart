@@ -48,7 +48,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ─── 내 위치 커스텀 마커 ───
   Marker? _myLocationMarker;
-  Position? _myPosition;
 
   // ─── 여정 상태 ───
   int? _currentRouteId;
@@ -72,8 +71,6 @@ class _HomeScreenState extends State<HomeScreen> {
   /// 카메라 이동 시 [_recomputeTrackScreenPoints]에서 다시 계산.
   List<List<Offset>> _trackScreenPoints = [];
 
-  /// 카메라 이동 디바운스 — 너무 자주 변환 안 하게.
-  final bool _recomputeScheduled = false;
 
   Set<Marker> get _allMarkers {
     final markers = <Marker>{..._pinMarkers};
@@ -147,7 +144,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// 위치 받아 마커 생성/갱신. 첫 위치 + 이후 스트림 모두에서 호출.
   Future<void> _updateMyLocationMarker(Position pos) async {
-    _myPosition = pos;
     // 내 위치 전용 마커 — 일반 카테고리 핀과 구별되는 디자인
     // (큰 반투명 외곽 링 + 작은 안쪽 dot).
     final icon = await MarkerBitmapUtil.myLocationMarker(
@@ -158,7 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
       markerId: const MarkerId('my_location'),
       position: LatLng(pos.latitude, pos.longitude),
       icon: icon,
-      zIndex: 10, // 핀 마커보다 위
+      zIndexInt: 10, // 핀 마커보다 위
       anchor: const Offset(0.5, 0.5),
       flat: false,
       consumeTapEvents: false,
@@ -209,20 +205,14 @@ class _HomeScreenState extends State<HomeScreen> {
   // 발자취 (day_tracks)
   // ─────────────────────────────────────────────
 
-  /// 일별 색상 팔레트 — 오늘부터 7일 전까지.
-  /// index 0 = 오늘, index 1 = 어제, ...
-  // 오늘 → 흰색 진하게, 오래될수록 점점 투명해짐
-
   /// day_tracks 데이터를 로드해서 _dayTrackPoints에 저장.
+  /// 기간 제한 없이 기기에 설치된 이후 기록된 전체 발자취를 표시.
   ///
   /// **v5 변경**: 이전엔 polyline을 직접 만들었지만, 이제 스크래치 오버레이가
   /// 발자취 표시를 담당하므로 LatLng 점만 보관. 변환은 카메라 이동 시.
   Future<void> _loadDayTracks() async {
     final uid = AuthService.currentUser?.uid;
-    final grouped = await RouteDBService.getDayTrackPoints(
-      userId: uid,
-      days: 7,
-    );
+    final grouped = await RouteDBService.getDayTrackPoints(userId: uid);
 
     final newPoints = <String, List<LatLng>>{};
     grouped.forEach((dayId, points) {

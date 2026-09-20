@@ -40,7 +40,6 @@ class ThemeProvider extends ChangeNotifier {
       ThemeMode.light => ThemeMode.dark,
       ThemeMode.dark => ThemeMode.system,
       ThemeMode.system => ThemeMode.light,
-      _ => ThemeMode.light,
     };
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();

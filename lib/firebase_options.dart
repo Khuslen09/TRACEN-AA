@@ -52,39 +52,39 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDN_ROuyy5zCV0HunRaWV_gf3doQ1qLUKA',
-    appId: '1:1059641094292:android:a32bb1556ff782ad9a4481',
+    appId: '1:1059641094292:android:af8c69d7c1e97ade9a4481',
     messagingSenderId: '1059641094292',
     projectId: 'swn-tracen-785a0',
     storageBucket: 'swn-tracen-785a0.firebasestorage.app',
   );
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyD76Z52_IoC83FycNtpToaZIJUHnvEaqSw',
-    appId: '1:1059641094292:ios:88ac5392f439b68c9a4481',
+    apiKey: 'AIzaSyAtd3aYToTx3CK7erqgASirikl2TUz0U8A',
+    appId: '1:1059641094292:ios:8feba0a552ba3f569a4481',
     messagingSenderId: '1059641094292',
     projectId: 'swn-tracen-785a0',
     storageBucket: 'swn-tracen-785a0.firebasestorage.app',
     androidClientId: '1059641094292-5vr6t1dg5uemgllb2gv174bhh10p59uk.apps.googleusercontent.com',
-    iosClientId: '1059641094292-qnhs86192mhfabgvvlbg6m7ognejsm15.apps.googleusercontent.com',
-    iosBundleId: 'com.khuslen.aa',
+    iosClientId: '1059641094292-34v0sucv2jbgie8doudrapir2a9c7n0u.apps.googleusercontent.com',
+    iosBundleId: 'com.khuslen.tracen',
   );
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyD76Z52_IoC83FycNtpToaZIJUHnvEaqSw',
-    appId: '1:1059641094292:ios:88ac5392f439b68c9a4481',
+    apiKey: 'AIzaSyAtd3aYToTx3CK7erqgASirikl2TUz0U8A',
+    appId: '1:1059641094292:ios:8feba0a552ba3f569a4481',
     messagingSenderId: '1059641094292',
     projectId: 'swn-tracen-785a0',
     storageBucket: 'swn-tracen-785a0.firebasestorage.app',
     androidClientId: '1059641094292-5vr6t1dg5uemgllb2gv174bhh10p59uk.apps.googleusercontent.com',
-    iosClientId: '1059641094292-qnhs86192mhfabgvvlbg6m7ognejsm15.apps.googleusercontent.com',
-    iosBundleId: 'com.khuslen.aa',
+    iosClientId: '1059641094292-34v0sucv2jbgie8doudrapir2a9c7n0u.apps.googleusercontent.com',
+    iosBundleId: 'com.khuslen.tracen',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyBb_GCmuis03tRfpf1DVBEpJ2XxgLjK9ww',
-    appId: '1:1059641094292:web:a04dc41a2d08ade79a4481',
+    apiKey: 'AIzaSyBIwKia_pfik7ekVHvbMD9Xgdzv_NQ_9RA',
+    appId: '1:1059641094292:web:c2a589c3f0d04b469a4481',
     messagingSenderId: '1059641094292',
     projectId: 'swn-tracen-785a0',
     authDomain: 'swn-tracen-785a0.firebaseapp.com',
     storageBucket: 'swn-tracen-785a0.firebasestorage.app',
-    measurementId: 'G-GWG5V03MJ4',
+    measurementId: 'G-VFQ2Q7Z61D',
   );
 }

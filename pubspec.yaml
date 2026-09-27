@@ -1,5 +1,5 @@
-name: aa
-description: "AA - GPS 기반 라이프로그 앱."
+name: tracen
+description: "TRACEN - GPS 기반 라이프로그 앱."
 publish_to: 'none'
 
 version: 1.1.0+1

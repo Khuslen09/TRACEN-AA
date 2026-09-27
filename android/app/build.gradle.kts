@@ -26,7 +26,7 @@ if (keystoreFile.exists()) {
 }
 
 android {
-    namespace = "com.khuslen.aa"
+    namespace = "com.khuslen.tracen"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -51,7 +51,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.khuslen.aa"
+        applicationId = "com.khuslen.tracen"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

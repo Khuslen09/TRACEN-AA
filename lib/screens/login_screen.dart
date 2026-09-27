@@ -4,7 +4,7 @@ import '../services/auth_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/theme_extensions.dart';
-import '../widgets/aa_logo.dart';
+import '../widgets/tracen_logo.dart';
 import 'auth_gate.dart';
 import 'forgot_password_screen.dart';
 import 'sign_up_screen.dart';
@@ -132,7 +132,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   const SizedBox(height: 48),
 
-                  Center(child: const AALogo(size: 80)),
+                  Center(child: const TracenLogo(size: 80)),
                   const SizedBox(height: 28),
                   Text(
                     '환영합니다',

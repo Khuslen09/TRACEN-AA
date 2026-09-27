@@ -83,6 +83,7 @@ lib/generated_plugin_registrant.dart
 .env
 *.env
 google-services.json
+ios/Flutter/Secrets.xcconfig
 GoogleService-Info.plist
 key.properties
 *.jks

@@ -58,7 +58,7 @@ class DefaultFirebaseOptions {
     storageBucket: 'swn-tracen-785a0.firebasestorage.app',
   );
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyAtd3aYToTx3CK7erqgASirikl2TUz0U8A',
+    apiKey: 'AIzaSyAIEQuwlG28pYQEvw_wQmbLHrN6Z-SBuyA',
     appId: '1:1059641094292:ios:8feba0a552ba3f569a4481',
     messagingSenderId: '1059641094292',
     projectId: 'swn-tracen-785a0',
@@ -68,7 +68,7 @@ class DefaultFirebaseOptions {
     iosBundleId: 'com.khuslen.tracen',
   );
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyAtd3aYToTx3CK7erqgASirikl2TUz0U8A',
+    apiKey: 'AIzaSyAIEQuwlG28pYQEvw_wQmbLHrN6Z-SBuyA',
     appId: '1:1059641094292:ios:8feba0a552ba3f569a4481',
     messagingSenderId: '1059641094292',
     projectId: 'swn-tracen-785a0',

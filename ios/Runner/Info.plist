@@ -14,6 +14,12 @@
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>ko</string>
+		<string>mn</string>
+	</array>
 	<key>CFBundleName</key>
 	<string>Tracen</string>
 	<key>CFBundlePackageType</key>
@@ -44,17 +50,17 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>여정 사진을 남기기 위해 카메라가 필요합니다.</string>
+	<string>Tracen needs camera access so you can take photos during your journeys.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>화면이 꺼진 동안에도 정확한 경로 기록을 위해 위치 정보가 필요합니다.</string>
+	<string>Tracen needs your location to keep recording your route accurately, even while the screen is off.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>화면이 꺼진 동안에도 정확한 경로 기록을 위해 위치 정보가 필요합니다.</string>
+	<string>Tracen needs your location to keep recording your route accurately, even while the screen is off.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>여정 경로를 기록하기 위해 위치 정보가 필요합니다.</string>
+	<string>Tracen needs your location to record your journey route.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>촬영한 사진을 사진 라이브러리에 저장하기 위해 권한이 필요합니다.</string>
+	<string>Tracen needs permission to save the photos you take to your photo library.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>저장된 사진을 불러오기 위해 사진 라이브러리 접근이 필요합니다.</string>
+	<string>Tracen needs access to your photo library so you can attach saved photos.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

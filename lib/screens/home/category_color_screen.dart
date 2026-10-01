@@ -1,3 +1,4 @@
+import '../../l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/pin_category.dart';
@@ -21,6 +22,8 @@ class CategoryColorScreen extends StatefulWidget {
 }
 
 class _CategoryColorScreenState extends State<CategoryColorScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context);
+
   late Map<PinCategory, Color> _colors;
 
   @override
@@ -50,16 +53,16 @@ class _CategoryColorScreenState extends State<CategoryColorScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('색상 초기화'),
-        content: const Text('모든 카테고리 색상을 기본값으로 되돌릴까요?'),
+        title: Text(l10n.resetColorsTitle),
+        content: Text(l10n.resetColorsBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('취소'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('초기화', style: TextStyle(color: AppColors.danger)),
+            child: Text(l10n.reset, style: TextStyle(color: AppColors.danger)),
           ),
         ],
       ),
@@ -82,9 +85,9 @@ class _CategoryColorScreenState extends State<CategoryColorScreen> {
       appBar: AppBar(
         backgroundColor: context.bgColor,
         elevation: 0,
-        title: Text('카테고리 색상', style: AppTextStyles.h3),
+        title: Text(l10n.categoryColors, style: AppTextStyles.h3),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          icon: Icon(Icons.arrow_back_ios_new_rounded),
           color: context.textPrimary,
           onPressed: () => Navigator.pop(context),
         ),
@@ -92,7 +95,7 @@ class _CategoryColorScreenState extends State<CategoryColorScreen> {
           TextButton(
             onPressed: _resetAll,
             child: Text(
-              '초기화',
+              l10n.reset,
               style: AppTextStyles.smallBold.copyWith(color: AppColors.gray400),
             ),
           ),
@@ -147,7 +150,7 @@ class _CategoryColorScreenState extends State<CategoryColorScreen> {
                   // 기본값 배지
                   if (isDefault)
                     Container(
-                      padding: const EdgeInsets.symmetric(
+                      padding: EdgeInsets.symmetric(
                         horizontal: 8,
                         vertical: 3,
                       ),
@@ -156,7 +159,7 @@ class _CategoryColorScreenState extends State<CategoryColorScreen> {
                         borderRadius: BorderRadius.circular(AppRadius.full),
                       ),
                       child: Text(
-                        '기본',
+                        l10n.colorDefault,
                         style: AppTextStyles.caption.copyWith(
                           color: AppColors.gray400,
                         ),
@@ -191,6 +194,8 @@ class _ColorPickerSheet extends StatefulWidget {
 }
 
 class _ColorPickerSheetState extends State<_ColorPickerSheet> {
+  AppLocalizations get l10n => AppLocalizations.of(context);
+
   late Color _selected;
 
   @override
@@ -235,9 +240,9 @@ class _ColorPickerSheetState extends State<_ColorPickerSheet> {
           Row(
             children: [
               Icon(widget.category.icon, size: 18, color: _selected),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               Text(
-                '${widget.category.label} 색상',
+                l10n.categoryColorTitle(widget.category.label),
                 style: AppTextStyles.h3,
               ),
             ],
@@ -267,7 +272,7 @@ class _ColorPickerSheetState extends State<_ColorPickerSheet> {
           const SizedBox(height: 24),
 
           // 색상 팔레트 그리드
-          Text('프리셋 색상', style: AppTextStyles.smallBold),
+          Text(l10n.presetColors, style: AppTextStyles.smallBold),
           const SizedBox(height: 12),
           Wrap(
             spacing: 12,
@@ -309,14 +314,14 @@ class _ColorPickerSheetState extends State<_ColorPickerSheet> {
             }).toList(),
           ),
 
-          const SizedBox(height: 28),
+          SizedBox(height: 28),
 
           // 확인 버튼
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () => Navigator.pop(context, _selected),
-              child: const Text('적용'),
+              child: Text(l10n.apply),
             ),
           ),
         ],

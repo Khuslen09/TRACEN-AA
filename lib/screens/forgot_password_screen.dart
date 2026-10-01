@@ -1,3 +1,4 @@
+import '../l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 import '../services/auth_service.dart';
@@ -9,7 +10,7 @@ import '../theme/theme_extensions.dart';
 ///
 /// 흐름:
 ///   1. 이메일 입력
-///   2. "재설정 메일 보내기" 누르면 Firebase가 메일 발송
+///   2. l10n.sendResetEmail 누르면 Firebase가 메일 발송
 ///   3. 성공 시 같은 화면을 success state로 전환 — 메일함 안내 + "로그인으로"
 ///
 /// 디자인 결정:
@@ -27,6 +28,8 @@ class ForgotPasswordScreen extends StatefulWidget {
 }
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context);
+
   late final TextEditingController _emailController =
       TextEditingController(text: widget.prefilledEmail ?? '');
   final _formKey = GlobalKey<FormState>();
@@ -42,9 +45,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   String? _validateEmail(String? v) {
     final s = v?.trim() ?? '';
-    if (s.isEmpty) return '이메일을 입력해주세요';
+    if (s.isEmpty) return l10n.emailRequired;
     final regex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
-    if (!regex.hasMatch(s)) return '올바른 이메일 형식이 아니에요';
+    if (!regex.hasMatch(s)) return l10n.emailInvalid;
     return null;
   }
 
@@ -123,10 +126,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             ),
             const SizedBox(height: 24),
 
-            Text('비밀번호를 잊으셨나요?', style: AppTextStyles.h1),
+            Text(l10n.forgotPasswordLink, style: AppTextStyles.h1),
             const SizedBox(height: 10),
             Text(
-              '가입하신 이메일을 입력하시면\n비밀번호 재설정 링크를 보내드려요.',
+              l10n.forgotPasswordDesc,
               style: AppTextStyles.bodyMuted,
             ),
 
@@ -135,7 +138,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             // 이메일 입력
             Padding(
               padding: const EdgeInsets.only(left: 4, bottom: 8),
-              child: Text('이메일', style: AppTextStyles.smallBold),
+              child: Text(l10n.commonEmail, style: AppTextStyles.smallBold),
             ),
             TextFormField(
               controller: _emailController,
@@ -175,7 +178,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                               AlwaysStoppedAnimation(Colors.white),
                         ),
                       )
-                    : const Text('재설정 메일 보내기'),
+                    : Text(l10n.sendResetEmail),
               ),
             ),
           ],
@@ -208,7 +211,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           ),
           const SizedBox(height: 24),
 
-          Text('메일을 보냈어요',
+          Text(l10n.resetEmailSentTitle,
               style: AppTextStyles.h1, textAlign: TextAlign.center),
           const SizedBox(height: 12),
 
@@ -221,7 +224,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            '받은편지함에서 재설정 메일을 확인해주세요.\n메일이 안 보이면 스팸함도 확인해보세요.',
+            l10n.resetEmailSentDesc,
             style: AppTextStyles.bodyMuted,
             textAlign: TextAlign.center,
           ),
@@ -238,7 +241,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               ),
               child: ElevatedButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('로그인 화면으로'),
+                child: Text(l10n.backToLogin),
               ),
             ),
           ),
@@ -248,7 +251,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           // 다시 보내기 — 메일이 안 도착했을 때
           TextButton(
             onPressed: () => setState(() => _sentToEmail = null),
-            child: const Text('다른 이메일로 다시 시도'),
+            child: Text(l10n.tryAnotherEmail),
           ),
 
           const SizedBox(height: 24),

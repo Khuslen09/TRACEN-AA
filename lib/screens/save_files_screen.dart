@@ -1,3 +1,5 @@
+import '../l10n/generated/app_localizations.dart';
+import '../l10n/strings.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -51,6 +53,8 @@ class SaveFilesScreen extends StatefulWidget {
 }
 
 class _SaveFilesScreenState extends State<SaveFilesScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context);
+
   final _memoController = TextEditingController();
   final _picker = ImagePicker();
 
@@ -95,7 +99,7 @@ class _SaveFilesScreenState extends State<SaveFilesScreen> {
     if (memo.isEmpty && _photoPath == null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('메모나 사진을 하나 이상 추가해주세요')));
+      ).showSnackBar(SnackBar(content: Text(l10n.addMemoOrPhoto)));
       return;
     }
 
@@ -127,7 +131,7 @@ class _SaveFilesScreenState extends State<SaveFilesScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('저장 실패: $e'),
+            content: Text(l10n.saveFailedWith('$e')),
             backgroundColor: AppColors.danger,
           ),
         );
@@ -141,7 +145,7 @@ class _SaveFilesScreenState extends State<SaveFilesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final today = DateFormat('EEEE, MMMM d', 'en_US').format(DateTime.now());
+    final today = DateFormat.MMMMEEEEd(Strings.current.localeName).format(DateTime.now());
 
     return Scaffold(
       backgroundColor: context.bgColor,
@@ -179,11 +183,11 @@ class _SaveFilesScreenState extends State<SaveFilesScreen> {
             // ── 본문 ──
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _SectionLabel('카테고리'),
+                    _SectionLabel(l10n.categoryLabel),
                     const SizedBox(height: 8),
                     _CategorySelector(
                       selected: _selectedCategory,
@@ -191,21 +195,21 @@ class _SaveFilesScreenState extends State<SaveFilesScreen> {
                       colorNotifier: widget.colorNotifier,
                     ),
 
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
 
-                    _SectionLabel('메모'),
-                    const SizedBox(height: 8),
+                    _SectionLabel(l10n.memoLabel),
+                    SizedBox(height: 8),
                     _MemoCard(controller: _memoController),
 
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
 
                     Row(
                       children: [
-                        const Expanded(child: _SectionLabel('사진')),
+                        Expanded(child: _SectionLabel(l10n.photoLabel)),
                         if (_photoPath != null)
                           TextButton(
                             onPressed: _removePhoto,
-                            child: const Text('삭제'),
+                            child: Text(l10n.commonDelete),
                           ),
                       ],
                     ),
@@ -243,7 +247,7 @@ class _SaveFilesScreenState extends State<SaveFilesScreen> {
                               valueColor: AlwaysStoppedAnimation(Colors.white),
                             ),
                           )
-                        : const Text('저장'),
+                        : Text(l10n.save),
                   ),
                 ),
               ),
@@ -278,20 +282,21 @@ class _MemoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       decoration: BoxDecoration(
         color: context.cardColor,
         borderRadius: BorderRadius.circular(AppRadius.lg),
         boxShadow: AppShadows.sm,
       ),
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       child: TextField(
         controller: controller,
         maxLines: 4,
         minLines: 3,
         style: AppTextStyles.body.copyWith(color: context.textPrimary),
-        decoration: const InputDecoration(
-          hintText: '오늘의 한 줄을 적어보세요...',
+        decoration: InputDecoration(
+          hintText: l10n.memoHint,
           filled: false,
           contentPadding: EdgeInsets.zero,
           border: InputBorder.none,
@@ -323,11 +328,12 @@ class _PhotoCard extends StatelessWidget {
         boxShadow: AppShadows.sm,
       ),
       padding: const EdgeInsets.all(16),
-      child: photoPath == null ? _buildEmptyState(context) : _buildPreview(),
+      child: photoPath == null ? _buildEmptyState(context) : _buildPreview(context),
     );
   }
 
   Widget _buildEmptyState(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       children: [
         // 점선 박스 — 사진 없음 표시
@@ -346,21 +352,21 @@ class _PhotoCard extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
         Row(
           children: [
             Expanded(
               child: _PhotoActionButton(
                 icon: Icons.photo_library_outlined,
-                label: '갤러리',
+                label: l10n.gallery,
                 onPressed: onPickGallery,
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             Expanded(
               child: _PhotoActionButton(
                 icon: Icons.photo_camera_outlined,
-                label: '카메라',
+                label: l10n.permCameraTitle,
                 onPressed: onPickCamera,
               ),
             ),
@@ -370,7 +376,8 @@ class _PhotoCard extends StatelessWidget {
     );
   }
 
-  Widget _buildPreview() {
+  Widget _buildPreview(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       children: [
         ClipRRect(
@@ -382,21 +389,21 @@ class _PhotoCard extends StatelessWidget {
             fit: BoxFit.cover,
           ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
         Row(
           children: [
             Expanded(
               child: _PhotoActionButton(
                 icon: Icons.photo_library_outlined,
-                label: '다른 사진',
+                label: l10n.anotherPhoto,
                 onPressed: onPickGallery,
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             Expanded(
               child: _PhotoActionButton(
                 icon: Icons.photo_camera_outlined,
-                label: '다시 촬영',
+                label: l10n.retakePhoto,
                 onPressed: onPickCamera,
               ),
             ),

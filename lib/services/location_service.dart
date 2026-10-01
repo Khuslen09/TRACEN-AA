@@ -1,3 +1,4 @@
+import '../l10n/strings.dart';
 import 'package:geolocator/geolocator.dart';
 
 /// 디바이스 GPS 관련 책임만 갖는 서비스.
@@ -14,18 +15,18 @@ class LocationService {
   static Future<void> ensurePermission() async {
     final serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      throw Exception('위치 서비스가 꺼져 있습니다. 디바이스 설정에서 켜주세요.');
+      throw Exception(Strings.current.locationServiceOff);
     }
 
     var permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        throw Exception('위치 권한이 거부되었습니다.');
+        throw Exception(Strings.current.locationPermissionDenied);
       }
     }
     if (permission == LocationPermission.deniedForever) {
-      throw Exception('위치 권한이 영구 거부되었습니다. 앱 설정에서 허용해주세요.');
+      throw Exception(Strings.current.locationPermissionDeniedForever);
     }
   }
 

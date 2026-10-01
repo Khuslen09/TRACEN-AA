@@ -1,3 +1,5 @@
+import '../../l10n/strings.dart';
+import '../../l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
@@ -29,6 +31,8 @@ class RouteMapScreen extends StatefulWidget {
 }
 
 class _RouteMapScreenState extends State<RouteMapScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context);
+
   GoogleMapController? _mapController;
 
   List<LatLng> _points = [];
@@ -50,7 +54,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
     if (routeId == null) {
       setState(() {
         _loading = false;
-        _error = '잘못된 여정입니다';
+        _error = l10n.invalidRoute;
       });
       return;
     }
@@ -94,7 +98,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
       if (mounted) {
         setState(() {
           _loading = false;
-          _error = '경로를 불러올 수 없어요';
+          _error = l10n.routeLoadFailed;
         });
       }
     }
@@ -156,7 +160,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
     if (mounted) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('핀을 삭제했어요')));
+      ).showSnackBar(SnackBar(content: Text(l10n.pinDeleted)));
     }
   }
 
@@ -273,10 +277,9 @@ class _RouteInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dateText = DateFormat(
-      'yyyy.MM.dd · a h:mm',
-      'ko_KR',
-    ).format(route.startedAt);
+    final l10n = AppLocalizations.of(context);
+    final dateText = '${DateFormat.yMd(Strings.current.localeName).format(route.startedAt)} · '
+        '${DateFormat.jm(Strings.current.localeName).format(route.startedAt)}';
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -302,7 +305,7 @@ class _RouteInfoCard extends StatelessWidget {
               ),
               if (route.isActive)
                 Container(
-                  padding: const EdgeInsets.symmetric(
+                  padding: EdgeInsets.symmetric(
                     horizontal: 10,
                     vertical: 4,
                   ),
@@ -311,7 +314,7 @@ class _RouteInfoCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(AppRadius.full),
                   ),
                   child: Text(
-                    '진행 중',
+                    l10n.runInProgress,
                     style: AppTextStyles.caption.copyWith(
                       color: AppColors.danger,
                       fontWeight: FontWeight.w600,
@@ -320,25 +323,25 @@ class _RouteInfoCard extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(height: 18),
+          SizedBox(height: 18),
           Row(
             children: [
               _StatCell(
                 icon: Icons.straighten_rounded,
-                label: '거리',
+                label: l10n.runDistance,
                 value: _formatDistance(route.distance),
               ),
               _Divider(),
               _StatCell(
                 icon: Icons.schedule_rounded,
-                label: '시간',
+                label: l10n.runTime,
                 value: _formatDuration(route.duration),
               ),
               _Divider(),
               _StatCell(
                 icon: Icons.place_rounded,
-                label: '핀',
-                value: '$pinCount개',
+                label: l10n.statPins,
+                value: l10n.pinCountValue(pinCount),
               ),
             ],
           ),

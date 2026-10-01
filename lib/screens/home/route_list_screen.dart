@@ -1,3 +1,5 @@
+import '../../l10n/strings.dart';
+import '../../l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -26,6 +28,8 @@ class RouteListScreen extends StatefulWidget {
 }
 
 class _RouteListScreenState extends State<RouteListScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context);
+
   late Future<List<TraceRoute>> _routesFuture;
 
   @override
@@ -56,20 +60,20 @@ class _RouteListScreenState extends State<RouteListScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.xl),
         ),
-        title: Text('이 러닝을 삭제할까요?', style: AppTextStyles.h3),
+        title: Text(l10n.deleteRunTitle, style: AppTextStyles.h3),
         content: Text(
-          '경로와 핀도 함께 삭제되며, 되돌릴 수 없어요.',
+          l10n.deleteRunBody,
           style: AppTextStyles.bodyMuted,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('취소'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: AppColors.danger),
-            child: const Text('삭제'),
+            child: Text(l10n.commonDelete),
           ),
         ],
       ),
@@ -82,7 +86,7 @@ class _RouteListScreenState extends State<RouteListScreen> {
     if (mounted) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('러닝을 삭제했어요')));
+      ).showSnackBar(SnackBar(content: Text(l10n.runDeleted)));
     }
   }
 
@@ -105,7 +109,7 @@ class _RouteListScreenState extends State<RouteListScreen> {
     return Scaffold(
       backgroundColor: context.bgColor,
       appBar: AppBar(
-        title: const Text('나의 러닝'),
+        title: Text(l10n.myRuns),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
           onPressed: () => Navigator.pop(context),
@@ -124,7 +128,7 @@ class _RouteListScreenState extends State<RouteListScreen> {
           }
 
           if (snapshot.hasError) {
-            return _ErrorState(message: '불러오기에 실패했어요', onRetry: _refresh);
+            return _ErrorState(message: l10n.loadFailed, onRetry: _refresh);
           }
 
           final routes = snapshot.data ?? [];
@@ -191,7 +195,7 @@ class _RouteListScreenState extends State<RouteListScreen> {
   String _formatMonthHeader(String key) {
     final parts = key.split('-');
     final date = DateTime(int.parse(parts[0]), int.parse(parts[1]));
-    return DateFormat('MMMM yyyy', 'en_US').format(date).toUpperCase();
+    return DateFormat.yMMMM(Strings.current.localeName).format(date).toUpperCase();
   }
 }
 
@@ -212,9 +216,10 @@ class _RouteCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final day = DateFormat('d').format(route.startedAt);
-    final weekday = DateFormat('EEE', 'ko_KR').format(route.startedAt);
-    final time = DateFormat('a h:mm', 'ko_KR').format(route.startedAt);
+    final weekday = DateFormat.E(Strings.current.localeName).format(route.startedAt);
+    final time = DateFormat.jm(Strings.current.localeName).format(route.startedAt);
 
     return Material(
       color: context.cardColor,
@@ -273,9 +278,9 @@ class _RouteCard extends StatelessWidget {
                                     shape: BoxShape.circle,
                                   ),
                                 ),
-                                const SizedBox(width: 4),
+                                SizedBox(width: 4),
                                 Text(
-                                  '진행 중',
+                                  l10n.runInProgress,
                                   style: AppTextStyles.caption.copyWith(
                                     color: AppColors.danger,
                                     fontWeight: FontWeight.w600,
@@ -334,9 +339,9 @@ class _RouteCard extends StatelessWidget {
   String _formatDuration(Duration d) {
     final h = d.inHours;
     final m = d.inMinutes.remainder(60);
-    if (h > 0) return '$h시간 $m분';
-    if (m > 0) return '$m분';
-    return '${d.inSeconds}초';
+    if (h > 0) return Strings.current.durationHM(h, m);
+    if (m > 0) return Strings.current.durationM(m);
+    return Strings.current.durationS(d.inSeconds);
   }
 }
 
@@ -384,6 +389,7 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(40),
@@ -403,15 +409,15 @@ class _EmptyState extends StatelessWidget {
                 color: AppColors.primary,
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             Text(
-              '아직 기록된 러닝이 없어요',
+              l10n.noRunsYet,
               style: AppTextStyles.h3,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Text(
-              '지도 화면의 보라색 러닝 버튼을 눌러\n첫 러닝을 시작해보세요.',
+              l10n.noRunsHint,
               style: AppTextStyles.bodyMuted,
               textAlign: TextAlign.center,
             ),
@@ -430,6 +436,7 @@ class _ErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -442,7 +449,7 @@ class _ErrorState extends StatelessWidget {
           const SizedBox(height: 16),
           Text(message, style: AppTextStyles.body),
           const SizedBox(height: 16),
-          TextButton(onPressed: onRetry, child: const Text('다시 시도')),
+          TextButton(onPressed: onRetry, child: Text(l10n.commonRetry)),
         ],
       ),
     );

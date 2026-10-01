@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// 앱이 사용하는 모든 권한을 한 곳에서 관리.
 ///
@@ -33,6 +36,31 @@ class PermissionService {
 
   static Future<AppPermissionStatus> requestLocation() async {
     final result = await Permission.locationWhenInUse.request();
+    return _toAppStatus(result);
+  }
+
+  static const _alwaysAskedKey = 'location_always_asked';
+
+  /// iOS 백그라운드 경로 기록용 "항상 허용" 업그레이드 요청.
+  ///
+  /// iOS는 "앱 사용 중 허용"을 먼저 받은 뒤에만 "항상 허용" 전환을 물을 수 있고,
+  /// 그 안내는 사실상 한 번만 뜬다. 그래서 기본 위치 권한이 허용된 상태에서
+  /// 딱 한 번만 요청하고, 이후엔 설정 앱에서 바꾸도록 둔다.
+  /// Android는 포그라운드 서비스로 백그라운드 추적을 하므로 요청하지 않는다.
+  static Future<AppPermissionStatus> requestLocationAlways() async {
+    if (!Platform.isIOS) return AppPermissionStatus.granted;
+
+    final current = await Permission.locationAlways.status;
+    if (current.isGranted) return AppPermissionStatus.granted;
+
+    final whenInUse = await Permission.locationWhenInUse.status;
+    if (!whenInUse.isGranted) return _toAppStatus(current);
+
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool(_alwaysAskedKey) ?? false) return _toAppStatus(current);
+    await prefs.setBool(_alwaysAskedKey, true);
+
+    final result = await Permission.locationAlways.request();
     return _toAppStatus(result);
   }
 

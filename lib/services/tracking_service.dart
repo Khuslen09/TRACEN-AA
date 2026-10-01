@@ -1,3 +1,4 @@
+import '../l10n/strings.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -11,6 +12,7 @@ import '../firebase_options.dart';
 import '../services/auth_service.dart';
 import '../services/cloud_sync_service.dart';
 import '../services/location_service.dart';
+import '../services/permission_service.dart';
 import '../services/route_db_service.dart';
 
 // ─────────────────────────────────────────────────────────────
@@ -89,6 +91,7 @@ class TrackingService {
   static const _prefKey = 'auto_tracking_enabled';
   static StreamSubscription<Position>? _fgSub;
   static int _pointsSinceFlush = 0;
+  static bool _iosBackground = false;
 
   // ─────────────────────────────────────────────
   // 초기화
@@ -105,8 +108,8 @@ class TrackingService {
     FlutterForegroundTask.init(
       androidNotificationOptions: AndroidNotificationOptions(
         channelId: 'aa_tracking',
-        channelName: 'AA 위치 추적',
-        channelDescription: '백그라운드에서 경로를 기록하고 있습니다.',
+        channelName: Strings.current.trackingChannelName,
+        channelDescription: Strings.current.trackingChannelDesc,
         channelImportance: NotificationChannelImportance.LOW,
         priority: NotificationPriority.LOW,
         // v8.17+: iconData 파라미터 제거됨
@@ -164,32 +167,35 @@ class TrackingService {
   }
 
   static Future<void> _startAndroid() async {
-    await _fgSub?.cancel();
+    // 새 구독을 먼저 걸고 이전 것을 나중에 취소 — cancel을 await하는 사이에
+    // start()가 동시에 또 불려도 리스너가 겹쳐서 새지 않게 한다.
+    final previous = _fgSub;
     _fgSub = LocationService.positionStream().listen(
       _onPosition,
       onError: (e) {
         if (kDebugMode) debugPrint('[Tracking] Android GPS 오류: $e');
       },
     );
+    await previous?.cancel();
 
     final result = await FlutterForegroundTask.startService(
       serviceId: 1000,
-      notificationTitle: 'AA 경로 기록 중',
-      notificationText: '백그라운드에서 위치를 추적하고 있습니다.',
+      notificationTitle: Strings.current.trackingNotifTitle,
+      notificationText: Strings.current.trackingNotifText,
       callback: startCallback,
     );
     if (kDebugMode) debugPrint('[Tracking] Android 서비스 시작: $result');
   }
 
   static Future<void> _startIOS() async {
-    await _fgSub?.cancel();
-
     // B-3: "항상 허용" 권한이 있을 때만 allowBackgroundLocationUpdates 활성화.
     // "앱 사용 중만 허용" 상태에서는 백그라운드 업데이트를 켜면 iOS 가 무음으로 무시한다.
     final permission = await Geolocator.checkPermission();
     final hasAlways = permission == LocationPermission.always;
+    _iosBackground = hasAlways;
 
-
+    // 새 구독을 먼저 걸고 이전 것을 나중에 취소 (동시 start() 시 리스너 중복 방지).
+    final previous = _fgSub;
     _fgSub = Geolocator.getPositionStream(
       locationSettings: AppleSettings(
         accuracy: LocationAccuracy.high,
@@ -205,9 +211,22 @@ class TrackingService {
         if (kDebugMode) debugPrint('[Tracking] iOS GPS 오류: $e');
       },
     );
+    await previous?.cancel();
 
     if (kDebugMode) {
       debugPrint('[Tracking] iOS 위치 추적 시작 (백그라운드: $hasAlways)');
+    }
+  }
+
+  /// iOS: "항상 허용"을 (필요하면 한 번) 요청하고, 권한 상태가 추적 시작 때와
+  /// 달라졌으면 추적을 재시작해서 백그라운드 업데이트를 켜거나 끈다.
+  /// 앱이 처음 뜰 때와 설정 앱에서 돌아왔을 때(resumed) 호출한다.
+  static Future<void> ensureBackgroundLocation() async {
+    if (!Platform.isIOS || !isRunning) return;
+    await PermissionService.requestLocationAlways();
+    final permission = await Geolocator.checkPermission();
+    if ((permission == LocationPermission.always) != _iosBackground) {
+      await _startIOS();
     }
   }
 

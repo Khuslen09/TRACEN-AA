@@ -1,3 +1,5 @@
+import '../l10n/generated/app_localizations.dart';
+import '../l10n/strings.dart';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -51,15 +53,40 @@ class PlaceRecommendService {
   static String get _geminiEndpoint =>
       'https://generativelanguage.googleapis.com/v1beta/models/$_geminiModel:generateContent?key=${Env.geminiApiKey}';
 
+  /// 칩 키 → Google Places 타입. (표시 이름은 [chipLabel] 로 현재 언어에 맞게 만든다.)
   static const _chipToType = {
-    '맛집': 'restaurant',
-    '카페': 'cafe',
-    '팝업스토어': 'store',
-    '술집': 'bar',
-    '공원': 'park',
-    '쇼핑': 'shopping_mall',
-    '문화': 'museum',
-    '편의점': 'convenience_store',
+    'restaurant': 'restaurant',
+    'cafe': 'cafe',
+    'popup': 'store',
+    'bar': 'bar',
+    'park': 'park',
+    'shopping': 'shopping_mall',
+    'culture': 'museum',
+    'convenience': 'convenience_store',
+  };
+
+  static const chipKeys = [
+    'restaurant',
+    'cafe',
+    'popup',
+    'bar',
+    'park',
+    'shopping',
+    'culture',
+    'convenience',
+  ];
+
+  /// 칩 키의 현재 언어 표시 이름.
+  static String chipLabel(AppLocalizations l10n, String key) => switch (key) {
+    'restaurant' => l10n.chipRestaurant,
+    'cafe' => l10n.chipCafe,
+    'popup' => l10n.chipPopup,
+    'bar' => l10n.chipBar,
+    'park' => l10n.chipPark,
+    'shopping' => l10n.chipShopping,
+    'culture' => l10n.chipCulture,
+    'convenience' => l10n.chipConvenience,
+    _ => key,
   };
 
   static Future<PlaceRecommendation> recommend({
@@ -69,14 +96,12 @@ class PlaceRecommendService {
     required int people,
   }) async {
     if (!Env.hasGeminiKey) {
-      throw 'AI 기능을 쓰려면 .env에 GEMINI_API_KEY가 필요해요.\n'
-          'aistudio.google.com 에서 무료로 발급받을 수 있어요.';
+      throw Strings.current.placeErrNoGeminiKey;
     }
 
     final candidates = await _searchCandidates(origin, chips);
     if (candidates.length < 2) {
-      throw '주변에 추천할 장소가 충분하지 않아요. (검색된 후보: ${candidates.length}개)\n'
-          'Places API 활성화 / 결제 계정 / 위치를 확인해주세요.';
+      throw Strings.current.placeErrNotEnough(candidates.length);
     }
 
     return _askGemini(
@@ -95,7 +120,7 @@ class PlaceRecommendService {
     List<String> chips,
   ) async {
     final key = Env.googleMapsApiKey;
-    if (key.isEmpty) throw 'Google Maps API 키가 없어요. (.env 확인)';
+    if (key.isEmpty) throw Strings.current.placeErrNoMapsKey;
 
     final types = chips.isEmpty
         ? ['restaurant', 'cafe']
@@ -178,15 +203,13 @@ class PlaceRecommendService {
   static String _statusToMessage(String? status) {
     switch (status) {
       case 'REQUEST_DENIED':
-        return 'Places API가 거부됐어요.\n'
-            'Google Cloud에서 "Places API"를 활성화하고, '
-            'API 키 제한에 Places를 추가했는지 확인해주세요.';
+        return Strings.current.placeErrDenied;
       case 'OVER_QUERY_LIMIT':
-        return 'API 사용 한도를 초과했어요. 결제 계정을 확인해주세요.';
+        return Strings.current.placeErrQuota;
       case 'INVALID_REQUEST':
-        return '검색 요청이 잘못됐어요. 위치 정보를 확인해주세요.';
+        return Strings.current.placeErrBadRequest;
       default:
-        return '장소 검색 실패: $status';
+        return Strings.current.placeErrSearchFailed(status ?? "UNKNOWN");
     }
   }
 
@@ -204,33 +227,43 @@ class PlaceRecommendService {
         .entries
         .map((e) {
           final p = e.value;
-          final rating = p.rating > 0 ? ' 평점${p.rating}' : '';
+          final rating = p.rating > 0 ? ' rating ${p.rating}' : '';
           return '${e.key}. ${p.name} [${p.category}]$rating ${p.address}';
         })
         .join('\n');
 
-    final chipText = chips.isEmpty ? '(없음)' : chips.join(', ');
-    final query =
-        [chips.join(' '), userInput].where((s) => s.isNotEmpty).join(' ');
+    final l10n = Strings.current;
+    final chipText = chips.isEmpty
+        ? '(none)'
+        : chips.map((k) => chipLabel(l10n, k)).join(', ');
+    final query = [
+      chips.map((k) => chipLabel(l10n, k)).join(' '),
+      userInput,
+    ].where((s) => s.isNotEmpty).join(' ');
+    final language = switch (l10n.localeName) {
+      'en' => 'English',
+      'mn' => 'Mongolian',
+      _ => 'Korean',
+    };
 
     final prompt = '''
-당신은 위치 기반 장소 추천 도우미입니다.
+You are a location-based place recommendation assistant.
 
-사용자 요청:
-- 인원: $people명
-- 선택한 카테고리: $chipText
-- 자유 입력: ${userInput.isEmpty ? '(없음)' : userInput}
+User request:
+- Party size: $people
+- Selected categories: $chipText
+- Free-form input: ${userInput.isEmpty ? '(none)' : userInput}
 
-아래 후보 장소들 중에서 사용자 요청에 가장 잘 맞는 3~5곳을 골라주세요.
+From the candidate places below, pick the 3 to 5 that best match the request.
 
-후보 (번호. 이름 [카테고리] 평점 주소):
+Candidates (index. name [category] rating address):
 $candidateText
 
-반드시 아래 JSON 형식으로만 응답하세요. 마크다운 코드블록 없이 JSON만:
+Respond ONLY in the JSON format below, with no markdown code block:
 {
-  "selected": [선택한 후보 번호 배열],
-  "summary": "전체 추천에 대한 1~2문장 친근한 한국어 코멘트",
-  "reasons": ["각 선택 장소의 추천 이유 한 줄 (선택 순서대로, 인원/분위기 반영)"]
+  "selected": [array of chosen candidate indices],
+  "summary": "a friendly 1-2 sentence comment about the overall recommendation, written in $language",
+  "reasons": ["a one-line reason for each chosen place (same order as selected, reflecting party size and mood), written in $language"]
 }''';
 
     late final http.Response res;
@@ -255,13 +288,13 @@ $candidateText
           )
           .timeout(const Duration(seconds: 30));
     } catch (e) {
-      throw 'AI 호출 중 네트워크 오류가 났어요: $e';
+      throw Strings.current.aiErrNetwork('$e');
     }
 
     debugPrint('[Place] Gemini → HTTP ${res.statusCode}');
     if (res.statusCode != 200) {
       debugPrint('[Place] Gemini 에러 본문: ${res.body}');
-      throw 'AI 응답 오류 (${res.statusCode})\n${res.body}';
+      throw Strings.current.aiErrResponse(res.statusCode, res.body);
     }
 
     final data =
@@ -270,13 +303,13 @@ $candidateText
     // Gemini 응답 파싱: candidates[0].content.parts[0].text
     final geminiCandidates = data['candidates'] as List?;
     if (geminiCandidates == null || geminiCandidates.isEmpty) {
-      throw 'Gemini 응답에서 내용을 찾지 못했어요.';
+      throw Strings.current.aiErrNoContent;
     }
 
     final parts =
         geminiCandidates[0]['content']?['parts'] as List?;
     if (parts == null || parts.isEmpty) {
-      throw 'Gemini 응답 구조가 올바르지 않아요.';
+      throw Strings.current.aiErrBadStructure;
     }
 
     final text = parts[0]['text'] as String? ?? '';
@@ -300,7 +333,7 @@ $candidateText
     final start = cleaned.indexOf('{');
     final end = cleaned.lastIndexOf('}');
     if (start == -1 || end == -1 || end <= start) {
-      throw 'AI 응답을 이해하지 못했어요. 다시 시도해주세요.\n응답: $rawText';
+      throw Strings.current.aiErrUnparsable(rawText);
     }
 
     late final Map<String, dynamic> parsed;
@@ -308,7 +341,7 @@ $candidateText
       parsed = jsonDecode(cleaned.substring(start, end + 1))
           as Map<String, dynamic>;
     } catch (_) {
-      throw 'AI 응답 형식이 올바르지 않아요. 다시 시도해주세요.';
+      throw Strings.current.aiErrBadFormat;
     }
 
     final indices = (parsed['selected'] as List?)
@@ -316,10 +349,10 @@ $candidateText
             .where((i) => i >= 0)
             .toList() ??
         <int>[];
-    final summary = parsed['summary'] as String? ?? '추천 장소예요.';
+    final summary = parsed['summary'] as String? ?? Strings.current.aiDefaultReason;
     final reasons = (parsed['reasons'] as List?)?.cast<String>() ?? [];
 
-    if (indices.isEmpty) throw 'AI가 장소를 고르지 못했어요. 다시 시도해주세요.';
+    if (indices.isEmpty) throw Strings.current.aiErrNoPick;
 
     final places = <Place>[];
     for (var i = 0; i < indices.length; i++) {
@@ -329,14 +362,14 @@ $candidateText
       places.add(Place(
         name: base.name,
         position: base.position,
-        reason: i < reasons.length ? reasons[i] : '추천 장소예요.',
+        reason: i < reasons.length ? reasons[i] : Strings.current.aiDefaultReason,
         category: base.category,
         rating: base.rating,
         address: base.address,
       ));
     }
 
-    if (places.isEmpty) throw '유효한 장소가 부족해요. 다시 시도해주세요.';
+    if (places.isEmpty) throw Strings.current.aiErrTooFewValid;
 
     return PlaceRecommendation(
       places: places,

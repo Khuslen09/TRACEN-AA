@@ -1,3 +1,5 @@
+import '../../l10n/strings.dart';
+import '../../l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
@@ -21,7 +23,7 @@ import '../../theme/theme_extensions.dart';
 ///
 /// 동작:
 ///   - RouteDBService.getRoute + getRoutePoints + getPins 모두 로드
-///   - 사용자가 "확인" 누르면 HomeScreen으로 pop
+///   - 사용자가 l10n.commonOk 누르면 HomeScreen으로 pop
 ///
 /// **MVP v5 / Week 7**: 시연 임팩트 큰 화면. 발표용 폴리시.
 class RunningResultScreen extends StatefulWidget {
@@ -35,6 +37,8 @@ class RunningResultScreen extends StatefulWidget {
 }
 
 class _RunningResultScreenState extends State<RunningResultScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context);
+
   GoogleMapController? _mapController;
 
   Future<_RunResult>? _loadFuture;
@@ -48,7 +52,7 @@ class _RunningResultScreenState extends State<RunningResultScreen> {
   Future<_RunResult> _load() async {
     final run = await RouteDBService.getRoute(widget.runId);
     if (run == null) {
-      throw StateError('러닝 정보를 찾을 수 없어요');
+      throw StateError(Strings.current.runInfoNotFound);
     }
     final points = await RouteDBService.getPoints(widget.runId);
     final pins = await RouteDBService.getPins(widget.runId);
@@ -92,7 +96,7 @@ class _RunningResultScreenState extends State<RunningResultScreen> {
         future: _loadFuture,
         builder: (ctx, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
+            return Center(
               child: CircularProgressIndicator(
                 color: AppColors.primary,
                 strokeWidth: 2.5,
@@ -102,9 +106,9 @@ class _RunningResultScreenState extends State<RunningResultScreen> {
           if (snapshot.hasError || snapshot.data == null) {
             return Center(
               child: Padding(
-                padding: const EdgeInsets.all(24),
+                padding: EdgeInsets.all(24),
                 child: Text(
-                  snapshot.error?.toString() ?? '결과를 불러올 수 없어요',
+                  snapshot.error?.toString() ?? l10n.resultLoadFailed,
                   style: AppTextStyles.body,
                   textAlign: TextAlign.center,
                 ),
@@ -127,10 +131,8 @@ class _RunningResultScreenState extends State<RunningResultScreen> {
       elapsed: elapsed,
     );
     final calories = RunMetrics.estimateCalories(distanceMeters: run.distance);
-    final dateStr = DateFormat(
-      'M월 d일 (E) a h:mm',
-      'ko_KR',
-    ).format(run.startedAt);
+    final dateStr = '${DateFormat.MMMEd(Strings.current.localeName).format(run.startedAt)} '
+        '${DateFormat.jm(Strings.current.localeName).format(run.startedAt)}';
 
     return SafeArea(
       child: Column(
@@ -152,14 +154,14 @@ class _RunningResultScreenState extends State<RunningResultScreen> {
           // ── 스크롤 가능 컨텐츠 ──
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+              padding: EdgeInsets.fromLTRB(20, 0, 20, 20),
               child: Column(
                 children: [
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
 
                   // 축하 + 날짜
                   Text(
-                    '러닝 완료',
+                    l10n.runComplete,
                     style: AppTextStyles.smallBold.copyWith(
                       letterSpacing: 1.5,
                       color: AppColors.primary,
@@ -236,7 +238,7 @@ class _RunningResultScreenState extends State<RunningResultScreen> {
 
           // ── 하단: 확인 버튼 ──
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+            padding: EdgeInsets.fromLTRB(20, 8, 20, 16),
             child: SizedBox(
               width: double.infinity,
               child: Container(
@@ -246,7 +248,7 @@ class _RunningResultScreenState extends State<RunningResultScreen> {
                 ),
                 child: ElevatedButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('확인'),
+                  child: Text(l10n.commonOk),
                 ),
               ),
             ),
@@ -288,8 +290,9 @@ class _StatsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: context.cardColor,
         borderRadius: BorderRadius.circular(AppRadius.xl),
@@ -300,34 +303,34 @@ class _StatsGrid extends StatelessWidget {
           Row(
             children: [
               _StatCell(
-                label: '시간',
+                label: l10n.runTime,
                 value: RunMetrics.formatElapsed(elapsed),
                 icon: Icons.timer_outlined,
               ),
               _CellDivider(),
               _StatCell(
-                label: '평균 페이스',
+                label: l10n.runAvgPace,
                 value: RunMetrics.formatPace(pace),
                 icon: Icons.speed_rounded,
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
           Container(height: 1, color: AppColors.border),
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
           Row(
             children: [
               _StatCell(
-                label: '칼로리',
+                label: l10n.runCalories,
                 value: '$calories',
                 suffix: 'kcal',
                 icon: Icons.local_fire_department_outlined,
               ),
               _CellDivider(),
               _StatCell(
-                label: '핀',
+                label: l10n.statPins,
                 value: '$pinCount',
-                suffix: '개',
+                suffix: l10n.unitCountSuffix,
                 icon: Icons.place_outlined,
               ),
             ],
@@ -418,6 +421,7 @@ class _MapPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final polylinePoints = points.map((p) => LatLng(p.lat, p.lng)).toList();
 
     return SizedBox(
@@ -455,7 +459,7 @@ class _MapPreview extends StatelessWidget {
                   icon: BitmapDescriptor.defaultMarkerWithHue(
                     BitmapDescriptor.hueGreen,
                   ),
-                  infoWindow: const InfoWindow(title: '시작'),
+                  infoWindow: InfoWindow(title: l10n.mapStart),
                 ),
                 // 끝점
                 Marker(
@@ -464,7 +468,7 @@ class _MapPreview extends StatelessWidget {
                   icon: BitmapDescriptor.defaultMarkerWithHue(
                     BitmapDescriptor.hueRed,
                   ),
-                  infoWindow: const InfoWindow(title: '도착'),
+                  infoWindow: InfoWindow(title: l10n.mapEnd),
                 ),
                 // 러닝 중 추가한 핀들 (카테고리 색상)
                 for (final pin in pins)
@@ -495,6 +499,7 @@ class _MapPreview extends StatelessWidget {
 class _NoPathPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       height: 160,
       decoration: BoxDecoration(
@@ -505,9 +510,9 @@ class _NoPathPlaceholder extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.map_outlined, size: 36, color: AppColors.gray400),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Text(
-            '경로가 너무 짧아서 표시할 수 없어요',
+            l10n.routeTooShort,
             style: AppTextStyles.small.copyWith(color: context.textSecondary),
           ),
         ],

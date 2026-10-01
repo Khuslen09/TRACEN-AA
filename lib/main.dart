@@ -10,6 +10,7 @@ import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 
 import 'firebase_options.dart';
 import 'l10n/generated/app_localizations.dart';
+import 'l10n/strings.dart';
 import 'screens/splash_screen.dart';
 import 'services/env_service.dart';
 import 'services/tracking_service.dart';
@@ -30,8 +31,8 @@ Future<void> main() async {
 
   // 날짜 포맷팅용 로케일 데이터
   try {
-    await initializeDateFormatting('ko_KR', null);
-    await initializeDateFormatting('en_US', null);
+    // 지원 언어(ko/en/mn) 날짜 데이터를 모두 초기화.
+    await initializeDateFormatting();
   } catch (e) {
     debugPrint('[main] 로케일 초기화 실패: $e');
   }
@@ -67,13 +68,42 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
       ],
-      child: const AAApp(),
+      child: const TracenApp(),
     ),
   );
 }
 
-class AAApp extends StatelessWidget {
-  const AAApp({super.key});
+class TracenApp extends StatefulWidget {
+  const TracenApp({super.key});
+
+  @override
+  State<TracenApp> createState() => _TracenAppState();
+}
+
+class _TracenAppState extends State<TracenApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // 첫 프레임 이후 — 시스템 권한 다이얼로그가 UI 위에 안전하게 뜰 수 있는 시점.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      TrackingService.ensureBackgroundLocation();
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  // 설정 앱에서 위치 권한을 "항상"으로 바꾸고 돌아온 경우 바로 반영.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      TrackingService.ensureBackgroundLocation();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,12 +111,25 @@ class AAApp extends StatelessWidget {
     final localeProvider = context.watch<LocaleProvider>();
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'AA',
+      title: 'Tracen',
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: themeProvider.mode,
       locale: localeProvider.locale, // null이면 기기 언어 자동 감지
+      builder: (context, child) {
+        // 서비스 계층(BuildContext 없음)이 현재 언어의 번역을 쓸 수 있게 갱신.
+        Strings.update(AppLocalizations.of(context));
+        return child ?? const SizedBox.shrink();
+      },
       supportedLocales: LocaleProvider.supportedLocales,
+      // "기기 언어 사용"일 때: 기기 언어가 지원 목록(ko/en/mn)에 있으면 그대로,
+      // 없는 언어(일본어 등)면 영어로.
+      localeResolutionCallback: (deviceLocale, supported) {
+        for (final l in supported) {
+          if (l.languageCode == deviceLocale?.languageCode) return l;
+        }
+        return const Locale('en');
+      },
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,

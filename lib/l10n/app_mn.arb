@@ -1,31 +1,25 @@
 {
   "@@locale": "mn",
-
   "onboardingSkip": "Алгасах",
   "onboardingNext": "Дараах",
   "onboardingStart": "Эхлүүлэх",
-
   "onboarding1Title": "Өөрийн замнасан замаа\nгазрын зураг дээр үлдээ",
-  "onboarding1Desc": "Алхалт, гүйлт, аялал — хаана ч байсан\nAA-тай хамт алхаарай.",
+  "onboarding1Desc": "Алхалт, гүйлт, аялал — хаана ч байсан\nTracen-тэй хамт алхаарай.",
   "onboarding2Title": "Онцгой мөчүүдээ\nтэмдэглэ",
   "onboarding2Desc": "Хүрсэн газартаа зураг, тэмдэглэл\nхадгалаарай.",
   "onboarding3Title": "Хаанаас ч дахин\nнээж үзээрэй",
   "onboarding3Desc": "Аюулгүй хадгалагдсан тул\nхэдийд ч дахин үзэх боломжтой.",
-
   "settingsTitle": "Тохиргоо",
   "sectionAppearance": "Гадаад төрх",
   "darkModeTitle": "Харанхуй горим",
   "darkModeSubtitle": "Хар дэвсгэр рүү шилжинэ",
-
   "sectionLanguage": "Хэл",
   "languageTitle": "Аппын хэл",
   "languageSubtitle": "Харагдах хэлээ сонгоно уу",
   "languageSystemDefault": "Төхөөрөмжийн хэлийг ашиглах",
-
   "sectionTracking": "Замнал бүртгэл",
   "autoTrackingTitle": "Автомат замнал бүртгэл",
   "autoTrackingSubtitle": "Апп ажиллаж байх хугацаанд явсан замыг газрын зураг дээр бүртгэнэ",
-
   "sectionNotifications": "Мэдэгдэл",
   "locationNotifTitle": "Байршил бүртгэлийн мэдэгдэл",
   "locationNotifSubtitle": "Зам бүртгэгдэж байх үед мэдэгдэл авна",
@@ -33,18 +27,15 @@
   "memoNotifSubtitle": "Тэмдэглэл хадгалагдсан үед мэдэгдэнэ",
   "runningNotifTitle": "Гүйлтийн мэдэгдэл",
   "runningNotifSubtitle": "Гүйлт дууссаны дараа үр дүнг мэдэгдэнэ",
-
   "sectionAccount": "Бүртгэл",
   "resetPasswordTitle": "Нууц үг сэргээх",
   "resetPasswordSubtitle": "Сэргээх холбоосыг имэйлээр илгээнэ",
   "noEmail": "Имэйл алга",
   "loggedInAccount": "Нэвтэрсэн бүртгэл",
-
   "sectionAppInfo": "Аппын мэдээлэл",
   "privacyPolicy": "Нууцлалын бодлого",
   "termsOfService": "Үйлчилгээний нөхцөл",
   "versionLabel": "Хувилбар",
-
   "signOut": "Гарах",
   "deleteAccountAction": "Бүртгэл устгах",
   "signOutConfirmTitle": "Гарах уу?",
@@ -54,5 +45,381 @@
   "cancel": "Цуцлах",
   "confirmDeleteAccount": "Устгах",
   "errorDeleteAccount": "Бүртгэл устгах явцад алдаа гарлаа",
-  "errorOpenUrl": "{label} хуудсыг нээж чадсангүй"
+  "errorOpenUrl": "{label} хуудсыг нээж чадсангүй",
+  "commonEmail": "И-мэйл",
+  "commonPassword": "Нууц үг",
+  "commonOr": "эсвэл",
+  "commonLogin": "Нэвтрэх",
+  "loginEnterCredentials": "И-мэйл болон нууц үгээ оруулна уу",
+  "loginError": "Нэвтрэх үед алдаа гарлаа",
+  "googleLoginFailed": "Google-ээр нэвтрэх амжилтгүй боллоо",
+  "loginWelcome": "Тавтай морил",
+  "loginSubtitle": "Өнөөдрийн аяллаа тэмдэглэх үү?",
+  "passwordHint": "Нууц үгээ оруулна уу",
+  "forgotPasswordLink": "Нууц үгээ мартсан уу?",
+  "continueWithGoogle": "Google-ээр үргэлжлүүлэх",
+  "continueWithAppleSoon": "Apple-ээр үргэлжлүүлэх (тун удахгүй)",
+  "noAccountYet": "Бүртгэл байхгүй юу?",
+  "signUpAction": "Бүртгүүлэх",
+  "nameRequired": "Нэрээ оруулна уу",
+  "nameTooShort": "Нэр хамгийн багадаа 2 тэмдэгттэй байх ёстой",
+  "emailRequired": "И-мэйлээ оруулна уу",
+  "emailInvalid": "И-мэйл хаягийн формат буруу байна",
+  "passwordRequired": "Нууц үгээ оруулна уу",
+  "passwordTooShort": "Нууц үг хамгийн багадаа 6 тэмдэгттэй байх ёстой",
+  "passwordMismatch": "Нууц үг таарахгүй байна",
+  "agreeTermsRequired": "Үйлчилгээний нөхцөлтэй зөвшөөрнө үү",
+  "signUpError": "Бүртгүүлэх үед алдаа гарлаа",
+  "signUpTitle": "Бүртгэл үүсгэх",
+  "signUpSubtitle": "Хэдхэн мэдээлэл оруулахад л болно",
+  "nameLabel": "Нэр",
+  "nameHint": "Хоч эсвэл нэр",
+  "passwordHintMin6": "Хамгийн багадаа 6 тэмдэгт",
+  "confirmPasswordLabel": "Нууц үг давтах",
+  "confirmPasswordHint": "Дахин оруулна уу",
+  "signUpComplete": "Бүртгэл үүсгэх",
+  "alreadyHaveAccount": "Бүртгэлтэй юу?",
+  "termsAgreePrefix": "",
+  "termsAgreeTermsLink": "Үйлчилгээний нөхцөл",
+  "termsAgreeMiddle": " болон ",
+  "termsAgreePrivacyLink": "Нууцлалын бодлогыг",
+  "termsAgreeSuffix": " зөвшөөрч байна",
+  "forgotPasswordDesc": "Бүртгүүлсэн и-мэйл хаягаа оруулбал\nнууц үг сэргээх холбоос илгээнэ.",
+  "sendResetEmail": "Сэргээх и-мэйл илгээх",
+  "resetEmailSentTitle": "И-мэйл илгээлээ",
+  "resetEmailSentDesc": "Ирсэн захидлын хайрцгаасаа сэргээх и-мэйлийг шалгана уу.\nОлдохгүй бол спам хавтсаа шалгаарай.",
+  "backToLogin": "Нэвтрэх хуудас руу буцах",
+  "tryAnotherEmail": "Өөр и-мэйлээр дахин оролдох",
+  "authCancelled": "Цуцлагдлаа",
+  "authLoginRequired": "Эхлээд нэвтрэх шаардлагатай",
+  "profileLoadFailed": "Профайлыг ачаалж чадсангүй",
+  "authReauthRequired": "Дахин нэвтэрсний дараа бүртгэлээ устгана уу.",
+  "authErrorDisabled": "Энэ бүртгэл идэвхгүй болсон байна",
+  "authErrorWrongCredentials": "И-мэйл эсвэл нууц үг буруу байна",
+  "authErrorEmailInUse": "Энэ и-мэйл аль хэдийн бүртгэгдсэн байна",
+  "authErrorNetwork": "Сүлжээний холболтоо шалгана уу",
+  "authErrorTooMany": "Хэт олон удаа оролдлоо. Түр хүлээгээд дахин оролдоно уу",
+  "authErrorGeneric": "Баталгаажуулалт амжилтгүй боллоо ({code})",
+  "@authErrorGeneric": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "permissionLater": "Дараа нь",
+  "permissionTitle": "Эхлэхийн өмнө\nзөвшөөрлөө шалгаарай",
+  "permissionIntro": "Tracen таны аяллыг тэмдэглэхэд дараах зөвшөөрлүүд хэрэгтэй.\nДараа нь тохиргооноос хэзээ ч өөрчилж болно.",
+  "permLocationTitle": "Байршил",
+  "permLocationReason": "GPS-ээр таны замыг газрын зураг дээр зурж,\nаяллын зайг тооцоолно",
+  "permCameraTitle": "Камер",
+  "permCameraReason": "Онцгой мөчид\nшууд зураг авч болно",
+  "permPhotosTitle": "Зургийн сан",
+  "permPhotosReason": "Хадгалсан зургаа тэмдэгтэй холбож\nсанамжаа баяжуулаарай",
+  "permAllowAll": "Бүгдийг зөвшөөрөх",
+  "permStatusGranted": "Зөвшөөрсөн",
+  "permStatusNeeded": "Шаардлагатай",
+  "permStatusSettings": "Тохиргоо хэрэгтэй",
+  "permStatusNotRequested": "Хараахан хүсээгүй",
+  "permDeniedNotice": "Зарим зөвшөөрлийг татгалзсан байна. Тохиргооноос өөрөө асаана уу.",
+  "permOpenSettings": "Тохиргоо руу очих",
+  "splashTagline": "Аяллаа тэмдэглээрэй",
+  "pinAdded": "Тэмдэг нэмэгдлээ 📍",
+  "pinDeleted": "Тэмдгийг устгалаа",
+  "locationNotFound": "Байршлыг олж чадсангүй",
+  "navMap": "Газрын зураг",
+  "navTimeline": "Түүх",
+  "navProfile": "Профайл",
+  "profileEdit": "Профайл засах",
+  "profileNoName": "Нэргүй",
+  "statRuns": "Гүйлт",
+  "statDistance": "Нийт зай",
+  "statPins": "Тэмдэг",
+  "recentPhotos": "Сүүлийн зургууд",
+  "seeAll": "Бүгдийг харах",
+  "noPhotosYet": "Хадгалсан зураг хараахан алга",
+  "saveError": "Хадгалах үед алдаа гарлаа",
+  "changePhoto": "Зураг солих",
+  "emailReadOnly": "И-мэйлийг өөрчлөх боломжгүй",
+  "save": "Хадгалах",
+  "takePhoto": "Камераар зураг авах",
+  "chooseFromGallery": "Галлерейгаас сонгох",
+  "commonOk": "За",
+  "commonDelete": "Устгах",
+  "commonRetry": "Дахин оролдох",
+  "runLocationPermissionNeeded": "Байршлын зөвшөөрөл шаардлагатай",
+  "runEndTitle": "Гүйлтээ дуусгах уу?",
+  "runEndBody": "Одоогоор {km} км гүйлээ.",
+  "@runEndBody": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "runContinue": "Үргэлжлүүлэх",
+  "runEnd": "Дуусгах",
+  "runStartTitle": "Гүйлт эхлүүлэх үү?",
+  "runStartHint": "GPS бэлэн болмогц бүртгэл эхэлнэ.\nДасгал сунгалт хийсэн үү? 🏃",
+  "runStartButton": "Эхлэх",
+  "runGpsConnecting": "GPS холбогдож байна...",
+  "runDistance": "Зай",
+  "runTime": "Хугацаа",
+  "runPace": "Темп",
+  "runCalories": "Калори",
+  "runLongPressHint": "Тэмдэг нэмэхийн тулд газрын зургийг удаан дар",
+  "runInfoNotFound": "Гүйлтийн мэдээлэл олдсонгүй",
+  "resultLoadFailed": "Үр дүнг ачаалж чадсангүй",
+  "runComplete": "Гүйлт дууслаа",
+  "runAvgPace": "Дундаж темп",
+  "unitCountSuffix": "",
+  "mapStart": "Эхлэл",
+  "mapEnd": "Төгсгөл",
+  "routeTooShort": "Маршрут хэт богино тул харуулах боломжгүй",
+  "deleteRunTitle": "Энэ гүйлтийг устгах уу?",
+  "deleteRunBody": "Маршрут болон тэмдгүүд хамт устах бөгөөд сэргээх боломжгүй.",
+  "runDeleted": "Гүйлтийг устгалаа",
+  "myRuns": "Миний гүйлтүүд",
+  "loadFailed": "Ачаалж чадсангүй",
+  "runInProgress": "Явагдаж байна",
+  "durationHM": "{h} цаг {m} мин",
+  "@durationHM": {
+    "placeholders": {
+      "h": {
+        "type": "int"
+      },
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "durationM": "{m} мин",
+  "@durationM": {
+    "placeholders": {
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "durationS": "{s} сек",
+  "@durationS": {
+    "placeholders": {
+      "s": {
+        "type": "int"
+      }
+    }
+  },
+  "noRunsYet": "Бүртгэгдсэн гүйлт хараахан алга",
+  "noRunsHint": "Газрын зураг дээрх нил ягаан гүйлтийн товчийг дарж\nэхний гүйлтээ эхлүүлээрэй.",
+  "invalidRoute": "Буруу маршрут",
+  "routeLoadFailed": "Маршрутыг ачаалж чадсангүй",
+  "pinCountValue": "{count}",
+  "@pinCountValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "searchComingSoon": "Хайлтын боломж удахгүй нэмэгдэнэ",
+  "modePhoto": "Зураг",
+  "modeMemo": "Тэмдэглэл",
+  "noMemosYet": "Хадгалсан тэмдэглэл хараахан алга",
+  "emptyPhotoHint": "Аяллын үеэр зураг аваарай\nГазрын зургийг удаан дарж тэмдэг нэмнэ",
+  "emptyMemoHint": "Аяллын үеэр санаанд буусан зүйлээ тэмдэглээрэй\nГазрын зургийг удаан дарж тэмдэг нэмнэ",
+  "chipRestaurant": "Ресторан",
+  "chipCafe": "Кафе",
+  "chipPopup": "Поп-ап дэлгүүр",
+  "chipBar": "Бар",
+  "chipPark": "Цэцэрлэгт хүрээлэн",
+  "chipShopping": "Дэлгүүр хэсэх",
+  "chipCulture": "Соёл",
+  "chipConvenience": "Мини маркет",
+  "sugHip": "Загварлаг уур амьсгал",
+  "sugQuiet": "Нам гүм газар",
+  "sugInsta": "Инстаграмд тохирсон",
+  "sugSpacious": "Өргөн уудам",
+  "sugView": "Үзэсгэлэнтэй харагдац",
+  "sugValue": "Хямд бөгөөд сайн",
+  "sugTerrace": "Гадаа тагт",
+  "sug24h": "24 цагийн",
+  "placeCheckLocationPermission": "Байршлын зөвшөөрлөө шалгана уу.",
+  "placeLocating": "Байршлыг олж байна…",
+  "placeNeedInput": "Ангилал сонгох эсвэл хайж буйгаа бичнэ үү.",
+  "placeTitle": "AI газрын санал",
+  "placeHeroTitle": "Одоо хаашаа явах вэ?",
+  "placeHeroDesc": "Хүссэнээ чөлөөтэй хэлээрэй\nAI ойролцоох хамгийн сайн газрыг олно",
+  "placeParty": "Хүний тоо",
+  "placeWhere": "Хаашаа явмаар байна?",
+  "placeBeSpecific": "Илүү дэлгэрэнгүй хэлээрэй",
+  "placeInputHint": "Жишээ: 3 найзтайгаа загварлаг кафе явмаар байна\nЖишээ: болзоонд тохиромжтой нам гүм ресторан",
+  "placeLocatingShort": "Байршил олж байна...",
+  "placeRadius": "Одоогийн байршлаас 2 км радиуст",
+  "placeLocationUnavailable": "Байршлыг олж чадсангүй",
+  "placeRefresh": "Шинэчлэх",
+  "placeSearching": "AI газар хайж байна...",
+  "placeGetRecs": "Санал авах",
+  "placeGetRecsWith": "Санал авах · {people} · {chips}",
+  "@placeGetRecsWith": {
+    "placeholders": {
+      "people": {
+        "type": "int"
+      },
+      "chips": {
+        "type": "String"
+      }
+    }
+  },
+  "peopleCount": "{value}",
+  "@peopleCount": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "currentLocation": "Одоогийн байршил",
+  "placesRecommended": "Танд {count} газар санал болгож байна",
+  "@placesRecommended": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "placesCount": "{count} газар",
+  "@placesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pinDeleteTooltip": "Тэмдгийг устгах",
+  "pinEmpty": "Энэ тэмдэгт агуулга алга.",
+  "photoSavedToGallery": "Зураг галлерейд хадгалагдлаа 📷",
+  "saveFailedWith": "Хадгалж чадсангүй: {error}",
+  "@saveFailedWith": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "tapToClose": "Дарж хаана уу",
+  "catGeneral": "Ерөнхий",
+  "catFood": "Хоол",
+  "catScenery": "Үзвэрт газар",
+  "catCafe": "Кафе",
+  "catWorkout": "Дасгал",
+  "catMemo": "Тэмдэглэл",
+  "addPin": "Тэмдэг нэмэх",
+  "pickerTapMapHint": "Байршлыг өөрчлөхийн тулд газрын зураг дээр дарна уу",
+  "today": "Өнөөдөр",
+  "resetColorsTitle": "Өнгийг анхны байдалд оруулах",
+  "resetColorsBody": "Бүх ангиллын өнгийг анхны утгад буцаах уу?",
+  "reset": "Буцаах",
+  "categoryColors": "Ангиллын өнгө",
+  "colorDefault": "Үндсэн",
+  "categoryColorTitle": "{category} өнгө",
+  "@categoryColorTitle": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "presetColors": "Бэлэн өнгө",
+  "apply": "Хэрэглэх",
+  "addMemoOrPhoto": "Хамгийн багадаа нэг тэмдэглэл эсвэл зураг нэмнэ үү",
+  "categoryLabel": "Ангилал",
+  "memoLabel": "Тэмдэглэл",
+  "photoLabel": "Зураг",
+  "memoHint": "Өнөөдрийн тухай нэг мөр бичээрэй...",
+  "gallery": "Галлерей",
+  "anotherPhoto": "Өөр зураг",
+  "retakePhoto": "Дахин авах",
+  "journey": "Аялал",
+  "routeDefaultTitle": "{date} аялал",
+  "@routeDefaultTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "recoveredRecord": "Өмнөх бүртгэл (автоматаар сэргээсэн)",
+  "placeErrNoGeminiKey": "AI боломжийг ашиглахын тулд .env-д GEMINI_API_KEY нэмнэ үү.\naistudio.google.com дээрээс үнэгүй авч болно.",
+  "placeErrNotEnough": "Ойролцоо санал болгох газар хангалттай биш байна. (Олдсон нэр дэвшигч: {count})\nPlaces API идэвхтэй эсэх, төлбөрийн бүртгэл болон байршлаа шалгана уу.",
+  "@placeErrNotEnough": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "placeErrNoMapsKey": "Google Maps API түлхүүр алга. (.env-г шалгана уу)",
+  "placeErrDenied": "Places API хүсэлтийг татгалзсан.\nGoogle Cloud дээр \"Places API\"-г идэвхжүүлж, API түлхүүрийн хязгаарлалтад нэмсэн эсэхээ шалгана уу.",
+  "placeErrQuota": "API ашиглалтын хязгаараас хэтэрлээ. Төлбөрийн бүртгэлээ шалгана уу.",
+  "placeErrBadRequest": "Хайлтын хүсэлт буруу байна. Байршлаа шалгана уу.",
+  "placeErrSearchFailed": "Газар хайх амжилтгүй: {status}",
+  "@placeErrSearchFailed": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "aiErrNetwork": "AI руу хандах үед сүлжээний алдаа гарлаа: {error}",
+  "@aiErrNetwork": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "aiErrResponse": "AI хариултын алдаа ({code})\n{body}",
+  "@aiErrResponse": {
+    "placeholders": {
+      "code": {
+        "type": "int"
+      },
+      "body": {
+        "type": "String"
+      }
+    }
+  },
+  "aiErrNoContent": "Gemini-ийн хариултаас агуулга олдсонгүй.",
+  "aiErrBadStructure": "Gemini-ийн хариултын бүтэц буруу байна.",
+  "aiErrUnparsable": "AI-ийн хариултыг ойлгож чадсангүй. Дахин оролдоно уу.\nХариулт: {raw}",
+  "@aiErrUnparsable": {
+    "placeholders": {
+      "raw": {
+        "type": "String"
+      }
+    }
+  },
+  "aiErrBadFormat": "AI-ийн хариултын формат буруу байна. Дахин оролдоно уу.",
+  "aiErrNoPick": "AI газар сонгож чадсангүй. Дахин оролдоно уу.",
+  "aiErrTooFewValid": "Хүчинтэй газар хангалтгүй байна. Дахин оролдоно уу.",
+  "aiDefaultReason": "Санал болгож буй газар.",
+  "trackingChannelName": "Tracen байршил хянах",
+  "trackingChannelDesc": "Дэвсгэрт таны замыг тэмдэглэж байна.",
+  "trackingNotifTitle": "Tracen замыг тэмдэглэж байна",
+  "trackingNotifText": "Дэвсгэрт байршлыг хянаж байна.",
+  "locationServiceOff": "Байршлын үйлчилгээ унтраастай байна. Төхөөрөмжийн тохиргооноос асаана уу.",
+  "locationPermissionDenied": "Байршлын зөвшөөрлийг татгалзсан.",
+  "locationPermissionDeniedForever": "Байршлын зөвшөөрлийг үүрд татгалзсан. Апп-ын тохиргооноос зөвшөөрнө үү.",
+  "activityRunning": "Гүйлт",
+  "activityWalking": "Алхалт",
+  "activityCycling": "Дугуй унах",
+  "metricSpeed": "Хурд",
+  "metricAvgSpeed": "Дундаж хурд",
+  "metricMaxSpeed": "Дээд хурд",
+  "metricAltitude": "Өндөр",
+  "metricSteps": "Алхам",
+  "trackingPause": "Түр зогсоох",
+  "trackingResume": "Үргэлжлүүлэх",
+  "trackingHoldToStop": "Дуусгахын тулд удаан дарна уу",
+  "trackingBackToCurrentLocation": "Одоогийн байршил руу"
 }

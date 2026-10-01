@@ -1,3 +1,5 @@
+import '../../l10n/strings.dart';
+import '../../l10n/generated/app_localizations.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -33,6 +35,8 @@ class TimelineScreen extends StatefulWidget {
 enum TimelineMode { picture, memo }
 
 class _TimelineScreenState extends State<TimelineScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context);
+
   late TimelineMode _mode = widget.initialMode;
   late Future<List<TimelineEntry>> _entriesFuture;
 
@@ -90,7 +94,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
     return Scaffold(
       backgroundColor: context.bgColor,
       appBar: AppBar(
-        title: const Text('타임라인'),
+        title: Text(l10n.navTimeline),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
           onPressed: () => Navigator.pop(context),
@@ -102,7 +106,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
               // TODO(Week 4+): 검색 기능
               ScaffoldMessenger.of(
                 context,
-              ).showSnackBar(const SnackBar(content: Text('검색 기능은 곧 추가됩니다')));
+              ).showSnackBar(SnackBar(content: Text(l10n.searchComingSoon)));
             },
           ),
         ],
@@ -211,7 +215,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
   String _formatMonthHeader(String key) {
     final parts = key.split('-');
     final date = DateTime(int.parse(parts[0]), int.parse(parts[1]));
-    return DateFormat('MMMM yyyy', 'en_US').format(date).toUpperCase();
+    return DateFormat.yMMMM(Strings.current.localeName).format(date).toUpperCase();
   }
 }
 
@@ -388,7 +392,7 @@ class _MemoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final day = DateFormat('d').format(entry.pin.createdAt);
-    final time = DateFormat('a h:mm', 'ko_KR').format(entry.pin.createdAt);
+    final time = DateFormat.jm(Strings.current.localeName).format(entry.pin.createdAt);
     // 풀 날짜 — routeTitle이 비어있을 때 fallback으로 사용
     final fullDate = DateFormat('yyyy.MM.dd').format(entry.pin.createdAt);
     final topLabel = entry.routeTitle.isNotEmpty ? entry.routeTitle : fullDate;
@@ -488,8 +492,9 @@ class _ModeToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
-      padding: const EdgeInsets.all(4),
+      padding: EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: context.cardColor, // 다크모드 대응
         borderRadius: BorderRadius.circular(AppRadius.full),
@@ -497,8 +502,8 @@ class _ModeToggle extends StatelessWidget {
       ),
       child: Row(
         children: [
-          _segment(context, '사진', TimelineMode.picture),
-          _segment(context, '메모', TimelineMode.memo),
+          _segment(context, l10n.modePhoto, TimelineMode.picture),
+          _segment(context, l10n.modeMemo, TimelineMode.memo),
         ],
       ),
     );
@@ -545,6 +550,7 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isPicture = mode == TimelineMode.picture;
     return Center(
       child: Padding(
@@ -567,17 +573,17 @@ class _EmptyState extends StatelessWidget {
                 color: AppColors.primary,
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             Text(
-              isPicture ? '아직 저장된 사진이 없어요' : '아직 저장된 메모가 없어요',
+              isPicture ? l10n.noPhotosYet : l10n.noMemosYet,
               style: AppTextStyles.h3,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Text(
               isPicture
-                  ? '여정 중 인증샷을 남겨보세요\n지도를 길게 누르면 핀을 추가할 수 있어요'
-                  : '여정 중 떠오르는 생각을 메모해보세요\n지도를 길게 누르면 핀을 추가할 수 있어요',
+                  ? l10n.emptyPhotoHint
+                  : l10n.emptyMemoHint,
               style: AppTextStyles.bodyMuted,
               textAlign: TextAlign.center,
             ),

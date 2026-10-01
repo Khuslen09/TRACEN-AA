@@ -1,3 +1,4 @@
+import '../l10n/strings.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -115,12 +116,12 @@ class AuthService {
   ///   3. Firebase Credential로 변환해 signInWithCredential
   ///   4. Firestore users 문서 생성 또는 업데이트
   ///
-  /// 사용자가 다이얼로그를 닫으면 [AuthException('취소되었어요')]를 throw.
+  /// 사용자가 다이얼로그를 닫으면 `cancelled: true`인 [AuthException]을 throw.
   static Future<AppUser> signInWithGoogle() async {
     try {
       final googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
-        throw AuthException('취소되었어요');
+        throw AuthException(Strings.current.authCancelled, cancelled: true);
       }
 
       final googleAuth = await googleUser.authentication;
@@ -135,7 +136,7 @@ class AuthService {
       throw AuthException(_mapAuthError(e));
     } catch (e) {
       if (e is AuthException) rethrow;
-      throw AuthException('Google 로그인에 실패했어요');
+      throw AuthException(Strings.current.googleLoginFailed);
     }
   }
 
@@ -195,7 +196,7 @@ class AuthService {
   /// 둘 다 nullable — null이면 해당 필드 그대로 둠.
   static Future<AppUser> updateProfile({String? name, String? photoUrl}) async {
     final u = _auth.currentUser;
-    if (u == null) throw AuthException('로그인이 필요해요');
+    if (u == null) throw AuthException(Strings.current.authLoginRequired);
 
     try {
       // Auth 측 갱신
@@ -212,7 +213,7 @@ class AuthService {
 
       // 갱신된 프로필 반환
       final updated = await fetchCurrentUserProfile();
-      if (updated == null) throw AuthException('프로필을 불러올 수 없어요');
+      if (updated == null) throw AuthException(Strings.current.profileLoadFailed);
       return updated;
     } on FirebaseAuthException catch (e) {
       throw AuthException(_mapAuthError(e));
@@ -232,7 +233,7 @@ class AuthService {
   /// 개인정보보호법상 탈퇴 시 모든 개인정보 즉시 삭제 의무.
   static Future<void> deleteAccount() async {
     final u = _auth.currentUser;
-    if (u == null) throw AuthException('로그인이 필요해요');
+    if (u == null) throw AuthException(Strings.current.authLoginRequired);
 
     try {
       final uid = u.uid;
@@ -287,7 +288,7 @@ class AuthService {
       } catch (_) {}
     } on FirebaseAuthException catch (e) {
       if (e.code == 'requires-recent-login') {
-        throw AuthException('재로그인이 필요해요. 다시 로그인 후 탈퇴해주세요.');
+        throw AuthException(Strings.current.authReauthRequired);
       }
       throw AuthException(_mapAuthError(e));
     }
@@ -301,23 +302,23 @@ class AuthService {
     if (kDebugMode) debugPrint('[AuthService] ${e.code}: ${e.message}');
     switch (e.code) {
       case 'invalid-email':
-        return '올바른 이메일 형식이 아니에요';
+        return Strings.current.emailInvalid;
       case 'user-disabled':
-        return '비활성화된 계정이에요';
+        return Strings.current.authErrorDisabled;
       case 'user-not-found':
       case 'invalid-credential':
       case 'wrong-password':
-        return '이메일 또는 비밀번호가 일치하지 않아요';
+        return Strings.current.authErrorWrongCredentials;
       case 'email-already-in-use':
-        return '이미 가입된 이메일이에요';
+        return Strings.current.authErrorEmailInUse;
       case 'weak-password':
-        return '비밀번호는 6자 이상이어야 해요';
+        return Strings.current.passwordTooShort;
       case 'network-request-failed':
-        return '네트워크 연결을 확인해주세요';
+        return Strings.current.authErrorNetwork;
       case 'too-many-requests':
-        return '너무 많은 시도가 있었어요. 잠시 후 다시 시도해주세요';
+        return Strings.current.authErrorTooMany;
       default:
-        return '인증에 실패했어요 (${e.code})';
+        return Strings.current.authErrorGeneric(e.code);
     }
   }
 }
@@ -326,7 +327,11 @@ class AuthService {
 /// FirebaseAuthException 대신 이 타입만 보면 됨.
 class AuthException implements Exception {
   final String message;
-  AuthException(this.message);
+
+  /// 사용자가 로그인 창을 닫은 경우 — 에러 메시지를 띄우지 않는다.
+  /// (번역된 문구가 아니라 이 플래그로 구분해야 언어가 바뀌어도 안 깨진다.)
+  final bool cancelled;
+  AuthException(this.message, {this.cancelled = false});
 
   @override
   String toString() => message;

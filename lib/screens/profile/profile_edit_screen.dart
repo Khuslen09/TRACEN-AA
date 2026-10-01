@@ -1,3 +1,4 @@
+import '../../l10n/generated/app_localizations.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -30,6 +31,8 @@ class ProfileEditScreen extends StatefulWidget {
 }
 
 class _ProfileEditScreenState extends State<ProfileEditScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context);
+
   late final TextEditingController _nameController = TextEditingController(
     text: widget.user.name ?? '',
   );
@@ -74,7 +77,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   Future<void> _save() async {
     final name = _nameController.text.trim();
     if (name.length < 2) {
-      _showSnack('이름은 2자 이상이어야 해요');
+      _showSnack(l10n.nameTooShort);
       return;
     }
 
@@ -101,7 +104,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     } on AuthException catch (e) {
       if (mounted) _showSnack(e.message, isError: true);
     } catch (e) {
-      if (mounted) _showSnack('저장 중 오류가 발생했어요', isError: true);
+      if (mounted) _showSnack(l10n.saveError, isError: true);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -125,7 +128,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     return Scaffold(
       backgroundColor: context.bgColor,
       appBar: AppBar(
-        title: const Text('프로필 편집'),
+        title: Text(l10n.profileEdit),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
           onPressed: () => Navigator.pop(context),
@@ -149,28 +152,28 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                         pendingPath: _pendingPhotoPath,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
                     TextButton.icon(
                       onPressed: _showPhotoSheet,
-                      icon: const Icon(Icons.camera_alt_outlined, size: 18),
-                      label: const Text('사진 변경'),
+                      icon: Icon(Icons.camera_alt_outlined, size: 18),
+                      label: Text(l10n.changePhoto),
                     ),
 
-                    const SizedBox(height: 32),
+                    SizedBox(height: 32),
 
                     // 닉네임
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Padding(
                         padding: const EdgeInsets.only(left: 4, bottom: 8),
-                        child: Text('이름', style: AppTextStyles.smallBold),
+                        child: Text(l10n.nameLabel, style: AppTextStyles.smallBold),
                       ),
                     ),
                     TextField(
                       controller: _nameController,
                       maxLength: 20,
-                      decoration: const InputDecoration(
-                        hintText: '닉네임 또는 이름',
+                      decoration: InputDecoration(
+                        hintText: l10n.nameHint,
                         prefixIcon: Icon(
                           Icons.person_outline_rounded,
                           color: AppColors.gray400,
@@ -179,14 +182,14 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
 
                     // 이메일 (읽기 전용)
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Padding(
                         padding: const EdgeInsets.only(left: 4, bottom: 8),
-                        child: Text('이메일', style: AppTextStyles.smallBold),
+                        child: Text(l10n.commonEmail, style: AppTextStyles.smallBold),
                       ),
                     ),
                     Container(
@@ -222,11 +225,11 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    SizedBox(height: 6),
                     Padding(
-                      padding: const EdgeInsets.only(left: 4),
+                      padding: EdgeInsets.only(left: 4),
                       child: Text(
-                        '이메일은 변경할 수 없어요',
+                        l10n.emailReadOnly,
                         style: AppTextStyles.caption,
                       ),
                     ),
@@ -256,7 +259,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                               valueColor: AlwaysStoppedAnimation(Colors.white),
                             ),
                           )
-                        : const Text('저장'),
+                        : Text(l10n.save),
                   ),
                 ),
               ),
@@ -343,6 +346,7 @@ class _AvatarEditor extends StatelessWidget {
 class _PhotoSourceSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       decoration: BoxDecoration(
         color: context.cardColor,
@@ -373,7 +377,7 @@ class _PhotoSourceSheet extends StatelessWidget {
               Icons.camera_alt_outlined,
               color: context.textPrimary,
             ),
-            title: Text('카메라로 촬영', style: AppTextStyles.body),
+            title: Text(l10n.takePhoto, style: AppTextStyles.body),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AppRadius.md),
             ),
@@ -384,7 +388,7 @@ class _PhotoSourceSheet extends StatelessWidget {
               Icons.photo_library_outlined,
               color: context.textPrimary,
             ),
-            title: Text('갤러리에서 선택', style: AppTextStyles.body),
+            title: Text(l10n.chooseFromGallery, style: AppTextStyles.body),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AppRadius.md),
             ),

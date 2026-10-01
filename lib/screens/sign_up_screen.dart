@@ -1,3 +1,4 @@
+import '../l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 import '../services/auth_service.dart';
@@ -21,6 +22,8 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context);
+
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -47,29 +50,29 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   String? _validateName(String? v) {
     final s = v?.trim() ?? '';
-    if (s.isEmpty) return '이름을 입력해주세요';
-    if (s.length < 2) return '이름은 2자 이상이어야 해요';
+    if (s.isEmpty) return l10n.nameRequired;
+    if (s.length < 2) return l10n.nameTooShort;
     return null;
   }
 
   String? _validateEmail(String? v) {
     final s = v?.trim() ?? '';
-    if (s.isEmpty) return '이메일을 입력해주세요';
+    if (s.isEmpty) return l10n.emailRequired;
     // 간단한 정규식 — Firebase가 더 엄격히 검사함
     final regex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
-    if (!regex.hasMatch(s)) return '올바른 이메일 형식이 아니에요';
+    if (!regex.hasMatch(s)) return l10n.emailInvalid;
     return null;
   }
 
   String? _validatePassword(String? v) {
     final s = v ?? '';
-    if (s.isEmpty) return '비밀번호를 입력해주세요';
-    if (s.length < 6) return '비밀번호는 6자 이상이어야 해요';
+    if (s.isEmpty) return l10n.passwordRequired;
+    if (s.length < 6) return l10n.passwordTooShort;
     return null;
   }
 
   String? _validateConfirm(String? v) {
-    if (v != _passwordController.text) return '비밀번호가 일치하지 않아요';
+    if (v != _passwordController.text) return l10n.passwordMismatch;
     return null;
   }
 
@@ -80,7 +83,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     if (!_agreedToTerms) {
-      _showSnack('약관에 동의해주세요');
+      _showSnack(l10n.agreeTermsRequired);
       return;
     }
 
@@ -96,7 +99,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     } on AuthException catch (e) {
       if (mounted) _showSnack(e.message, isError: true);
     } catch (e) {
-      if (mounted) _showSnack('가입 중 오류가 발생했어요', isError: true);
+      if (mounted) _showSnack(l10n.signUpError, isError: true);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -134,21 +137,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 8),
-                Text('계정 만들기', style: AppTextStyles.display),
+                Text(l10n.signUpTitle, style: AppTextStyles.display),
                 const SizedBox(height: 8),
-                Text('몇 가지 정보만 입력하면 끝나요', style: AppTextStyles.bodyMuted),
+                Text(l10n.signUpSubtitle, style: AppTextStyles.bodyMuted),
 
                 const SizedBox(height: 36),
 
                 // 이름
-                _Label('이름'),
+                _Label(l10n.nameLabel),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _nameController,
                   textInputAction: TextInputAction.next,
                   validator: _validateName,
-                  decoration: const InputDecoration(
-                    hintText: '닉네임 또는 이름',
+                  decoration: InputDecoration(
+                    hintText: l10n.nameHint,
                     prefixIcon: Icon(
                       Icons.person_outline_rounded,
                       color: AppColors.gray400,
@@ -160,7 +163,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 const SizedBox(height: 16),
 
                 // 이메일
-                _Label('이메일'),
+                _Label(l10n.commonEmail),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _emailController,
@@ -181,7 +184,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 const SizedBox(height: 16),
 
                 // 비밀번호
-                _Label('비밀번호'),
+                _Label(l10n.commonPassword),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _passwordController,
@@ -189,7 +192,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   textInputAction: TextInputAction.next,
                   validator: _validatePassword,
                   decoration: InputDecoration(
-                    hintText: '6자 이상',
+                    hintText: l10n.passwordHintMin6,
                     prefixIcon: const Icon(
                       Icons.lock_outline_rounded,
                       color: AppColors.gray400,
@@ -212,7 +215,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 const SizedBox(height: 16),
 
                 // 비밀번호 확인
-                _Label('비밀번호 확인'),
+                _Label(l10n.confirmPasswordLabel),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _confirmController,
@@ -221,7 +224,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   onFieldSubmitted: (_) => _submit(),
                   validator: _validateConfirm,
                   decoration: InputDecoration(
-                    hintText: '한 번 더 입력해주세요',
+                    hintText: l10n.confirmPasswordHint,
                     prefixIcon: const Icon(
                       Icons.lock_outline_rounded,
                       color: AppColors.gray400,
@@ -272,20 +275,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               valueColor: AlwaysStoppedAnimation(Colors.white),
                             ),
                           )
-                        : const Text('가입 완료'),
+                        : Text(l10n.signUpComplete),
                   ),
                 ),
 
                 const SizedBox(height: 16),
 
                 // 로그인으로 돌아가기
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    Text('이미 계정이 있으신가요?', style: AppTextStyles.small),
+                    Text(l10n.alreadyHaveAccount, style: AppTextStyles.small),
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text('로그인'),
+                      child: Text(l10n.commonLogin),
                     ),
                   ],
                 ),
@@ -325,6 +329,7 @@ class _TermsCheckbox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return InkWell(
       onTap: () => onChanged(!checked),
       borderRadius: BorderRadius.circular(8),
@@ -358,21 +363,21 @@ class _TermsCheckbox extends StatelessWidget {
                 TextSpan(
                   style: AppTextStyles.small,
                   children: [
-                    const TextSpan(text: '서비스 '),
+                    TextSpan(text: l10n.termsAgreePrefix),
                     TextSpan(
-                      text: '이용약관',
+                      text: l10n.termsAgreeTermsLink,
                       style: AppTextStyles.smallBold.copyWith(
                         color: AppColors.primary,
                       ),
                     ),
-                    const TextSpan(text: ' 및 '),
+                    TextSpan(text: l10n.termsAgreeMiddle),
                     TextSpan(
-                      text: '개인정보처리방침',
+                      text: l10n.termsAgreePrivacyLink,
                       style: AppTextStyles.smallBold.copyWith(
                         color: AppColors.primary,
                       ),
                     ),
-                    const TextSpan(text: '에 동의합니다'),
+                    TextSpan(text: l10n.termsAgreeSuffix),
                   ],
                 ),
               ),

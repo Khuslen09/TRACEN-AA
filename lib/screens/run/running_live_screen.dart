@@ -1,3 +1,4 @@
+import '../../l10n/generated/app_localizations.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -26,6 +27,8 @@ class RunningLiveScreen extends StatefulWidget {
 }
 
 class _RunningLiveScreenState extends State<RunningLiveScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context);
+
   GoogleMapController? _mapController;
   StreamSubscription<Position>? _posSub;
   Timer? _ticker;
@@ -58,7 +61,7 @@ class _RunningLiveScreenState extends State<RunningLiveScreen> {
       await LocationService.ensurePermission();
     } catch (_) {
       if (!mounted) return;
-      _showSnack('위치 권한이 필요합니다', isError: true);
+      _showSnack(l10n.runLocationPermissionNeeded, isError: true);
       setState(() => _state = _RunState.ready);
       return;
     }
@@ -212,20 +215,20 @@ class _RunningLiveScreenState extends State<RunningLiveScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.xl),
         ),
-        title: Text('러닝을 종료할까요?', style: AppTextStyles.h3),
+        title: Text(l10n.runEndTitle, style: AppTextStyles.h3),
         content: Text(
-          '지금까지 ${RunMetrics.formatDistanceKmBig(_distanceMeters)} km 달렸어요.',
+          l10n.runEndBody(RunMetrics.formatDistanceKmBig(_distanceMeters)),
           style: AppTextStyles.bodyMuted,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('계속'),
+            child: Text(l10n.runContinue),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: AppColors.danger),
-            child: const Text('종료'),
+            child: Text(l10n.runEnd),
           ),
         ],
       ),
@@ -244,7 +247,7 @@ class _RunningLiveScreenState extends State<RunningLiveScreen> {
         ),
       ),
     );
-    if (pin != null && mounted) _showSnack('핀이 추가되었어요 📍');
+    if (pin != null && mounted) _showSnack(l10n.pinAdded);
   }
 
   void _showSnack(String msg, {bool isError = false}) {
@@ -368,14 +371,14 @@ class _RunningLiveScreenState extends State<RunningLiveScreen> {
               color: AppColors.primary,
             ),
           ),
-          const SizedBox(height: 28),
+          SizedBox(height: 28),
           Text(
-            '러닝을 시작할까요?',
+            l10n.runStartTitle,
             style: AppTextStyles.h2.copyWith(fontWeight: FontWeight.w700),
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: 10),
           Text(
-            'GPS가 준비되면 기록이 시작돼요.\n스트레칭은 했나요? 🏃',
+            l10n.runStartHint,
             style: AppTextStyles.body.copyWith(color: context.textSecondary),
             textAlign: TextAlign.center,
           ),
@@ -400,14 +403,14 @@ class _RunningLiveScreenState extends State<RunningLiveScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.play_arrow_rounded,
                       color: Colors.white,
                       size: 28,
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     Text(
-                      '시작하기',
+                      l10n.runStartButton,
                       style: AppTextStyles.h3.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.w700,
@@ -434,7 +437,7 @@ class _RunningLiveScreenState extends State<RunningLiveScreen> {
             strokeWidth: 3,
           ),
           const SizedBox(height: 20),
-          Text('GPS 연결 중...', style: AppTextStyles.body),
+          Text(l10n.runGpsConnecting, style: AppTextStyles.body),
         ],
       ),
     );
@@ -442,12 +445,12 @@ class _RunningLiveScreenState extends State<RunningLiveScreen> {
 
   Widget _buildLive() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         children: [
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Text(
-            '거리',
+            l10n.runDistance,
             style: AppTextStyles.smallBold.copyWith(
               letterSpacing: 1.5,
               color: context.textSecondary,
@@ -480,21 +483,21 @@ class _RunningLiveScreenState extends State<RunningLiveScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 28),
+          SizedBox(height: 28),
           Row(
             children: [
               _StatColumn(
-                label: '시간',
+                label: l10n.runTime,
                 value: RunMetrics.formatElapsed(_elapsed),
               ),
               _StatDivider(),
               _StatColumn(
-                label: '페이스',
+                label: l10n.runPace,
                 value: RunMetrics.formatPace(_currentPaceSecondsPerKm),
               ),
               _StatDivider(),
               _StatColumn(
-                label: '칼로리',
+                label: l10n.runCalories,
                 value:
                     '${RunMetrics.estimateCalories(distanceMeters: _distanceMeters)}',
                 suffix: 'kcal',
@@ -548,9 +551,9 @@ class _RunningLiveScreenState extends State<RunningLiveScreen> {
                             size: 16,
                             color: AppColors.primary,
                           ),
-                          const SizedBox(width: 6),
+                          SizedBox(width: 6),
                           Text(
-                            '지도를 길게 눌러 핀 추가',
+                            l10n.runLongPressHint,
                             style: AppTextStyles.caption.copyWith(
                               color: context.textPrimary,
                             ),

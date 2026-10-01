@@ -1,0 +1,6 @@
+"NSCameraUsageDescription" = "여정 사진을 남기기 위해 카메라가 필요합니다.";
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "화면이 꺼진 동안에도 정확한 경로 기록을 위해 위치 정보가 필요합니다.";
+"NSLocationAlwaysUsageDescription" = "화면이 꺼진 동안에도 정확한 경로 기록을 위해 위치 정보가 필요합니다.";
+"NSLocationWhenInUseUsageDescription" = "여정 경로를 기록하기 위해 위치 정보가 필요합니다.";
+"NSPhotoLibraryAddUsageDescription" = "촬영한 사진을 사진 라이브러리에 저장하기 위해 권한이 필요합니다.";
+"NSPhotoLibraryUsageDescription" = "저장된 사진을 불러오기 위해 사진 라이브러리 접근이 필요합니다.";

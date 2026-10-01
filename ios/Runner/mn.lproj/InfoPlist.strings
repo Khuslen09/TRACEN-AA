@@ -1,0 +1,6 @@
+"NSCameraUsageDescription" = "Аяллынхаа зургийг авахын тулд Tracen-д камерын хандалт хэрэгтэй.";
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "Дэлгэц унтарсан үед ч замыг нарийвчлалтай тэмдэглэхийн тулд Tracen-д таны байршил хэрэгтэй.";
+"NSLocationAlwaysUsageDescription" = "Дэлгэц унтарсан үед ч замыг нарийвчлалтай тэмдэглэхийн тулд Tracen-д таны байршил хэрэгтэй.";
+"NSLocationWhenInUseUsageDescription" = "Аяллын замыг тэмдэглэхийн тулд Tracen-д таны байршил хэрэгтэй.";
+"NSPhotoLibraryAddUsageDescription" = "Авсан зургаа зургийн санд хадгалахын тулд Tracen-д зөвшөөрөл хэрэгтэй.";
+"NSPhotoLibraryUsageDescription" = "Хадгалсан зургаа хавсаргахын тулд Tracen-д зургийн санд хандах эрх хэрэгтэй.";

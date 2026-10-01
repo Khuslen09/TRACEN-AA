@@ -1,3 +1,4 @@
+import '../../l10n/generated/app_localizations.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -29,6 +30,8 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context);
+
   late Future<_ProfileData> _dataFuture;
 
   @override
@@ -96,7 +99,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           final data = snapshot.data;
           if (data == null) {
-            return const Center(child: Text('프로필을 불러올 수 없어요'));
+            return Center(child: Text(l10n.profileLoadFailed));
           }
 
           return RefreshIndicator(
@@ -151,17 +154,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
       backgroundColor: context.bgColor,
       elevation: 0,
       pinned: true,
-      title: const Text('프로필'),
+      title: Text(l10n.navProfile),
       actions: [
         IconButton(
           icon: const Icon(Icons.edit_outlined, size: 22),
           onPressed: () => _openEdit(user),
-          tooltip: '프로필 편집',
+          tooltip: l10n.profileEdit,
         ),
         IconButton(
           icon: const Icon(Icons.settings_outlined, size: 22),
           onPressed: _openSettings,
-          tooltip: '설정',
+          tooltip: l10n.settingsTitle,
         ),
       ],
     );
@@ -191,7 +194,8 @@ class _ProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final name = user?.name ?? '이름 없음';
+    final l10n = AppLocalizations.of(context);
+    final name = user?.name ?? l10n.profileNoName;
     final email = user?.email ?? '';
 
     return Column(
@@ -289,8 +293,9 @@ class _StatsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 16),
+      padding: EdgeInsets.symmetric(vertical: 22, horizontal: 16),
       decoration: BoxDecoration(
         color: context.cardColor,
         borderRadius: BorderRadius.circular(AppRadius.xl),
@@ -299,19 +304,19 @@ class _StatsCard extends StatelessWidget {
       child: Row(
         children: [
           _StatItem(
-            label: '러닝',
+            label: l10n.statRuns,
             value: '${stats.routeCount}',
             icon: Icons.near_me_rounded,
           ),
           _StatDivider(),
           _StatItem(
-            label: '총 거리',
+            label: l10n.statDistance,
             value: stats.formattedDistance,
             icon: Icons.straighten_rounded,
           ),
           _StatDivider(),
           _StatItem(
-            label: '핀',
+            label: l10n.statPins,
             value: '${stats.pinCount}',
             icon: Icons.place_rounded,
           ),
@@ -368,13 +373,14 @@ class _RecentPhotosSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Expanded(child: Text('최근 사진', style: AppTextStyles.h3)),
-            TextButton(onPressed: onSeeAll, child: const Text('전체 보기')),
+            Expanded(child: Text(l10n.recentPhotos, style: AppTextStyles.h3)),
+            TextButton(onPressed: onSeeAll, child: Text(l10n.seeAll)),
           ],
         ),
         const SizedBox(height: 12),
@@ -441,6 +447,7 @@ class _PhotoTile extends StatelessWidget {
 class _EmptyPhotos extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 32),
       decoration: BoxDecoration(
@@ -454,9 +461,9 @@ class _EmptyPhotos extends StatelessWidget {
             color: context.textTertiary,
             size: 32,
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Text(
-            '아직 저장된 사진이 없어요',
+            l10n.noPhotosYet,
             style: AppTextStyles.small.copyWith(color: context.textSecondary),
           ),
         ],

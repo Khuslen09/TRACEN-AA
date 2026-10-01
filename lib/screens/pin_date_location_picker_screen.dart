@@ -1,3 +1,5 @@
+import '../l10n/generated/app_localizations.dart';
+import '../l10n/strings.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
@@ -18,7 +20,7 @@ import 'save_files_screen.dart';
 ///   1. 화면 진입: 오늘 날짜 + 현재 위치 기본값
 ///   2. 사용자가 상단 카드 탭 → 날짜/시간 picker
 ///   3. 사용자가 지도에서 핀을 끌어서 위치 조정 (또는 길게 눌러 새 위치)
-///   4. 하단 "다음" 버튼 → SaveFilesScreen
+///   4. 하단 l10n.onboardingNext 버튼 → SaveFilesScreen
 ///   5. SaveFilesScreen에서 사진/메모/카테고리 입력 → 저장 시 createdAt 덮어쓰기
 ///
 /// **MVP v5 신규**: 과거 날짜에도 핀 추가 가능 (여행 후 회상 등 용도).
@@ -32,6 +34,8 @@ class PinDateLocationPickerScreen extends StatefulWidget {
 
 class _PinDateLocationPickerScreenState
     extends State<PinDateLocationPickerScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context);
+
   DateTime _selectedDateTime = DateTime.now();
   LatLng? _selectedPosition;
   bool _loading = true;
@@ -167,7 +171,7 @@ class _PinDateLocationPickerScreenState
     if (_loading || _selectedPosition == null) {
       return Scaffold(
         backgroundColor: context.bgColor,
-        body: const Center(
+        body: Center(
           child: CircularProgressIndicator(
             strokeWidth: 2.5,
             color: AppColors.primary,
@@ -179,7 +183,7 @@ class _PinDateLocationPickerScreenState
     return Scaffold(
       backgroundColor: context.bgColor,
       appBar: AppBar(
-        title: const Text('핀 추가'),
+        title: Text(l10n.addPin),
         leading: IconButton(
           icon: const Icon(Icons.close_rounded),
           onPressed: () => Navigator.pop(context),
@@ -198,7 +202,7 @@ class _PinDateLocationPickerScreenState
 
           // 안내 텍스트
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 4),
             child: Row(
               children: [
                 Icon(
@@ -206,9 +210,9 @@ class _PinDateLocationPickerScreenState
                   size: 16,
                   color: context.textSecondary,
                 ),
-                const SizedBox(width: 6),
+                SizedBox(width: 6),
                 Text(
-                  '지도를 탭해서 위치를 옮길 수 있어요',
+                  l10n.pickerTapMapHint,
                   style: AppTextStyles.small.copyWith(
                     color: context.textSecondary,
                   ),
@@ -263,7 +267,7 @@ class _PinDateLocationPickerScreenState
           SafeArea(
             top: false,
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+              padding: EdgeInsets.fromLTRB(20, 0, 20, 12),
               child: SizedBox(
                 width: double.infinity,
                 child: Container(
@@ -273,7 +277,7 @@ class _PinDateLocationPickerScreenState
                   ),
                   child: ElevatedButton(
                     onPressed: _proceedToSave,
-                    child: const Text('다음'),
+                    child: Text(l10n.onboardingNext),
                   ),
                 ),
               ),
@@ -297,9 +301,10 @@ class _DateTimeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isToday = _isSameDay(dateTime, DateTime.now());
-    final dateStr = DateFormat('yyyy년 M월 d일 (E)', 'ko_KR').format(dateTime);
-    final timeStr = DateFormat('a h:mm', 'ko_KR').format(dateTime);
+    final dateStr = DateFormat.yMMMEd(Strings.current.localeName).format(dateTime);
+    final timeStr = DateFormat.jm(Strings.current.localeName).format(dateTime);
 
     return Material(
       color: context.cardColor,
@@ -337,9 +342,9 @@ class _DateTimeCard extends StatelessWidget {
                       children: [
                         Text(dateStr, style: AppTextStyles.bodyBold),
                         if (isToday) ...[
-                          const SizedBox(width: 6),
+                          SizedBox(width: 6),
                           Container(
-                            padding: const EdgeInsets.symmetric(
+                            padding: EdgeInsets.symmetric(
                               horizontal: 6,
                               vertical: 2,
                             ),
@@ -348,7 +353,7 @@ class _DateTimeCard extends StatelessWidget {
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
-                              '오늘',
+                              l10n.today,
                               style: AppTextStyles.caption.copyWith(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w600,

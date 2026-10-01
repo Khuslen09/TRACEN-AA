@@ -1,0 +1,6 @@
+"NSCameraUsageDescription" = "Tracen needs camera access so you can take photos during your journeys.";
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "Tracen needs your location to keep recording your route accurately, even while the screen is off.";
+"NSLocationAlwaysUsageDescription" = "Tracen needs your location to keep recording your route accurately, even while the screen is off.";
+"NSLocationWhenInUseUsageDescription" = "Tracen needs your location to record your journey route.";
+"NSPhotoLibraryAddUsageDescription" = "Tracen needs permission to save the photos you take to your photo library.";
+"NSPhotoLibraryUsageDescription" = "Tracen needs access to your photo library so you can attach saved photos.";

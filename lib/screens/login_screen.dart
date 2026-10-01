@@ -1,3 +1,4 @@
+import '../l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 import '../services/auth_service.dart';
@@ -24,6 +25,8 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context);
+
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
@@ -45,7 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final password = _passwordController.text;
 
     if (email.isEmpty || password.isEmpty) {
-      _showSnack('이메일과 비밀번호를 입력해주세요');
+      _showSnack(l10n.loginEnterCredentials);
       return;
     }
 
@@ -57,7 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
     } on AuthException catch (e) {
       if (mounted) _showSnack(e.message, isError: true);
     } catch (_) {
-      if (mounted) _showSnack('로그인 중 오류가 발생했어요', isError: true);
+      if (mounted) _showSnack(l10n.loginError, isError: true);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -71,11 +74,11 @@ class _LoginScreenState extends State<LoginScreen> {
       _goToHome();
     } on AuthException catch (e) {
       // 사용자가 취소한 경우는 조용히 (에러 메시지로 보여주면 거슬림)
-      if (e.message != '취소되었어요' && mounted) {
+      if (!e.cancelled && mounted) {
         _showSnack(e.message, isError: true);
       }
     } catch (_) {
-      if (mounted) _showSnack('Google 로그인에 실패했어요', isError: true);
+      if (mounted) _showSnack(l10n.googleLoginFailed, isError: true);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -135,13 +138,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   Center(child: const TracenLogo(size: 80)),
                   const SizedBox(height: 28),
                   Text(
-                    '환영합니다',
+                    l10n.loginWelcome,
                     textAlign: TextAlign.center,
                     style: AppTextStyles.display.copyWith(height: 1.2),
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    '오늘의 여정을 기록해볼까요',
+                    l10n.loginSubtitle,
                     textAlign: TextAlign.center,
                     style: AppTextStyles.bodyMuted,
                   ),
@@ -149,7 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 44),
 
                   // 이메일
-                  _Label('이메일'),
+                  _Label(l10n.commonEmail),
                   const SizedBox(height: 8),
                   TextField(
                     controller: _emailController,
@@ -169,7 +172,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 16),
 
                   // 비밀번호
-                  _Label('비밀번호'),
+                  _Label(l10n.commonPassword),
                   const SizedBox(height: 8),
                   TextField(
                     controller: _passwordController,
@@ -177,7 +180,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     textInputAction: TextInputAction.done,
                     onSubmitted: (_) => _handleEmailLogin(),
                     decoration: InputDecoration(
-                      hintText: '비밀번호를 입력하세요',
+                      hintText: l10n.passwordHint,
                       prefixIcon: const Icon(
                         Icons.lock_outline_rounded,
                         color: AppColors.gray400,
@@ -204,7 +207,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: _handleForgotPassword,
-                      child: const Text('비밀번호를 잊으셨나요?'),
+                      child: Text(l10n.forgotPasswordLink),
                     ),
                   ),
 
@@ -229,7 +232,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ),
                             )
-                          : const Text('로그인'),
+                          : Text(l10n.commonLogin),
                     ),
                   ),
 
@@ -241,7 +244,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const Expanded(child: Divider()),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Text('또는', style: AppTextStyles.small),
+                        child: Text(l10n.commonOr, style: AppTextStyles.small),
                       ),
                       const Expanded(child: Divider()),
                     ],
@@ -251,7 +254,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   // Google
                   _SocialButton(
-                    label: 'Google로 계속하기',
+                    label: l10n.continueWithGoogle,
                     icon: Icons.g_mobiledata_rounded,
                     iconColor: const Color(0xFFEA4335),
                     iconSize: 22,
@@ -260,7 +263,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 10),
                   _SocialButton(
-                    label: 'Apple로 계속하기 (준비 중)',
+                    label: l10n.continueWithAppleSoon,
                     icon: Icons.apple,
                     iconColor: AppColors.gray400,
                     iconSize: 22,
@@ -271,10 +274,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   Padding(
                     padding: const EdgeInsets.only(top: 24, bottom: 8),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    child: Wrap(
+                      alignment: WrapAlignment.center,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        Text('아직 계정이 없으신가요?', style: AppTextStyles.small),
+                        Text(l10n.noAccountYet, style: AppTextStyles.small),
                         TextButton(
                           onPressed: () {
                             Navigator.push(
@@ -284,7 +288,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             );
                           },
-                          child: const Text('가입하기'),
+                          child: Text(l10n.signUpAction),
                         ),
                       ],
                     ),

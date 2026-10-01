@@ -1,3 +1,4 @@
+import '../../l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -25,6 +26,8 @@ class PlaceResultScreen extends StatefulWidget {
 }
 
 class _PlaceResultScreenState extends State<PlaceResultScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context);
+
   GoogleMapController? _mapController;
   int? _focusedIndex;
 
@@ -36,7 +39,7 @@ class _PlaceResultScreenState extends State<PlaceResultScreen> {
       markerId: const MarkerId('me'),
       position: widget.origin,
       icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
-      infoWindow: const InfoWindow(title: '현재 위치'),
+      infoWindow: InfoWindow(title: l10n.currentLocation),
     ));
 
     // 추천 장소
@@ -146,17 +149,17 @@ class _PlaceResultScreenState extends State<PlaceResultScreen> {
                             Row(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.all(6),
+                                  padding: EdgeInsets.all(6),
                                   decoration: BoxDecoration(
                                     color: AppColors.primaryLight,
                                     borderRadius: BorderRadius.circular(AppRadius.sm),
                                   ),
-                                  child: const Icon(Icons.auto_awesome, size: 15, color: AppColors.primary),
+                                  child: Icon(Icons.auto_awesome, size: 15, color: AppColors.primary),
                                 ),
-                                const SizedBox(width: 8),
+                                SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    '${rec.places.length}곳 추천드려요',
+                                    l10n.placesRecommended(rec.places.length),
                                     style: AppTextStyles.h3,
                                   ),
                                 ),
@@ -342,7 +345,7 @@ class _PlaceResultScreenState extends State<PlaceResultScreen> {
             top: MediaQuery.of(context).padding.top + 8,
             right: 12,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 7),
               decoration: BoxDecoration(
                 color: context.cardColor,
                 borderRadius: BorderRadius.circular(AppRadius.full),
@@ -352,9 +355,9 @@ class _PlaceResultScreenState extends State<PlaceResultScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.place_rounded, size: 14, color: AppColors.primary),
-                  const SizedBox(width: 4),
+                  SizedBox(width: 4),
                   Text(
-                    '${rec.places.length}곳',
+                    l10n.placesCount(rec.places.length),
                     style: AppTextStyles.small.copyWith(fontWeight: FontWeight.w600),
                   ),
                 ],

@@ -1,3 +1,4 @@
+import '../../l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -21,6 +22,8 @@ class PlaceInputScreen extends StatefulWidget {
 }
 
 class _PlaceInputScreenState extends State<PlaceInputScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context);
+
   final _textController = TextEditingController();
   final _focusNode = FocusNode();
 
@@ -32,26 +35,26 @@ class _PlaceInputScreenState extends State<PlaceInputScreen> {
 
   // 카테고리 칩 정의
   static const _categories = [
-    _Chip('맛집', Icons.restaurant_rounded, Color(0xFFEF4444)),
-    _Chip('카페', Icons.coffee_rounded, Color(0xFF8B5CF6)),
-    _Chip('팝업스토어', Icons.store_rounded, Color(0xFFF59E0B)),
-    _Chip('술집', Icons.local_bar_rounded, Color(0xFF3B82F6)),
-    _Chip('공원', Icons.park_rounded, Color(0xFF10B981)),
-    _Chip('쇼핑', Icons.shopping_bag_rounded, Color(0xFFEC4899)),
-    _Chip('문화', Icons.museum_rounded, Color(0xFF6366F1)),
-    _Chip('편의점', Icons.store_mall_directory_rounded, Color(0xFF14B8A6)),
+    _Chip('restaurant', Icons.restaurant_rounded, Color(0xFFEF4444)),
+    _Chip('cafe', Icons.coffee_rounded, Color(0xFF8B5CF6)),
+    _Chip('popup', Icons.store_rounded, Color(0xFFF59E0B)),
+    _Chip('bar', Icons.local_bar_rounded, Color(0xFF3B82F6)),
+    _Chip('park', Icons.park_rounded, Color(0xFF10B981)),
+    _Chip('shopping', Icons.shopping_bag_rounded, Color(0xFFEC4899)),
+    _Chip('culture', Icons.museum_rounded, Color(0xFF6366F1)),
+    _Chip('convenience', Icons.store_mall_directory_rounded, Color(0xFF14B8A6)),
   ];
 
   // 빠른 입력 예시
-  static const _suggestions = [
-    '힙한 분위기',
-    '조용한 곳',
-    '인스타 감성',
-    '넓은 곳',
-    '뷰 좋은 곳',
-    '가성비',
-    '야외 테라스',
-    '24시간',
+  List<String> get _suggestions => [
+    l10n.sugHip,
+    l10n.sugQuiet,
+    l10n.sugInsta,
+    l10n.sugSpacious,
+    l10n.sugView,
+    l10n.sugValue,
+    l10n.sugTerrace,
+    l10n.sug24h,
   ];
 
   @override
@@ -78,7 +81,7 @@ class _PlaceInputScreenState extends State<PlaceInputScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('위치 권한을 확인해주세요.')),
+          SnackBar(content: Text(l10n.placeCheckLocationPermission)),
         );
       }
     } finally {
@@ -89,13 +92,13 @@ class _PlaceInputScreenState extends State<PlaceInputScreen> {
   Future<void> _onSearch() async {
     if (_origin == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('위치를 가져오는 중이에요.')),
+        SnackBar(content: Text(l10n.placeLocating)),
       );
       return;
     }
     if (_selectedChips.isEmpty && _textController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('카테고리나 원하는 것을 입력해주세요.')),
+        SnackBar(content: Text(l10n.placeNeedInput)),
       );
       return;
     }
@@ -138,7 +141,7 @@ class _PlaceInputScreenState extends State<PlaceInputScreen> {
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text('AI 장소 추천', style: AppTextStyles.h3),
+        title: Text(l10n.placeTitle, style: AppTextStyles.h3),
         centerTitle: true,
       ),
       body: GestureDetector(
@@ -171,17 +174,17 @@ class _PlaceInputScreenState extends State<PlaceInputScreen> {
                         color: AppColors.primary,
                         borderRadius: BorderRadius.circular(AppRadius.md),
                       ),
-                      child: const Icon(Icons.auto_awesome, color: Colors.white, size: 22),
+                      child: Icon(Icons.auto_awesome, color: Colors.white, size: 22),
                     ),
-                    const SizedBox(width: 14),
+                    SizedBox(width: 14),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('지금 여기서 어디 갈까요?', style: AppTextStyles.bodyBold.copyWith(color: AppColors.primary)),
-                          const SizedBox(height: 2),
+                          Text(l10n.placeHeroTitle, style: AppTextStyles.bodyBold.copyWith(color: AppColors.primary)),
+                          SizedBox(height: 2),
                           Text(
-                            '원하는 걸 자유롭게 말해주세요\nAI가 주변 최적 장소를 찾아드려요',
+                            l10n.placeHeroDesc,
                             style: AppTextStyles.small.copyWith(
                               color: AppColors.primary.withValues(alpha: 0.7),
                               height: 1.5,
@@ -194,12 +197,12 @@ class _PlaceInputScreenState extends State<PlaceInputScreen> {
                 ),
               ),
 
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
 
               // ── 인원 선택 ──
               Row(
                 children: [
-                  Text('인원', style: AppTextStyles.bodyBold),
+                  Text(l10n.placeParty, style: AppTextStyles.bodyBold),
                   const Spacer(),
                   _PeopleSelector(
                     value: _people,
@@ -211,19 +214,19 @@ class _PlaceInputScreenState extends State<PlaceInputScreen> {
               const SizedBox(height: 20),
 
               // ── 카테고리 칩 ──
-              Text('어디 가고 싶어요?', style: AppTextStyles.bodyBold),
+              Text(l10n.placeWhere, style: AppTextStyles.bodyBold),
               const SizedBox(height: 12),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children: _categories.map((cat) {
-                  final selected = _selectedChips.contains(cat.label);
+                  final selected = _selectedChips.contains(cat.key);
                   return GestureDetector(
                     onTap: () => setState(() {
                       if (selected) {
-                        _selectedChips.remove(cat.label);
+                        _selectedChips.remove(cat.key);
                       } else {
-                        _selectedChips.add(cat.label);
+                        _selectedChips.add(cat.key);
                       }
                     }),
                     child: AnimatedContainer(
@@ -245,7 +248,7 @@ class _PlaceInputScreenState extends State<PlaceInputScreen> {
                           Icon(cat.icon, size: 15, color: selected ? Colors.white : cat.color),
                           const SizedBox(width: 6),
                           Text(
-                            cat.label,
+                            PlaceRecommendService.chipLabel(l10n, cat.key),
                             style: AppTextStyles.small.copyWith(
                               color: selected ? Colors.white : context.textPrimary,
                               fontWeight: FontWeight.w600,
@@ -261,7 +264,7 @@ class _PlaceInputScreenState extends State<PlaceInputScreen> {
               const SizedBox(height: 24),
 
               // ── 자유 텍스트 입력 ──
-              Text('더 구체적으로 말해줘요', style: AppTextStyles.bodyBold),
+              Text(l10n.placeBeSpecific, style: AppTextStyles.bodyBold),
               const SizedBox(height: 8),
               Container(
                 decoration: BoxDecoration(
@@ -275,7 +278,7 @@ class _PlaceInputScreenState extends State<PlaceInputScreen> {
                   maxLines: 3,
                   minLines: 2,
                   decoration: InputDecoration(
-                    hintText: '예) 친구 3명이랑 힙한 분위기 카페 가고 싶어\n예) 데이트하기 좋은 조용한 맛집',
+                    hintText: l10n.placeInputHint,
                     hintStyle: AppTextStyles.small.copyWith(color: context.textTertiary, height: 1.6),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.all(16),
@@ -316,29 +319,29 @@ class _PlaceInputScreenState extends State<PlaceInputScreen> {
                 ),
               ),
 
-              const SizedBox(height: 28),
+              SizedBox(height: 28),
 
               // ── 위치 표시 ──
               Row(
                 children: [
                   Icon(Icons.location_on_rounded, size: 16, color: AppColors.primary),
-                  const SizedBox(width: 6),
+                  SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       _locating
-                          ? '위치 가져오는 중...'
+                          ? l10n.placeLocatingShort
                           : _origin != null
-                              ? '현재 위치 기준 2km 반경'
-                              : '위치를 가져올 수 없어요',
+                              ? l10n.placeRadius
+                              : l10n.placeLocationUnavailable,
                       style: AppTextStyles.small,
                     ),
                   ),
                   if (_locating)
-                    const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 1.5))
+                    SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 1.5))
                   else
                     GestureDetector(
                       onTap: _getLocation,
-                      child: Text('새로고침', style: AppTextStyles.small.copyWith(color: AppColors.primary)),
+                      child: Text(l10n.placeRefresh, style: AppTextStyles.small.copyWith(color: AppColors.primary)),
                     ),
                 ],
               ),
@@ -366,19 +369,24 @@ class _PlaceInputScreenState extends State<PlaceInputScreen> {
                           children: [
                             const SizedBox(width: 18, height: 18,
                               child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
-                            const SizedBox(width: 10),
-                            Text('AI가 장소 찾는 중...', style: AppTextStyles.bodyBold.copyWith(color: Colors.white)),
+                            SizedBox(width: 10),
+                            Text(l10n.placeSearching, style: AppTextStyles.bodyBold.copyWith(color: Colors.white)),
                           ],
                         )
                       : Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.search_rounded, size: 20),
-                            const SizedBox(width: 8),
+                            Icon(Icons.search_rounded, size: 20),
+                            SizedBox(width: 8),
                             Text(
                               _selectedChips.isEmpty && _textController.text.isEmpty
-                                  ? '장소 추천 받기'
-                                  : '$_people명 · ${_selectedChips.join(' ')} 추천 받기',
+                                  ? l10n.placeGetRecs
+                                  : l10n.placeGetRecsWith(
+                                      _people,
+                                      _selectedChips
+                                          .map((k) => PlaceRecommendService.chipLabel(l10n, k))
+                                          .join(' '),
+                                    ),
                               style: AppTextStyles.bodyBold.copyWith(color: Colors.white),
                             ),
                           ],
@@ -411,7 +419,7 @@ class _PeopleSelector extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14),
           child: Text(
-            '$value명',
+            AppLocalizations.of(context).peopleCount(value),
             style: AppTextStyles.bodyBold.copyWith(color: AppColors.primary),
           ),
         ),
@@ -436,8 +444,8 @@ class _PeopleSelector extends StatelessWidget {
 }
 
 class _Chip {
-  final String label;
+  final String key;
   final IconData icon;
   final Color color;
-  const _Chip(this.label, this.icon, this.color);
+  const _Chip(this.key, this.icon, this.color);
 }

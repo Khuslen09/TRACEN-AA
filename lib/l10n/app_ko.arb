@@ -1,32 +1,28 @@
 {
   "@@locale": "ko",
-
   "onboardingSkip": "건너뛰기",
-  "@onboardingSkip": {"description": "온보딩 건너뛰기 버튼"},
+  "@onboardingSkip": {
+    "description": "온보딩 건너뛰기 버튼"
+  },
   "onboardingNext": "다음",
   "onboardingStart": "시작하기",
-
   "onboarding1Title": "당신만의 길을\n지도에 남겨보세요",
-  "onboarding1Desc": "산책, 러닝, 여행 — 어디든 AA와 \n함께 걸어요.",
+  "onboarding1Desc": "산책, 러닝, 여행 — 어디든 Tracen과 \n함께 걸어요.",
   "onboarding2Title": "특별한 순간을\n기록해보세요",
   "onboarding2Desc": "도착한 곳에서 사진과 메모를\n남겨보세요.",
   "onboarding3Title": "어디서든\n다시 꺼내보세요",
   "onboarding3Desc": "안전하게 저장되어\n언제든 다시 꺼내볼 수 있어요.",
-
   "settingsTitle": "설정",
   "sectionAppearance": "외관",
   "darkModeTitle": "다크 모드",
   "darkModeSubtitle": "어두운 배경으로 전환해요",
-
   "sectionLanguage": "언어",
   "languageTitle": "앱 언어",
   "languageSubtitle": "표시 언어를 선택하세요",
   "languageSystemDefault": "기기 언어 사용",
-
   "sectionTracking": "추적",
   "autoTrackingTitle": "자동 발자취 기록",
   "autoTrackingSubtitle": "앱이 켜진 동안 이동 경로를 지도에 기록해요",
-
   "sectionNotifications": "알림",
   "locationNotifTitle": "위치 추적 알림",
   "locationNotifSubtitle": "경로 기록 중 알림을 받아요",
@@ -34,18 +30,15 @@
   "memoNotifSubtitle": "메모가 저장됐을 때 알려드려요",
   "runningNotifTitle": "러닝 알림",
   "runningNotifSubtitle": "러닝 완료 시 결과를 알려드려요",
-
   "sectionAccount": "계정",
   "resetPasswordTitle": "비밀번호 재설정",
   "resetPasswordSubtitle": "재설정 링크를 메일로 보내드려요",
   "noEmail": "이메일 없음",
   "loggedInAccount": "로그인된 계정",
-
   "sectionAppInfo": "앱 정보",
   "privacyPolicy": "개인정보 처리방침",
   "termsOfService": "서비스 이용약관",
   "versionLabel": "버전",
-
   "signOut": "로그아웃",
   "deleteAccountAction": "회원 탈퇴",
   "signOutConfirmTitle": "로그아웃 할까요?",
@@ -57,6 +50,386 @@
   "errorDeleteAccount": "탈퇴 중 오류가 발생했어요",
   "errorOpenUrl": "{label} 페이지를 열 수 없어요",
   "@errorOpenUrl": {
-    "placeholders": {"label": {"type": "String"}}
-  }
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "commonEmail": "이메일",
+  "commonPassword": "비밀번호",
+  "commonOr": "또는",
+  "commonLogin": "로그인",
+  "loginEnterCredentials": "이메일과 비밀번호를 입력해주세요",
+  "loginError": "로그인 중 오류가 발생했어요",
+  "googleLoginFailed": "Google 로그인에 실패했어요",
+  "loginWelcome": "환영합니다",
+  "loginSubtitle": "오늘의 여정을 기록해볼까요",
+  "passwordHint": "비밀번호를 입력하세요",
+  "forgotPasswordLink": "비밀번호를 잊으셨나요?",
+  "continueWithGoogle": "Google로 계속하기",
+  "continueWithAppleSoon": "Apple로 계속하기 (준비 중)",
+  "noAccountYet": "아직 계정이 없으신가요?",
+  "signUpAction": "가입하기",
+  "nameRequired": "이름을 입력해주세요",
+  "nameTooShort": "이름은 2자 이상이어야 해요",
+  "emailRequired": "이메일을 입력해주세요",
+  "emailInvalid": "올바른 이메일 형식이 아니에요",
+  "passwordRequired": "비밀번호를 입력해주세요",
+  "passwordTooShort": "비밀번호는 6자 이상이어야 해요",
+  "passwordMismatch": "비밀번호가 일치하지 않아요",
+  "agreeTermsRequired": "약관에 동의해주세요",
+  "signUpError": "가입 중 오류가 발생했어요",
+  "signUpTitle": "계정 만들기",
+  "signUpSubtitle": "몇 가지 정보만 입력하면 끝나요",
+  "nameLabel": "이름",
+  "nameHint": "닉네임 또는 이름",
+  "passwordHintMin6": "6자 이상",
+  "confirmPasswordLabel": "비밀번호 확인",
+  "confirmPasswordHint": "한 번 더 입력해주세요",
+  "signUpComplete": "가입 완료",
+  "alreadyHaveAccount": "이미 계정이 있으신가요?",
+  "termsAgreePrefix": "",
+  "termsAgreeTermsLink": "서비스 이용약관",
+  "termsAgreeMiddle": " 및 ",
+  "termsAgreePrivacyLink": "개인정보처리방침",
+  "termsAgreeSuffix": "에 동의합니다",
+  "forgotPasswordDesc": "가입하신 이메일을 입력하시면\n비밀번호 재설정 링크를 보내드려요.",
+  "sendResetEmail": "재설정 메일 보내기",
+  "resetEmailSentTitle": "메일을 보냈어요",
+  "resetEmailSentDesc": "받은편지함에서 재설정 메일을 확인해주세요.\n메일이 안 보이면 스팸함도 확인해보세요.",
+  "backToLogin": "로그인 화면으로",
+  "tryAnotherEmail": "다른 이메일로 다시 시도",
+  "authCancelled": "취소되었어요",
+  "authLoginRequired": "로그인이 필요해요",
+  "profileLoadFailed": "프로필을 불러올 수 없어요",
+  "authReauthRequired": "재로그인이 필요해요. 다시 로그인 후 탈퇴해주세요.",
+  "authErrorDisabled": "비활성화된 계정이에요",
+  "authErrorWrongCredentials": "이메일 또는 비밀번호가 일치하지 않아요",
+  "authErrorEmailInUse": "이미 가입된 이메일이에요",
+  "authErrorNetwork": "네트워크 연결을 확인해주세요",
+  "authErrorTooMany": "너무 많은 시도가 있었어요. 잠시 후 다시 시도해주세요",
+  "authErrorGeneric": "인증에 실패했어요 ({code})",
+  "@authErrorGeneric": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "permissionLater": "나중에",
+  "permissionTitle": "시작하기 전에\n권한을 확인해주세요",
+  "permissionIntro": "Tracen이 여정을 기록하려면 다음 권한이 필요해요.\n나중에 언제든 설정에서 변경할 수 있어요.",
+  "permLocationTitle": "위치 정보",
+  "permLocationReason": "GPS로 이동 경로를 지도에 그리고\n여정 거리를 계산해요",
+  "permCameraTitle": "카메라",
+  "permCameraReason": "특별한 순간에 인증샷을\n바로 남길 수 있어요",
+  "permPhotosTitle": "사진 라이브러리",
+  "permPhotosReason": "저장된 사진을 핀에 첨부해서\n추억을 더 풍성하게 기록해요",
+  "permAllowAll": "모두 허용하기",
+  "permStatusGranted": "허용됨",
+  "permStatusNeeded": "필요함",
+  "permStatusSettings": "설정 필요",
+  "permStatusNotRequested": "미요청",
+  "permDeniedNotice": "거부된 권한이 있어요. 설정에서 직접 켜주세요.",
+  "permOpenSettings": "설정으로 이동",
+  "splashTagline": "나의 여정을 기록하다",
+  "pinAdded": "핀이 추가되었어요 📍",
+  "pinDeleted": "핀을 삭제했어요",
+  "locationNotFound": "위치를 찾을 수 없어요",
+  "navMap": "지도",
+  "navTimeline": "타임라인",
+  "navProfile": "프로필",
+  "profileEdit": "프로필 편집",
+  "profileNoName": "이름 없음",
+  "statRuns": "러닝",
+  "statDistance": "총 거리",
+  "statPins": "핀",
+  "recentPhotos": "최근 사진",
+  "seeAll": "전체 보기",
+  "noPhotosYet": "아직 저장된 사진이 없어요",
+  "saveError": "저장 중 오류가 발생했어요",
+  "changePhoto": "사진 변경",
+  "emailReadOnly": "이메일은 변경할 수 없어요",
+  "save": "저장",
+  "takePhoto": "카메라로 촬영",
+  "chooseFromGallery": "갤러리에서 선택",
+  "commonOk": "확인",
+  "commonDelete": "삭제",
+  "commonRetry": "다시 시도",
+  "runLocationPermissionNeeded": "위치 권한이 필요합니다",
+  "runEndTitle": "러닝을 종료할까요?",
+  "runEndBody": "지금까지 {km} km 달렸어요.",
+  "@runEndBody": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "runContinue": "계속",
+  "runEnd": "종료",
+  "runStartTitle": "러닝을 시작할까요?",
+  "runStartHint": "GPS가 준비되면 기록이 시작돼요.\n스트레칭은 했나요? 🏃",
+  "runStartButton": "시작하기",
+  "runGpsConnecting": "GPS 연결 중...",
+  "runDistance": "거리",
+  "runTime": "시간",
+  "runPace": "페이스",
+  "runCalories": "칼로리",
+  "runLongPressHint": "지도를 길게 눌러 핀 추가",
+  "runInfoNotFound": "러닝 정보를 찾을 수 없어요",
+  "resultLoadFailed": "결과를 불러올 수 없어요",
+  "runComplete": "러닝 완료",
+  "runAvgPace": "평균 페이스",
+  "unitCountSuffix": "개",
+  "mapStart": "시작",
+  "mapEnd": "도착",
+  "routeTooShort": "경로가 너무 짧아서 표시할 수 없어요",
+  "deleteRunTitle": "이 러닝을 삭제할까요?",
+  "deleteRunBody": "경로와 핀도 함께 삭제되며, 되돌릴 수 없어요.",
+  "runDeleted": "러닝을 삭제했어요",
+  "myRuns": "나의 러닝",
+  "loadFailed": "불러오기에 실패했어요",
+  "runInProgress": "진행 중",
+  "durationHM": "{h}시간 {m}분",
+  "@durationHM": {
+    "placeholders": {
+      "h": {
+        "type": "int"
+      },
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "durationM": "{m}분",
+  "@durationM": {
+    "placeholders": {
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "durationS": "{s}초",
+  "@durationS": {
+    "placeholders": {
+      "s": {
+        "type": "int"
+      }
+    }
+  },
+  "noRunsYet": "아직 기록된 러닝이 없어요",
+  "noRunsHint": "지도 화면의 보라색 러닝 버튼을 눌러\n첫 러닝을 시작해보세요.",
+  "invalidRoute": "잘못된 여정입니다",
+  "routeLoadFailed": "경로를 불러올 수 없어요",
+  "pinCountValue": "{count}개",
+  "@pinCountValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "searchComingSoon": "검색 기능은 곧 추가됩니다",
+  "modePhoto": "사진",
+  "modeMemo": "메모",
+  "noMemosYet": "아직 저장된 메모가 없어요",
+  "emptyPhotoHint": "여정 중 인증샷을 남겨보세요\n지도를 길게 누르면 핀을 추가할 수 있어요",
+  "emptyMemoHint": "여정 중 떠오르는 생각을 메모해보세요\n지도를 길게 누르면 핀을 추가할 수 있어요",
+  "chipRestaurant": "맛집",
+  "chipCafe": "카페",
+  "chipPopup": "팝업스토어",
+  "chipBar": "술집",
+  "chipPark": "공원",
+  "chipShopping": "쇼핑",
+  "chipCulture": "문화",
+  "chipConvenience": "편의점",
+  "sugHip": "힙한 분위기",
+  "sugQuiet": "조용한 곳",
+  "sugInsta": "인스타 감성",
+  "sugSpacious": "넓은 곳",
+  "sugView": "뷰 좋은 곳",
+  "sugValue": "가성비",
+  "sugTerrace": "야외 테라스",
+  "sug24h": "24시간",
+  "placeCheckLocationPermission": "위치 권한을 확인해주세요.",
+  "placeLocating": "위치를 가져오는 중이에요.",
+  "placeNeedInput": "카테고리나 원하는 것을 입력해주세요.",
+  "placeTitle": "AI 장소 추천",
+  "placeHeroTitle": "지금 여기서 어디 갈까요?",
+  "placeHeroDesc": "원하는 걸 자유롭게 말해주세요\nAI가 주변 최적 장소를 찾아드려요",
+  "placeParty": "인원",
+  "placeWhere": "어디 가고 싶어요?",
+  "placeBeSpecific": "더 구체적으로 말해줘요",
+  "placeInputHint": "예) 친구 3명이랑 힙한 분위기 카페 가고 싶어\n예) 데이트하기 좋은 조용한 맛집",
+  "placeLocatingShort": "위치 가져오는 중...",
+  "placeRadius": "현재 위치 기준 2km 반경",
+  "placeLocationUnavailable": "위치를 가져올 수 없어요",
+  "placeRefresh": "새로고침",
+  "placeSearching": "AI가 장소 찾는 중...",
+  "placeGetRecs": "장소 추천 받기",
+  "placeGetRecsWith": "{people}명 · {chips} 추천 받기",
+  "@placeGetRecsWith": {
+    "placeholders": {
+      "people": {
+        "type": "int"
+      },
+      "chips": {
+        "type": "String"
+      }
+    }
+  },
+  "peopleCount": "{value}명",
+  "@peopleCount": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "currentLocation": "현재 위치",
+  "placesRecommended": "{count}곳 추천드려요",
+  "@placesRecommended": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "placesCount": "{count}곳",
+  "@placesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pinDeleteTooltip": "핀 삭제",
+  "pinEmpty": "내용이 없는 핀이에요.",
+  "photoSavedToGallery": "사진이 갤러리에 저장됐어요 📷",
+  "saveFailedWith": "저장 실패: {error}",
+  "@saveFailedWith": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "tapToClose": "탭하면 닫혀요",
+  "catGeneral": "일반",
+  "catFood": "음식",
+  "catScenery": "명소",
+  "catCafe": "카페",
+  "catWorkout": "운동",
+  "catMemo": "메모",
+  "addPin": "핀 추가",
+  "pickerTapMapHint": "지도를 탭해서 위치를 옮길 수 있어요",
+  "today": "오늘",
+  "resetColorsTitle": "색상 초기화",
+  "resetColorsBody": "모든 카테고리 색상을 기본값으로 되돌릴까요?",
+  "reset": "초기화",
+  "categoryColors": "카테고리 색상",
+  "colorDefault": "기본",
+  "categoryColorTitle": "{category} 색상",
+  "@categoryColorTitle": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "presetColors": "프리셋 색상",
+  "apply": "적용",
+  "addMemoOrPhoto": "메모나 사진을 하나 이상 추가해주세요",
+  "categoryLabel": "카테고리",
+  "memoLabel": "메모",
+  "photoLabel": "사진",
+  "memoHint": "오늘의 한 줄을 적어보세요...",
+  "gallery": "갤러리",
+  "anotherPhoto": "다른 사진",
+  "retakePhoto": "다시 촬영",
+  "journey": "여정",
+  "routeDefaultTitle": "{date} 여정",
+  "@routeDefaultTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "recoveredRecord": "이전 기록 (자동 복구)",
+  "placeErrNoGeminiKey": "AI 기능을 쓰려면 .env에 GEMINI_API_KEY가 필요해요.\naistudio.google.com 에서 무료로 발급받을 수 있어요.",
+  "placeErrNotEnough": "주변에 추천할 장소가 충분하지 않아요. (검색된 후보: {count}개)\nPlaces API 활성화 / 결제 계정 / 위치를 확인해주세요.",
+  "@placeErrNotEnough": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "placeErrNoMapsKey": "Google Maps API 키가 없어요. (.env 확인)",
+  "placeErrDenied": "Places API가 거부됐어요.\nGoogle Cloud에서 \"Places API\"를 활성화하고, API 키 제한에 Places를 추가했는지 확인해주세요.",
+  "placeErrQuota": "API 사용 한도를 초과했어요. 결제 계정을 확인해주세요.",
+  "placeErrBadRequest": "검색 요청이 잘못됐어요. 위치 정보를 확인해주세요.",
+  "placeErrSearchFailed": "장소 검색 실패: {status}",
+  "@placeErrSearchFailed": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "aiErrNetwork": "AI 호출 중 네트워크 오류가 났어요: {error}",
+  "@aiErrNetwork": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "aiErrResponse": "AI 응답 오류 ({code})\n{body}",
+  "@aiErrResponse": {
+    "placeholders": {
+      "code": {
+        "type": "int"
+      },
+      "body": {
+        "type": "String"
+      }
+    }
+  },
+  "aiErrNoContent": "Gemini 응답에서 내용을 찾지 못했어요.",
+  "aiErrBadStructure": "Gemini 응답 구조가 올바르지 않아요.",
+  "aiErrUnparsable": "AI 응답을 이해하지 못했어요. 다시 시도해주세요.\n응답: {raw}",
+  "@aiErrUnparsable": {
+    "placeholders": {
+      "raw": {
+        "type": "String"
+      }
+    }
+  },
+  "aiErrBadFormat": "AI 응답 형식이 올바르지 않아요. 다시 시도해주세요.",
+  "aiErrNoPick": "AI가 장소를 고르지 못했어요. 다시 시도해주세요.",
+  "aiErrTooFewValid": "유효한 장소가 부족해요. 다시 시도해주세요.",
+  "aiDefaultReason": "추천 장소예요.",
+  "trackingChannelName": "Tracen 위치 추적",
+  "trackingChannelDesc": "백그라운드에서 경로를 기록하고 있습니다.",
+  "trackingNotifTitle": "Tracen 경로 기록 중",
+  "trackingNotifText": "백그라운드에서 위치를 추적하고 있습니다.",
+  "locationServiceOff": "위치 서비스가 꺼져 있습니다. 디바이스 설정에서 켜주세요.",
+  "locationPermissionDenied": "위치 권한이 거부되었습니다.",
+  "locationPermissionDeniedForever": "위치 권한이 영구 거부되었습니다. 앱 설정에서 허용해주세요.",
+  "activityRunning": "러닝",
+  "activityWalking": "걷기",
+  "activityCycling": "자전거",
+  "metricSpeed": "속도",
+  "metricAvgSpeed": "평균 속도",
+  "metricMaxSpeed": "최고 속도",
+  "metricAltitude": "고도",
+  "metricSteps": "걸음 수",
+  "trackingPause": "일시정지",
+  "trackingResume": "재개",
+  "trackingHoldToStop": "길게 눌러서 종료",
+  "trackingBackToCurrentLocation": "현재 위치로"
 }

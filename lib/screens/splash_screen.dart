@@ -1,3 +1,4 @@
+import '../l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 import '../services/auth_service.dart';
@@ -32,6 +33,8 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
+  AppLocalizations get l10n => AppLocalizations.of(context);
+
   late final AnimationController _controller;
   late final Animation<double> _fade;
   late final Animation<double> _scale;
@@ -143,10 +146,10 @@ class _SplashScreenState extends State<SplashScreen>
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const TracenLogo(size: 72), // 40% 축소
-                      const SizedBox(height: 16),
+                      TracenLogo(size: 72), // 40% 축소
+                      SizedBox(height: 16),
                       Text(
-                        '나의 여정을 기록하다',
+                        l10n.splashTagline,
                         style: AppTextStyles.small.copyWith(
                           color: context.textSecondary,
                         ),

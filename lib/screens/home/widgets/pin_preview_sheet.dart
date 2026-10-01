@@ -1,3 +1,5 @@
+import '../../../l10n/generated/app_localizations.dart';
+import '../../../l10n/strings.dart';
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -53,7 +55,9 @@ class PinPreviewSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final time = DateFormat('M월 d일 a h:mm', 'ko_KR').format(pin.createdAt);
+    final l10n = AppLocalizations.of(context);
+    final time = '${DateFormat.MMMd(Strings.current.localeName).format(pin.createdAt)} '
+        '${DateFormat.jm(Strings.current.localeName).format(pin.createdAt)}';
 
     // 로컬 파일이 실제로 존재하는지 확인 후 판단
     final localExists =
@@ -100,7 +104,7 @@ class PinPreviewSheet extends StatelessWidget {
             Row(
               children: [
                 _CategoryBadge(category: pin.category),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Expanded(child: Text(time, style: AppTextStyles.smallBold)),
                 IconButton(
                   icon: const Icon(Icons.delete_outline_rounded, size: 20),
@@ -109,7 +113,7 @@ class PinPreviewSheet extends StatelessWidget {
                     Navigator.pop(context);
                     onDelete();
                   },
-                  tooltip: '핀 삭제',
+                  tooltip: l10n.pinDeleteTooltip,
                 ),
               ],
             ),
@@ -176,9 +180,9 @@ class PinPreviewSheet extends StatelessWidget {
             // 사진도 메모도 없을 때
             if (!hasPhoto && !hasMemo)
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: EdgeInsets.symmetric(vertical: 8),
                 child: Text(
-                  '내용이 없는 핀이에요.',
+                  l10n.pinEmpty,
                   style: AppTextStyles.body.copyWith(
                     color: context.textSecondary,
                   ),
@@ -294,12 +298,12 @@ class _FullPhotoViewer extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('사진이 갤러리에 저장됐어요 📷')));
+        ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context).photoSavedToGallery)));
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('저장 실패: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text(AppLocalizations.of(context).saveFailedWith('$e')), backgroundColor: Colors.red),
         );
       }
     }
@@ -307,6 +311,7 @@ class _FullPhotoViewer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: Colors.black,
       body: GestureDetector(
@@ -374,7 +379,7 @@ class _FullPhotoViewer extends StatelessWidget {
               right: 0,
               child: Center(
                 child: Text(
-                  '탭하면 닫혀요',
+                  l10n.tapToClose,
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.5),
                     fontSize: 13,

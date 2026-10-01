@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/strings.dart';
 import '../theme/app_colors.dart';
 
 /// 핀 카테고리.
@@ -10,18 +11,27 @@ import '../theme/app_colors.dart';
 /// `key`는 DB에 저장되는 문자열 식별자. enum 이름이 바뀌어도 안전하도록
 /// 명시적으로 지정.
 enum PinCategory {
-  general('general', '일반', Icons.place_rounded),
-  food('food', '음식', Icons.restaurant_rounded),
-  scenery('scenery', '명소', Icons.photo_camera_rounded),
-  cafe('cafe', '카페', Icons.local_cafe_rounded),
-  workout('workout', '운동', Icons.fitness_center_rounded),
-  memo('memo', '메모', Icons.edit_note_rounded);
+  general('general', Icons.place_rounded),
+  food('food', Icons.restaurant_rounded),
+  scenery('scenery', Icons.photo_camera_rounded),
+  cafe('cafe', Icons.local_cafe_rounded),
+  workout('workout', Icons.fitness_center_rounded),
+  memo('memo', Icons.edit_note_rounded);
 
   final String key;
-  final String label;
   final IconData icon;
 
-  const PinCategory(this.key, this.label, this.icon);
+  const PinCategory(this.key, this.icon);
+
+  /// 현재 앱 언어의 표시 이름. (DB에는 [key]만 저장되므로 언어를 바꿔도 안전)
+  String get label => switch (this) {
+    PinCategory.general => Strings.current.catGeneral,
+    PinCategory.food => Strings.current.catFood,
+    PinCategory.scenery => Strings.current.catScenery,
+    PinCategory.cafe => Strings.current.catCafe,
+    PinCategory.workout => Strings.current.catWorkout,
+    PinCategory.memo => Strings.current.catMemo,
+  };
 
   /// DB에서 읽은 문자열을 enum으로 변환. 알 수 없으면 general.
   static PinCategory fromKey(String? key) {

@@ -19,9 +19,4 @@ class Env {
   static String get geminiApiKey => dotenv.env['GEMINI_API_KEY'] ?? '';
 
   static bool get hasGeminiKey => geminiApiKey.isNotEmpty;
-
-  // ── Claude AI ──
-  static String get claudeApiKey => dotenv.env['CLAUDE_API_KEY'] ?? '';
-
-  static bool get hasClaudeKey => claudeApiKey.isNotEmpty;
 }

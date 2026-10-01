@@ -1,31 +1,25 @@
 {
   "@@locale": "en",
-
   "onboardingSkip": "Skip",
   "onboardingNext": "Next",
   "onboardingStart": "Get Started",
-
   "onboarding1Title": "Trace your own path\non the map",
-  "onboarding1Desc": "Walks, runs, travel — go anywhere\nwith AA by your side.",
+  "onboarding1Desc": "Walks, runs, travel — go anywhere\nwith Tracen by your side.",
   "onboarding2Title": "Capture special\nmoments",
   "onboarding2Desc": "Leave a photo and a note\nwherever you go.",
   "onboarding3Title": "Pick up right where\nyou left off",
   "onboarding3Desc": "Safely stored in the cloud,\nready whenever you are.",
-
   "settingsTitle": "Settings",
   "sectionAppearance": "Appearance",
   "darkModeTitle": "Dark Mode",
   "darkModeSubtitle": "Switch to a darker background",
-
   "sectionLanguage": "Language",
   "languageTitle": "App Language",
   "languageSubtitle": "Choose your display language",
   "languageSystemDefault": "Use device language",
-
   "sectionTracking": "Tracking",
   "autoTrackingTitle": "Auto Path Tracking",
   "autoTrackingSubtitle": "Record your path on the map while the app is running",
-
   "sectionNotifications": "Notifications",
   "locationNotifTitle": "Location Tracking Alerts",
   "locationNotifSubtitle": "Get notified while your route is being recorded",
@@ -33,18 +27,15 @@
   "memoNotifSubtitle": "Get notified when a note is saved",
   "runningNotifTitle": "Running Alerts",
   "runningNotifSubtitle": "Get notified when a run is completed",
-
   "sectionAccount": "Account",
   "resetPasswordTitle": "Reset Password",
   "resetPasswordSubtitle": "We'll send a reset link to your email",
   "noEmail": "No email",
   "loggedInAccount": "Signed-in account",
-
   "sectionAppInfo": "About",
   "privacyPolicy": "Privacy Policy",
   "termsOfService": "Terms of Service",
   "versionLabel": "Version",
-
   "signOut": "Sign Out",
   "deleteAccountAction": "Delete Account",
   "signOutConfirmTitle": "Sign out?",
@@ -54,5 +45,381 @@
   "cancel": "Cancel",
   "confirmDeleteAccount": "Delete",
   "errorDeleteAccount": "Something went wrong while deleting your account",
-  "errorOpenUrl": "Couldn't open {label}"
+  "errorOpenUrl": "Couldn't open {label}",
+  "commonEmail": "Email",
+  "commonPassword": "Password",
+  "commonOr": "or",
+  "commonLogin": "Log in",
+  "loginEnterCredentials": "Please enter your email and password",
+  "loginError": "Something went wrong while logging in",
+  "googleLoginFailed": "Google sign-in failed",
+  "loginWelcome": "Welcome",
+  "loginSubtitle": "Ready to record today's journey?",
+  "passwordHint": "Enter your password",
+  "forgotPasswordLink": "Forgot your password?",
+  "continueWithGoogle": "Continue with Google",
+  "continueWithAppleSoon": "Continue with Apple (coming soon)",
+  "noAccountYet": "Don't have an account yet?",
+  "signUpAction": "Sign up",
+  "nameRequired": "Please enter your name",
+  "nameTooShort": "Name must be at least 2 characters",
+  "emailRequired": "Please enter your email",
+  "emailInvalid": "That doesn't look like a valid email",
+  "passwordRequired": "Please enter a password",
+  "passwordTooShort": "Password must be at least 6 characters",
+  "passwordMismatch": "Passwords don't match",
+  "agreeTermsRequired": "Please agree to the terms",
+  "signUpError": "Something went wrong while signing up",
+  "signUpTitle": "Create your account",
+  "signUpSubtitle": "Just a few details and you're done",
+  "nameLabel": "Name",
+  "nameHint": "Nickname or name",
+  "passwordHintMin6": "At least 6 characters",
+  "confirmPasswordLabel": "Confirm password",
+  "confirmPasswordHint": "Enter it once more",
+  "signUpComplete": "Create account",
+  "alreadyHaveAccount": "Already have an account?",
+  "termsAgreePrefix": "I agree to the ",
+  "termsAgreeTermsLink": "Terms of Service",
+  "termsAgreeMiddle": " and ",
+  "termsAgreePrivacyLink": "Privacy Policy",
+  "termsAgreeSuffix": "",
+  "forgotPasswordDesc": "Enter the email you signed up with and\nwe'll send you a password reset link.",
+  "sendResetEmail": "Send reset email",
+  "resetEmailSentTitle": "Email sent",
+  "resetEmailSentDesc": "Check your inbox for the reset email.\nIf you don't see it, check your spam folder too.",
+  "backToLogin": "Back to log in",
+  "tryAnotherEmail": "Try a different email",
+  "authCancelled": "Cancelled",
+  "authLoginRequired": "You need to log in first",
+  "profileLoadFailed": "Couldn't load your profile",
+  "authReauthRequired": "Please log in again, then delete your account.",
+  "authErrorDisabled": "This account has been disabled",
+  "authErrorWrongCredentials": "Incorrect email or password",
+  "authErrorEmailInUse": "This email is already registered",
+  "authErrorNetwork": "Please check your network connection",
+  "authErrorTooMany": "Too many attempts. Please try again in a moment",
+  "authErrorGeneric": "Authentication failed ({code})",
+  "@authErrorGeneric": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "permissionLater": "Later",
+  "permissionTitle": "Before you begin,\nlet's check permissions",
+  "permissionIntro": "Tracen needs the following permissions to record your journeys.\nYou can change them anytime in Settings.",
+  "permLocationTitle": "Location",
+  "permLocationReason": "We use GPS to draw your route on the map\nand measure your journey distance",
+  "permCameraTitle": "Camera",
+  "permCameraReason": "Snap a photo right\nat special moments",
+  "permPhotosTitle": "Photo library",
+  "permPhotosReason": "Attach saved photos to pins\nfor richer memories",
+  "permAllowAll": "Allow all",
+  "permStatusGranted": "Allowed",
+  "permStatusNeeded": "Needed",
+  "permStatusSettings": "Open Settings",
+  "permStatusNotRequested": "Not requested",
+  "permDeniedNotice": "Some permissions were denied. Please turn them on in Settings.",
+  "permOpenSettings": "Go to Settings",
+  "splashTagline": "Record your journey",
+  "pinAdded": "Pin added 📍",
+  "pinDeleted": "Pin deleted",
+  "locationNotFound": "Couldn't find your location",
+  "navMap": "Map",
+  "navTimeline": "Timeline",
+  "navProfile": "Profile",
+  "profileEdit": "Edit profile",
+  "profileNoName": "No name",
+  "statRuns": "Runs",
+  "statDistance": "Total distance",
+  "statPins": "Pins",
+  "recentPhotos": "Recent photos",
+  "seeAll": "See all",
+  "noPhotosYet": "No photos saved yet",
+  "saveError": "Something went wrong while saving",
+  "changePhoto": "Change photo",
+  "emailReadOnly": "Email can't be changed",
+  "save": "Save",
+  "takePhoto": "Take a photo",
+  "chooseFromGallery": "Choose from gallery",
+  "commonOk": "OK",
+  "commonDelete": "Delete",
+  "commonRetry": "Try again",
+  "runLocationPermissionNeeded": "Location permission is required",
+  "runEndTitle": "End your run?",
+  "runEndBody": "You've run {km} km so far.",
+  "@runEndBody": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "runContinue": "Continue",
+  "runEnd": "End",
+  "runStartTitle": "Start a run?",
+  "runStartHint": "Recording starts once GPS is ready.\nDid you stretch? 🏃",
+  "runStartButton": "Start",
+  "runGpsConnecting": "Connecting to GPS...",
+  "runDistance": "Distance",
+  "runTime": "Time",
+  "runPace": "Pace",
+  "runCalories": "Calories",
+  "runLongPressHint": "Long-press the map to add a pin",
+  "runInfoNotFound": "Couldn't find that run",
+  "resultLoadFailed": "Couldn't load the result",
+  "runComplete": "Run complete",
+  "runAvgPace": "Avg pace",
+  "unitCountSuffix": "",
+  "mapStart": "Start",
+  "mapEnd": "Finish",
+  "routeTooShort": "The route is too short to display",
+  "deleteRunTitle": "Delete this run?",
+  "deleteRunBody": "The route and pins will be deleted too. This can't be undone.",
+  "runDeleted": "Run deleted",
+  "myRuns": "My runs",
+  "loadFailed": "Failed to load",
+  "runInProgress": "In progress",
+  "durationHM": "{h}h {m}m",
+  "@durationHM": {
+    "placeholders": {
+      "h": {
+        "type": "int"
+      },
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "durationM": "{m}m",
+  "@durationM": {
+    "placeholders": {
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "durationS": "{s}s",
+  "@durationS": {
+    "placeholders": {
+      "s": {
+        "type": "int"
+      }
+    }
+  },
+  "noRunsYet": "No runs recorded yet",
+  "noRunsHint": "Tap the purple run button on the map\nto start your first run.",
+  "invalidRoute": "Invalid route",
+  "routeLoadFailed": "Couldn't load the route",
+  "pinCountValue": "{count}",
+  "@pinCountValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "searchComingSoon": "Search is coming soon",
+  "modePhoto": "Photos",
+  "modeMemo": "Memos",
+  "noMemosYet": "No memos saved yet",
+  "emptyPhotoHint": "Snap a photo during your journey\nLong-press the map to add a pin",
+  "emptyMemoHint": "Jot down thoughts along the way\nLong-press the map to add a pin",
+  "chipRestaurant": "Restaurants",
+  "chipCafe": "Cafés",
+  "chipPopup": "Pop-up stores",
+  "chipBar": "Bars",
+  "chipPark": "Parks",
+  "chipShopping": "Shopping",
+  "chipCulture": "Culture",
+  "chipConvenience": "Convenience stores",
+  "sugHip": "Trendy vibe",
+  "sugQuiet": "Quiet spot",
+  "sugInsta": "Instagram-worthy",
+  "sugSpacious": "Spacious",
+  "sugView": "Great view",
+  "sugValue": "Good value",
+  "sugTerrace": "Outdoor terrace",
+  "sug24h": "Open 24 hours",
+  "placeCheckLocationPermission": "Please check location permission.",
+  "placeLocating": "Getting your location…",
+  "placeNeedInput": "Pick a category or type what you're looking for.",
+  "placeTitle": "AI place picks",
+  "placeHeroTitle": "Where should we go from here?",
+  "placeHeroDesc": "Tell us what you're after\nand AI will find the best spots nearby",
+  "placeParty": "Party size",
+  "placeWhere": "Where do you want to go?",
+  "placeBeSpecific": "Tell us more",
+  "placeInputHint": "e.g. A trendy café for me and 3 friends\ne.g. A quiet restaurant that's great for a date",
+  "placeLocatingShort": "Getting location...",
+  "placeRadius": "Within 2 km of your location",
+  "placeLocationUnavailable": "Couldn't get your location",
+  "placeRefresh": "Refresh",
+  "placeSearching": "AI is finding places...",
+  "placeGetRecs": "Get recommendations",
+  "placeGetRecsWith": "Get recommendations · {people} · {chips}",
+  "@placeGetRecsWith": {
+    "placeholders": {
+      "people": {
+        "type": "int"
+      },
+      "chips": {
+        "type": "String"
+      }
+    }
+  },
+  "peopleCount": "{value}",
+  "@peopleCount": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "currentLocation": "Current location",
+  "placesRecommended": "{count} places for you",
+  "@placesRecommended": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "placesCount": "{count} places",
+  "@placesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pinDeleteTooltip": "Delete pin",
+  "pinEmpty": "This pin has no content.",
+  "photoSavedToGallery": "Photo saved to your gallery 📷",
+  "saveFailedWith": "Couldn't save: {error}",
+  "@saveFailedWith": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "tapToClose": "Tap to close",
+  "catGeneral": "General",
+  "catFood": "Food",
+  "catScenery": "Sights",
+  "catCafe": "Café",
+  "catWorkout": "Workout",
+  "catMemo": "Memo",
+  "addPin": "Add a pin",
+  "pickerTapMapHint": "Tap the map to move the location",
+  "today": "Today",
+  "resetColorsTitle": "Reset colors",
+  "resetColorsBody": "Reset all category colors to their defaults?",
+  "reset": "Reset",
+  "categoryColors": "Category colors",
+  "colorDefault": "Default",
+  "categoryColorTitle": "{category} color",
+  "@categoryColorTitle": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "presetColors": "Preset colors",
+  "apply": "Apply",
+  "addMemoOrPhoto": "Add at least one memo or photo",
+  "categoryLabel": "Category",
+  "memoLabel": "Memo",
+  "photoLabel": "Photo",
+  "memoHint": "Write a line about today...",
+  "gallery": "Gallery",
+  "anotherPhoto": "Another photo",
+  "retakePhoto": "Retake",
+  "journey": "Journey",
+  "routeDefaultTitle": "Journey {date}",
+  "@routeDefaultTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "recoveredRecord": "Previous record (auto-recovered)",
+  "placeErrNoGeminiKey": "To use AI features, add GEMINI_API_KEY to .env.\nYou can get one for free at aistudio.google.com.",
+  "placeErrNotEnough": "Not enough places nearby to recommend. (Candidates found: {count})\nPlease check that the Places API is enabled, billing is set up, and your location is correct.",
+  "@placeErrNotEnough": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "placeErrNoMapsKey": "Google Maps API key is missing. (Check .env)",
+  "placeErrDenied": "The Places API request was denied.\nEnable \"Places API\" in Google Cloud and make sure it's allowed in your API key restrictions.",
+  "placeErrQuota": "API usage limit exceeded. Please check your billing account.",
+  "placeErrBadRequest": "The search request was invalid. Please check your location.",
+  "placeErrSearchFailed": "Place search failed: {status}",
+  "@placeErrSearchFailed": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "aiErrNetwork": "Network error while calling the AI: {error}",
+  "@aiErrNetwork": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "aiErrResponse": "AI response error ({code})\n{body}",
+  "@aiErrResponse": {
+    "placeholders": {
+      "code": {
+        "type": "int"
+      },
+      "body": {
+        "type": "String"
+      }
+    }
+  },
+  "aiErrNoContent": "Couldn't find content in the Gemini response.",
+  "aiErrBadStructure": "The Gemini response structure is invalid.",
+  "aiErrUnparsable": "Couldn't understand the AI response. Please try again.\nResponse: {raw}",
+  "@aiErrUnparsable": {
+    "placeholders": {
+      "raw": {
+        "type": "String"
+      }
+    }
+  },
+  "aiErrBadFormat": "The AI response format is invalid. Please try again.",
+  "aiErrNoPick": "The AI couldn't pick any places. Please try again.",
+  "aiErrTooFewValid": "Not enough valid places. Please try again.",
+  "aiDefaultReason": "A recommended place.",
+  "trackingChannelName": "Tracen location tracking",
+  "trackingChannelDesc": "Recording your route in the background.",
+  "trackingNotifTitle": "Tracen is recording your route",
+  "trackingNotifText": "Tracking your location in the background.",
+  "locationServiceOff": "Location services are turned off. Please turn them on in your device settings.",
+  "locationPermissionDenied": "Location permission was denied.",
+  "locationPermissionDeniedForever": "Location permission was permanently denied. Please allow it in the app settings.",
+  "activityRunning": "Running",
+  "activityWalking": "Walking",
+  "activityCycling": "Cycling",
+  "metricSpeed": "Speed",
+  "metricAvgSpeed": "Avg speed",
+  "metricMaxSpeed": "Max speed",
+  "metricAltitude": "Altitude",
+  "metricSteps": "Steps",
+  "trackingPause": "Pause",
+  "trackingResume": "Resume",
+  "trackingHoldToStop": "Hold to end",
+  "trackingBackToCurrentLocation": "Back to current location"
 }

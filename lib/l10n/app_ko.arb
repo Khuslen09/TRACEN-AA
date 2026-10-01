@@ -431,5 +431,8 @@
   "trackingPause": "일시정지",
   "trackingResume": "재개",
   "trackingHoldToStop": "길게 눌러서 종료",
-  "trackingBackToCurrentLocation": "현재 위치로"
+  "trackingBackToCurrentLocation": "현재 위치로",
+  "trackingLocatingGps": "위치를 찾는 중…",
+  "trackingPreciseLocationOff": "정확한 위치가 꺼져 있어 기록이 부정확할 수 있어요.",
+  "trackingPreciseLocationTurnOn": "켜기"
 }

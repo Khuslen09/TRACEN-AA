@@ -939,4 +939,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trackingBackToCurrentLocation => 'Back to current location';
+
+  @override
+  String get trackingLocatingGps => 'Finding your location…';
+
+  @override
+  String get trackingPreciseLocationOff =>
+      'Precise location is off, so tracking may be less accurate.';
+
+  @override
+  String get trackingPreciseLocationTurnOn => 'Turn on';
 }

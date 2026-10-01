@@ -421,5 +421,8 @@
   "trackingPause": "Pause",
   "trackingResume": "Resume",
   "trackingHoldToStop": "Hold to end",
-  "trackingBackToCurrentLocation": "Back to current location"
+  "trackingBackToCurrentLocation": "Back to current location",
+  "trackingLocatingGps": "Finding your location…",
+  "trackingPreciseLocationOff": "Precise location is off, so tracking may be less accurate.",
+  "trackingPreciseLocationTurnOn": "Turn on"
 }

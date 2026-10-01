@@ -125,6 +125,9 @@ class _ActivityTrackingScreenState extends State<ActivityTrackingScreen> {
           key: ValueKey(_controller),
           mapStateListenable: _controller.mapState,
           bottomPadding: bottomInset,
+          debugInfoListenable: _controller.debugGpsInfo,
+          accuracyStatusListenable: _controller.accuracyStatus,
+          onRequestFullAccuracy: _controller.requestFullAccuracy,
         ),
         controlsBar: TrackingControlsBar(
           isPaused: _isPaused,

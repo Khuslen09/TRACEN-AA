@@ -57,6 +57,11 @@
 	<string>Tracen needs your location to keep recording your route accurately, even while the screen is off.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Tracen needs your location to record your journey route.</string>
+	<key>NSLocationTemporaryUsageDescriptionDictionary</key>
+	<dict>
+		<key>PreciseTrackingPurpose</key>
+		<string>Precise location makes your recorded route and distance much more accurate.</string>
+	</dict>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Tracen needs permission to save the photos you take to your photo library.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

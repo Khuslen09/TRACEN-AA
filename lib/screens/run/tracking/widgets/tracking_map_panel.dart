@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart' show ValueListenable, kDebugMode;
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart' hide ActivityType;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../../l10n/generated/app_localizations.dart';
@@ -21,10 +23,21 @@ class TrackingMapPanel extends StatefulWidget {
   /// 전달해서 내 위치 마커/버튼/Google 로고가 컨트롤 바에 안 가리게 함.
   final double bottomPadding;
 
+  /// 디버그 빌드 전용 — 원본 GPS 진단 오버레이. null이면(예: mock 컨트롤러)
+  /// 그냥 안 그림.
+  final ValueListenable<DebugGpsSnapshot?>? debugInfoListenable;
+
+  /// iOS "정확한 위치" 상태. reduced면 배너로 안내.
+  final ValueListenable<LocationAccuracyStatus?>? accuracyStatusListenable;
+  final VoidCallback? onRequestFullAccuracy;
+
   const TrackingMapPanel({
     super.key,
     required this.mapStateListenable,
     required this.bottomPadding,
+    this.debugInfoListenable,
+    this.accuracyStatusListenable,
+    this.onRequestFullAccuracy,
   });
 
   @override
@@ -56,7 +69,8 @@ class _TrackingMapPanelState extends State<TrackingMapPanel> {
   }
 
   void _onMapStateChanged() {
-    _maybeMoveCamera(widget.mapStateListenable.value.position);
+    final position = widget.mapStateListenable.value.position;
+    if (position != null) _maybeMoveCamera(position);
   }
 
   Future<void> _maybeMoveCamera(LatLng pos) async {
@@ -77,11 +91,13 @@ class _TrackingMapPanelState extends State<TrackingMapPanel> {
   }
 
   Future<void> _onRecenterPressed() async {
+    final position = widget.mapStateListenable.value.position;
+    if (position == null) return;
     setState(() => _followMe = true);
     _lastCameraMove = DateTime.now();
     _programmaticMove = true;
     await _controller?.animateCamera(
-      CameraUpdate.newLatLngZoom(widget.mapStateListenable.value.position, 17),
+      CameraUpdate.newLatLngZoom(position, 17),
     );
     _programmaticMove = false;
   }
@@ -89,7 +105,6 @@ class _TrackingMapPanelState extends State<TrackingMapPanel> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final initial = widget.mapStateListenable.value;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
@@ -101,9 +116,13 @@ class _TrackingMapPanelState extends State<TrackingMapPanel> {
               child: ValueListenableBuilder<TrackingMapState>(
                 valueListenable: widget.mapStateListenable,
                 builder: (context, mapState, _) {
+                  final position = mapState.position;
+                  if (position == null) {
+                    return const _MapLoadingPlaceholder();
+                  }
                   return GoogleMap(
                     initialCameraPosition: CameraPosition(
-                      target: initial.position,
+                      target: position,
                       zoom: 17,
                     ),
                     onMapCreated: (c) => _controller = c,
@@ -127,7 +146,7 @@ class _TrackingMapPanelState extends State<TrackingMapPanel> {
                     markers: {
                       Marker(
                         markerId: const MarkerId('current'),
-                        position: mapState.position,
+                        position: position,
                         icon: BitmapDescriptor.defaultMarkerWithHue(
                           BitmapDescriptor.hueViolet,
                         ),
@@ -148,7 +167,140 @@ class _TrackingMapPanelState extends State<TrackingMapPanel> {
                   onPressed: _onRecenterPressed,
                 ),
               ),
+            if (widget.accuracyStatusListenable != null)
+              Positioned(
+                top: 12,
+                left: 12,
+                right: 12,
+                child: ValueListenableBuilder<LocationAccuracyStatus?>(
+                  valueListenable: widget.accuracyStatusListenable!,
+                  builder: (context, status, _) {
+                    if (status != LocationAccuracyStatus.reduced) {
+                      return const SizedBox.shrink();
+                    }
+                    return _PreciseLocationBanner(
+                      onRequestFullAccuracy: widget.onRequestFullAccuracy,
+                    );
+                  },
+                ),
+              ),
+            if (kDebugMode && widget.debugInfoListenable != null)
+              Positioned(
+                bottom: 8,
+                left: 8,
+                child: ValueListenableBuilder<DebugGpsSnapshot?>(
+                  valueListenable: widget.debugInfoListenable!,
+                  builder: (context, info, _) => _DebugGpsOverlay(info: info),
+                ),
+              ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MapLoadingPlaceholder extends StatelessWidget {
+  const _MapLoadingPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return ColoredBox(
+      color: AppColors.primary.withValues(alpha: 0.08),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CircularProgressIndicator(color: AppColors.primary),
+            const SizedBox(height: 12),
+            Text(
+              l10n.trackingLocatingGps,
+              style: const TextStyle(color: AppColors.primary),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PreciseLocationBanner extends StatelessWidget {
+  final VoidCallback? onRequestFullAccuracy;
+  const _PreciseLocationBanner({this.onRequestFullAccuracy});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Material(
+      color: Colors.black.withValues(alpha: 0.75),
+      borderRadius: BorderRadius.circular(10),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Row(
+          children: [
+            const Icon(Icons.gps_not_fixed_rounded, color: Colors.white, size: 16),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                l10n.trackingPreciseLocationOff,
+                style: const TextStyle(color: Colors.white, fontSize: 12),
+              ),
+            ),
+            if (onRequestFullAccuracy != null)
+              TextButton(
+                onPressed: onRequestFullAccuracy,
+                child: Text(
+                  l10n.trackingPreciseLocationTurnOn,
+                  style: const TextStyle(color: AppColors.primary, fontSize: 12),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DebugGpsOverlay extends StatelessWidget {
+  final DebugGpsSnapshot? info;
+  const _DebugGpsOverlay({required this.info});
+
+  @override
+  Widget build(BuildContext context) {
+    final i = info;
+    return Container(
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: DefaultTextStyle(
+        style: const TextStyle(
+          color: Colors.greenAccent,
+          fontSize: 10,
+          fontFamily: 'monospace',
+          height: 1.3,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: i == null
+              ? const [Text('GPS: waiting for fix…')]
+              : [
+                  Text(
+                    'lat ${i.lat?.toStringAsFixed(6)}  lng ${i.lng?.toStringAsFixed(6)}',
+                  ),
+                  Text(
+                    'acc ${i.accuracyMeters?.toStringAsFixed(1)}m  '
+                    '${i.passedAccuracyFilter ? "PASS" : "FILTERED"}',
+                  ),
+                  Text('ts ${i.timestamp?.toIso8601String() ?? "-"}'),
+                  Text(
+                    'perm ${i.permission?.name ?? "?"}  '
+                    'precise ${i.accuracyStatus?.name ?? "?"}',
+                  ),
+                ],
         ),
       ),
     );

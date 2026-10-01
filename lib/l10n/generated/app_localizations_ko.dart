@@ -911,4 +911,13 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get trackingBackToCurrentLocation => '현재 위치로';
+
+  @override
+  String get trackingLocatingGps => '위치를 찾는 중…';
+
+  @override
+  String get trackingPreciseLocationOff => '정확한 위치가 꺼져 있어 기록이 부정확할 수 있어요.';
+
+  @override
+  String get trackingPreciseLocationTurnOn => '켜기';
 }

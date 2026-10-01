@@ -31,11 +31,21 @@ class ActivityRecorder {
   final ValueNotifier<TrackingMetrics> metrics = ValueNotifier(
     TrackingMetrics.zero,
   );
-  /// 첫 GPS 픽스 전까지 보여줄 임시 위치 — home_screen의 기본 카메라와
-  /// 같은 값(서울)을 써서 실제 GPS가 들어오기 전 지도가 엉뚱한 곳(0,0 — 기니만)을
-  /// 잠깐 보여주는 걸 피한다.
+
+  /// 첫 GPS 픽스 전까지는 position이 null(로딩 상태) — 더는 하드코딩된
+  /// 좌표를 보여주지 않는다. [start]/[resumeExisting]이 getLastKnownPosition
+  /// 으로 최대한 빨리 임시 위치를 채우고, 실제 스트림이 들어오면 교체한다.
   final ValueNotifier<TrackingMapState> mapState = ValueNotifier(
-    const TrackingMapState(position: LatLng(37.5665, 126.9780), path: []),
+    TrackingMapState.loading,
+  );
+
+  /// 디버그 오버레이용 — kDebugMode가 아니어도 수집 자체는 가볍다.
+  final ValueNotifier<DebugGpsSnapshot?> debugGpsInfo = ValueNotifier(null);
+
+  /// iOS "정확한 위치"가 꺼져 reduced인지 — 화면에서 배너로 안내하고
+  /// [requestFullAccuracy]로 다시 요청할 수 있게 한다.
+  final ValueNotifier<LocationAccuracyStatus?> accuracyStatus = ValueNotifier(
+    null,
   );
 
   /// 지금 어떤 route가 기록 중인지 — 앱 전역에서 1개뿐이어야 한다.
@@ -93,6 +103,8 @@ class ActivityRecorder {
     _routeId = id;
     activeRouteId = id;
     _startedAt = DateTime.now();
+    unawaited(_seedLastKnownPosition());
+    unawaited(_refreshLocationStatus());
     _beginTicking();
     await _subscribeGps();
   }
@@ -124,9 +136,11 @@ class ActivityRecorder {
       _lastAltitude = last.altitude;
     }
     mapState.value = TrackingMapState(
-      position: _lastLatLng ?? const LatLng(0, 0),
+      position: _lastLatLng,
       path: List.unmodifiable(_path),
     );
+    if (_lastLatLng == null) unawaited(_seedLastKnownPosition());
+    unawaited(_refreshLocationStatus());
 
     // 기존에 닫힌 일시정지 구간들을 누적.
     final pauses = await RouteDBService.getPauses(existingRouteId);
@@ -219,7 +233,24 @@ class ActivityRecorder {
     _posSub?.cancel();
     metrics.dispose();
     mapState.dispose();
+    debugGpsInfo.dispose();
+    accuracyStatus.dispose();
     if (activeRouteId == _routeId) activeRouteId = null;
+  }
+
+  /// iOS 14+에서 "정확한 위치"가 꺼져 reduced인 상태일 때, 이번 세션에
+  /// 한해서만 정밀도를 임시로 올려달라고 요청한다. 화면의 안내 배너에서
+  /// 호출됨. Info.plist의 NSLocationTemporaryUsageDescriptionDictionary에
+  /// purposeKey가 등록돼 있어야 동작.
+  Future<void> requestFullAccuracy() async {
+    try {
+      final status = await Geolocator.requestTemporaryFullAccuracy(
+        purposeKey: 'PreciseTrackingPurpose',
+      );
+      accuracyStatus.value = status;
+    } catch (e) {
+      debugPrint('정확한 위치 요청 실패: $e');
+    }
   }
 
   Future<void> _closeOpenPause(DateTime now) async {
@@ -242,7 +273,63 @@ class ActivityRecorder {
     _posSub = LocationService.positionStream().listen(_handlePosition);
   }
 
+  /// 첫 실시간 픽스가 들어오기 전, 캐시된 마지막 위치로 마커를 최대한
+  /// 빨리 채운다. 너무 오래되거나(10초 초과) 너무 부정확하면(50m 초과)
+  /// 오히려 오해를 줄 수 있어 버리고 로딩 상태를 유지한다.
+  Future<void> _seedLastKnownPosition() async {
+    try {
+      final cached = await Geolocator.getLastKnownPosition();
+      if (cached == null || mapState.value.position != null) return;
+      final age = DateTime.now().difference(cached.timestamp);
+      if (age > const Duration(seconds: 10) || cached.accuracy > 50) return;
+      mapState.value = TrackingMapState(
+        position: LatLng(cached.latitude, cached.longitude),
+        path: mapState.value.path,
+      );
+    } catch (e) {
+      debugPrint('getLastKnownPosition 실패: $e');
+    }
+  }
+
+  LocationPermission? _permission;
+
+  Future<void> _refreshLocationStatus() async {
+    try {
+      _permission = await Geolocator.checkPermission();
+      accuracyStatus.value = await Geolocator.getLocationAccuracy();
+    } catch (e) {
+      debugPrint('위치 정확도 상태 조회 실패: $e');
+    }
+    _publishDebugInfo();
+  }
+
+  Position? _lastRawPosition;
+
+  void _publishDebugInfo() {
+    if (!kDebugMode) return;
+    final p = _lastRawPosition;
+    debugGpsInfo.value = DebugGpsSnapshot(
+      lat: p?.latitude,
+      lng: p?.longitude,
+      accuracyMeters: p?.accuracy,
+      timestamp: p?.timestamp,
+      passedAccuracyFilter: p != null && p.accuracy <= _accuracyThreshold,
+      permission: _permission,
+      accuracyStatus: accuracyStatus.value,
+    );
+  }
+
   void _handlePosition(Position p) {
+    // 마커/카메라는 정확도 필터와 무관하게 항상 최신 원본 위치를 반영—
+    // 경로/거리 누적에 쓰는 필터와 "지금 보여줄 위치"를 분리한다.
+    _lastRawPosition = p;
+    final rawLatLng = LatLng(p.latitude, p.longitude);
+    mapState.value = TrackingMapState(
+      position: rawLatLng,
+      path: mapState.value.path,
+    );
+    _publishDebugInfo();
+
     if (_manualPaused) return;
     if (p.accuracy > _accuracyThreshold) return;
 
@@ -267,17 +354,16 @@ class ActivityRecorder {
       if (speedKmh > _maxSpeedKmh) _maxSpeedKmh = speedKmh;
 
       _evaluateAutoPause(speedMps, now);
-      unawaited(_recordPoint(p, now));
+      unawaited(_recordPoint(p, now, rawLatLng));
     } else {
-      unawaited(_recordPoint(p, now));
+      unawaited(_recordPoint(p, now, rawLatLng));
     }
 
-    _lastLatLng = LatLng(p.latitude, p.longitude);
+    _lastLatLng = rawLatLng;
     _lastPointTime = now;
   }
 
-  Future<void> _recordPoint(Position p, DateTime now) async {
-    final latLng = LatLng(p.latitude, p.longitude);
+  Future<void> _recordPoint(Position p, DateTime now, LatLng latLng) async {
     _path.add(latLng);
     mapState.value = TrackingMapState(
       position: latLng,
@@ -340,6 +426,8 @@ class ActivityRecorder {
     _ticker ??= Timer.periodic(const Duration(seconds: 1), (_) => _tick());
   }
 
+  int _tickCount = 0;
+
   void _tick() {
     final now = DateTime.now();
     final lastAccepted = _lastAcceptedPointTime;
@@ -350,6 +438,11 @@ class ActivityRecorder {
       unawaited(_setAutoPaused(true, now));
     }
     _publishMetrics();
+
+    // 5초마다 한 번 — 사용자가 세션 도중 "정확한 위치"를 바꿀 수 있어
+    // 꾸준히 재확인(매 틱마다 할 필요는 없는 가벼운 상태 조회).
+    _tickCount++;
+    if (_tickCount % 5 == 0) unawaited(_refreshLocationStatus());
   }
 
   void _publishMetrics() {

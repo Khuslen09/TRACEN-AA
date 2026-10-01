@@ -941,4 +941,14 @@ class AppLocalizationsMn extends AppLocalizations {
 
   @override
   String get trackingBackToCurrentLocation => 'Одоогийн байршил руу';
+
+  @override
+  String get trackingLocatingGps => 'Байршил тодорхойлж байна…';
+
+  @override
+  String get trackingPreciseLocationOff =>
+      'Нарийвчилсан байршил унтарсан тул бүртгэл буруу байж болзошгүй.';
+
+  @override
+  String get trackingPreciseLocationTurnOn => 'Асаах';
 }

@@ -1821,6 +1821,24 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'현재 위치로'**
   String get trackingBackToCurrentLocation;
+
+  /// No description provided for @trackingLocatingGps.
+  ///
+  /// In ko, this message translates to:
+  /// **'위치를 찾는 중…'**
+  String get trackingLocatingGps;
+
+  /// No description provided for @trackingPreciseLocationOff.
+  ///
+  /// In ko, this message translates to:
+  /// **'정확한 위치가 꺼져 있어 기록이 부정확할 수 있어요.'**
+  String get trackingPreciseLocationOff;
+
+  /// No description provided for @trackingPreciseLocationTurnOn.
+  ///
+  /// In ko, this message translates to:
+  /// **'켜기'**
+  String get trackingPreciseLocationTurnOn;
 }
 
 class _AppLocalizationsDelegate

@@ -421,5 +421,8 @@
   "trackingPause": "Түр зогсоох",
   "trackingResume": "Үргэлжлүүлэх",
   "trackingHoldToStop": "Дуусгахын тулд удаан дарна уу",
-  "trackingBackToCurrentLocation": "Одоогийн байршил руу"
+  "trackingBackToCurrentLocation": "Одоогийн байршил руу",
+  "trackingLocatingGps": "Байршил тодорхойлж байна…",
+  "trackingPreciseLocationOff": "Нарийвчилсан байршил унтарсан тул бүртгэл буруу байж болзошгүй.",
+  "trackingPreciseLocationTurnOn": "Асаах"
 }

@@ -1,10 +1,11 @@
+import '../../l10n/generated/app_localizations.dart';
 import 'dart:async';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:geolocator/geolocator.dart' hide ActivityType;
 
 import '../../models/pin.dart';
+import '../../models/route.dart';
 import '../../services/auth_service.dart';
 import '../../services/category_color_service.dart';
 import '../../services/cloud_sync_service.dart';
@@ -15,9 +16,11 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/theme_extensions.dart';
 import '../../utils/marker_bitmap_util.dart';
-import 'widgets/scratch_overlay.dart';
+import 'widgets/scratch_tile_provider.dart';
 import '../profile/profile_screen.dart';
-import '../run/running_live_screen.dart';
+import '../../models/activity_type.dart';
+import '../run/running_live_screen.dart'; // ignore: unused_import — 다음 단계에서 복원
+import '../run/tracking/activity_tracking_screen.dart';
 import '../save_files_screen.dart';
 import 'category_color_screen.dart';
 import 'place_input_screen.dart';
@@ -39,22 +42,16 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context);
+
   // ─── 지도 / 위치 ───
   GoogleMapController? _mapController;
-  StreamSubscription<Position>? _posSub;
 
   // ─── 카테고리 색상 ───
   final CategoryColorNotifier _colorNotifier = CategoryColorNotifier();
 
   // ─── 내 위치 커스텀 마커 ───
   Marker? _myLocationMarker;
-
-  // ─── 여정 상태 ───
-  int? _currentRouteId;
-  final List<LatLng> _path = [];
-
-  /// 진행 중 여정의 polyline (1개, GPS 받을 때마다 갱신).
-  Polyline? _currentPolyline;
 
   /// 저장된 경로 점들 — routeId → 점 목록.
   /// 스크래치 오버레이가 발자취 표시를 담당하므로 polyline 직접 안 그림.
@@ -67,9 +64,11 @@ class _HomeScreenState extends State<HomeScreen> {
   /// **이전엔 polyline으로 그렸지만, v5에서 스크래치 오버레이로 변경**.
   Map<String, List<LatLng>> _dayTrackPoints = {};
 
-  /// 스크래치 오버레이에 전달할 픽셀 좌표 리스트.
-  /// 카메라 이동 시 [_recomputeTrackScreenPoints]에서 다시 계산.
-  List<List<Offset>> _trackScreenPoints = [];
+  /// 발자취 스크래치 효과를 지도 타일 자체로 그려주는 프로바이더.
+  /// 화면 레이어가 아니라 지도 렌더링 파이프라인 안에서 그려지므로
+  /// 팬/줌/회전 중에도 지도와 어긋날 수 없음 ([ScratchTileProvider] 참고).
+  final ScratchTileProvider _scratchTileProvider = ScratchTileProvider();
+  static const _scratchTileOverlayId = TileOverlayId('scratch');
 
 
   Set<Marker> get _allMarkers {
@@ -78,15 +77,8 @@ class _HomeScreenState extends State<HomeScreen> {
     return markers;
   }
 
-  /// 진행 중 러닝만 polyline으로 표시 — 실시간성 우선
-  /// (저장된 발자취/러닝은 스크래치 오버레이가 마스킹으로 표현)
-  Set<Polyline> get _polylines => {
-    if (_currentPolyline != null) _currentPolyline!,
-  };
-
   final Set<Marker> _pinMarkers = {};
   final Map<String, Pin> _pinByMarkerId = {}; // markerId → Pin 역참조
-  Position? _lastPos;
 
   // ─── UI 토글 ───
   int _bottomNavIndex = 0;
@@ -222,91 +214,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (!mounted) return;
     setState(() => _dayTrackPoints = newPoints);
-
-    // 발자취 픽셀 좌표 다시 계산 (스크래치 오버레이용)
-    _scheduleRecomputeScreenPoints();
+    _rebuildScratchTiles();
   }
 
-  // ─────────────────────────────────────────────
-  // 스크래치 오버레이 — 픽셀 좌표 변환
-  // ─────────────────────────────────────────────
-
-  /// GoogleMap의 카메라가 멈췄을 때 호출. 발자취 LatLng를 픽셀로 변환.
-  void _onCameraIdle() {
-    _scheduleRecomputeScreenPoints();
-  }
-
-  /// 카메라 이동 중 즉시 스크래치 오버레이 갱신 (자연스러운 따라오기)
-  void _onCameraMove(CameraPosition position) {
-    // 샘플링으로 빠르게 변환 → 지연 없이 즉시 실행
-    _recomputeTrackScreenPoints();
-  }
-
-  /// addPostFrameCallback 기반 1회성 스케줄링.
-  /// initState 직후처럼 mapController 아직 null일 때 안전하게.
-  void _scheduleRecomputeScreenPoints() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _recomputeTrackScreenPoints();
-    });
-  }
-
-  /// 모든 발자취 LatLng를 픽셀 좌표(Offset)로 변환해 _trackScreenPoints 갱신.
-  ///
-  /// 변환 비용:
-  ///   - getScreenCoordinate는 비동기 + 네이티브 호출
-  ///   - 점 1000개 = 약 100-300ms (디바이스 따라)
-  ///   - 그래서 디바운스 + 캐싱 중요
-  ///
-  /// 좌표계 주의:
-  ///   - getScreenCoordinate 반환값은 **physical pixels** (devicePixelRatio 곱해진 값)
-  ///   - Flutter Canvas는 **logical pixels** 사용
-  ///   - 그래서 devicePixelRatio로 나눠줘야 정확히 일치
-  Future<void> _recomputeTrackScreenPoints() async {
-    final controller = _mapController;
-    if (controller == null || !mounted) return;
-
-    final dpr = Platform.isIOS ? 1.0 : MediaQuery.of(context).devicePixelRatio;
-    final allPaths = <List<Offset>>[];
-
-    // 점이 많으면 샘플링 — 변환 속도 향상으로 줌/팬 자연스럽게
-    List<LatLng> sample(List<LatLng> pts) {
-      if (pts.length <= 200) return pts;
-      final step = (pts.length / 200).ceil();
-      return [
-        for (var i = 0; i < pts.length; i += step) pts[i],
-        pts.last,
-      ];
-    }
-
-    // 1. day_tracks 변환
-    for (final points in _dayTrackPoints.values) {
-      final sampled = sample(points);
-      final offsets = <Offset>[];
-      for (final latLng in sampled) {
-        try {
-          final sc = await controller.getScreenCoordinate(latLng);
-          offsets.add(Offset(sc.x / dpr, sc.y / dpr));
-        } catch (_) {}
-      }
-      if (offsets.length >= 2) allPaths.add(offsets);
-    }
-
-    // 2. 저장된 러닝 경로 변환
-    for (final points in _savedRoutePoints.values) {
-      final sampled = sample(points);
-      final offsets = <Offset>[];
-      for (final latLng in sampled) {
-        try {
-          final sc = await controller.getScreenCoordinate(latLng);
-          offsets.add(Offset(sc.x / dpr, sc.y / dpr));
-        } catch (_) {}
-      }
-      if (offsets.length >= 2) allPaths.add(offsets);
-    }
-
-    if (mounted) {
-      setState(() => _trackScreenPoints = allPaths);
-    }
+  /// 발자취(day_tracks + 저장된 경로) 데이터가 바뀔 때마다 호출.
+  /// 타일 프로바이더에 최신 경로를 넘기고, 이미 그려둔 타일 캐시를 지워서
+  /// 지도가 다음에 그 타일을 다시 요청하게 만든다.
+  void _rebuildScratchTiles() {
+    _scratchTileProvider.updatePaths([
+      ..._dayTrackPoints.values,
+      ..._savedRoutePoints.values,
+    ]);
+    _mapController?.clearTileCache(_scratchTileOverlayId);
   }
 
   /// 저장된 모든 완료된 경로를 점 목록으로 로드.
@@ -329,8 +248,7 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     });
 
-    // 스크래치 오버레이용 픽셀 좌표 다시 계산
-    _scheduleRecomputeScreenPoints();
+    _rebuildScratchTiles();
   }
 
   StreamSubscription<Position>? _eraseSub;
@@ -339,7 +257,6 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     _colorNotifier.removeListener(_onColorChanged);
     _colorNotifier.dispose();
-    _posSub?.cancel();
     _eraseSub?.cancel();
     super.dispose();
   }
@@ -362,35 +279,32 @@ class _HomeScreenState extends State<HomeScreen> {
   // 진행 중 여정 복구
   // ─────────────────────────────────────────────
 
+  /// 진행 중('recording') 또는 저장 대기 중('pending_review')인 route가
+  /// 있으면 복구한다 — **더 이상 조용히 백그라운드에서 이어 기록하지
+  /// 않는다.** recording이면 기록 화면을 직접 열어 [ActivityRecorder]가
+  /// 이어받게 하고, pending_review는 결과 화면으로 돌아가야 하지만 그
+  /// 화면은 3단계에서 생기므로 지금은 보류(데이터는 안전하게 남아있음).
   Future<void> _restoreActiveRouteIfAny() async {
-    final active = await RouteDBService.getActiveRoute();
-    if (active == null || !mounted) return;
+    final resumable = await RouteDBService.getResumableRoute();
+    if (resumable == null || !mounted) return;
 
-    final points = await RouteDBService.getPoints(active.id!);
-    _path
-      ..clear()
-      ..addAll(points.map((p) => LatLng(p.lat, p.lng)));
-    _updatePolyline();
+    if (resumable.status != RouteStatus.recording) {
+      // TODO(3단계): ActivityResultScreen(runId: resumable.id)으로 push.
+      return;
+    }
 
-    setState(() {
-      _currentRouteId = active.id;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ActivityTrackingScreen(
+            activityType: resumable.activityType,
+            resumeRouteId: resumable.id,
+          ),
+        ),
+      );
     });
-
-    await _reloadPins(active.id!);
-    await _startLocationStream();
-  }
-
-  // ─────────────────────────────────────────────
-  // 시작 / 정지
-  // ─────────────────────────────────────────────
-
-  // ─────────────────────────────────────────────
-  // 위치 스트림
-  // ─────────────────────────────────────────────
-
-  Future<void> _startLocationStream() async {
-    await _posSub?.cancel();
-    _posSub = LocationService.positionStream().listen(_onPosition);
   }
 
   /// 앱 실행 중 항상 켜져있는 GPS 스트림 — 내가 지나간 길의 polyline을 지움.
@@ -431,51 +345,10 @@ class _HomeScreenState extends State<HomeScreen> {
       _savedRoutePoints.remove(id);
     }
 
-    if (changed && mounted) setState(() {});
-  }
-
-  Future<void> _onPosition(Position p) async {
-    final routeId = _currentRouteId;
-    if (routeId == null) return;
-
-    // GPS 정확도가 25m 이상이면 노이즈로 간주하고 스킵
-    if (p.accuracy > 25) return;
-
-    if (_lastPos != null) {
-      final delta = Geolocator.distanceBetween(
-        _lastPos!.latitude,
-        _lastPos!.longitude,
-        p.latitude,
-        p.longitude,
-      );
-      // 3m 미만 제자리 떨림, 50m 초과 GPS 점프 — 둘 다 스킵
-      if (delta < 3 || delta > 50) return;
+    if (changed && mounted) {
+      setState(() {});
+      _rebuildScratchTiles();
     }
-    _lastPos = p;
-
-    await RouteDBService.insertPoint(
-      routeId: routeId,
-      lat: p.latitude,
-      lng: p.longitude,
-    );
-
-    final latLng = LatLng(p.latitude, p.longitude);
-    _path.add(latLng);
-    _updatePolyline();
-    _mapController?.animateCamera(CameraUpdate.newLatLng(latLng));
-    if (mounted) setState(() {});
-  }
-
-  void _updatePolyline() {
-    _currentPolyline = Polyline(
-      polylineId: const PolylineId('current_path'),
-      points: List.unmodifiable(_path),
-      color: AppColors.primary.withValues(alpha: 0.8),
-      width: 12,
-      startCap: Cap.roundCap,
-      endCap: Cap.roundCap,
-      jointType: JointType.round,
-    );
   }
 
   // ─────────────────────────────────────────────
@@ -502,18 +375,8 @@ class _HomeScreenState extends State<HomeScreen> {
       await _addPinMarker(result);
       setState(() {});
       CloudSyncService.syncPinAdded(result);
-      _showSnack('핀이 추가되었어요 📍');
+      _showSnack(l10n.pinAdded);
     }
-  }
-
-  Future<void> _reloadPins(int routeId) async {
-    final pins = await RouteDBService.getPins(routeId);
-    _pinMarkers.clear();
-    _pinByMarkerId.clear();
-    for (final pin in pins) {
-      await _addPinMarker(pin);
-    }
-    if (mounted) setState(() {});
   }
 
   Future<void> _addPinMarker(Pin pin) async {
@@ -573,7 +436,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _pinByMarkerId.remove(markerId);
     if (mounted) {
       setState(() {});
-      _showSnack('핀을 삭제했어요');
+      _showSnack(l10n.pinDeleted);
     }
   }
 
@@ -583,7 +446,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// 0=지도(현재 화면 유지), 1=타임라인, 2=프로필.
   /// 다른 탭으로 가도 메인으로 돌아오면 인덱스를 0으로 리셋해
-  /// "지도"가 항상 현재 활성 탭으로 보이게 함.
+  /// l10n.navMap가 항상 현재 활성 탭으로 보이게 함.
   Future<void> _onBottomNavChanged(int i) async {
     if (i == 0) return; // 이미 지도 화면
 
@@ -631,29 +494,32 @@ class _HomeScreenState extends State<HomeScreen> {
           Positioned.fill(
             child: GoogleMap(
               initialCameraPosition: _initialPosition,
-              onMapCreated: (c) => _mapController = c,
+              onMapCreated: (c) {
+                _mapController = c;
+                // 지도가 준비된 뒤에야 타일을 요청하므로, 이미 로드돼있던
+                // 발자취가 있으면 그제서야 처음으로 타일 캐시를 채운다.
+                _rebuildScratchTiles();
+              },
               onLongPress: _onMapLongPress,
-              onCameraMove: _onCameraMove,
-              onCameraIdle: _onCameraIdle,
               myLocationEnabled: false, // 보라 커스텀 dot으로 대체
               myLocationButtonEnabled: false,
               zoomControlsEnabled: false,
-              polylines: _polylines,
+              // 발자취 스크래치 효과를 타일로 직접 그리므로(ScratchTileProvider),
+              // 회전·기울임 중에도 지도 SDK가 알아서 같이 그려준다 — 더 이상
+              // "북쪽이 항상 위"라는 가정이 필요 없어 제스처를 다시 켜둠.
               markers: _allMarkers,
+              tileOverlays: {
+                TileOverlay(
+                  tileOverlayId: _scratchTileOverlayId,
+                  tileProvider: _scratchTileProvider,
+                  // 빠르게 스크롤해서 새 영역의 타일을 처음 그릴 때 뚝
+                  // 끊기듯 나타나는 게 더 거슬려서 켜둠 — 네이티브 지도가
+                  // 새 타일을 부드럽게 크로스페이드시켜준다.
+                  fadeIn: true,
+                ),
+              },
               padding: const EdgeInsets.only(bottom: 220),
             ),
-          ),
-
-          // ── 지도 위 보라 톤 오버레이 (스크래치 효과) ──
-          // 발자취 경로 부분만 보라가 벗겨져 원래 지도가 비침.
-          // CustomPainter + BlendMode.dstOut으로 마스킹.
-          //
-          // 한계: 줌/팬 중에는 0.1초 정도 발자취 위치 어긋날 수 있음
-          //       (onCameraIdle에서 보정).
-          ScratchOverlay(
-            trackScreenPoints: _trackScreenPoints,
-            strokeWidth: 36,
-            overlayAlpha: 0.30,
           ),
 
           // ── 우상단: 액션 버튼들 ──
@@ -673,14 +539,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: InkWell(
                     customBorder: const CircleBorder(),
                     onTap: () async {
-                      // 러닝 라이브 화면으로 push.
-                      // 사용자가 종료하면 → Result 화면으로 pushReplacement
-                      // → Result에서 닫기/확인 누르면 → 이 자리(HomeScreen)로 pop
-                      // 그래서 await는 Result 화면 pop 시점에 풀림.
+                      // TODO(다음 단계): 2분할 mock UI(ActivityTrackingScreen)
+                      // 검증이 끝나면 실제 엔진을 붙여서 아래 원래 줄로
+                      // 되돌리거나(RunningLiveScreen) 정식 교체할지 결정.
+                      // 원래: await Navigator.push(context, MaterialPageRoute(
+                      //   builder: (_) => const RunningLiveScreen(),
+                      // ));
                       await Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const RunningLiveScreen(),
+                          builder: (_) => const ActivityTrackingScreen(
+                            activityType: ActivityType.running,
+                          ),
                         ),
                       );
                       // 경로 + 핀 새로고침
@@ -763,7 +633,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 } catch (_) {
                   if (mounted) {
-                    _showSnack('위치를 찾을 수 없어요', isError: true);
+                    _showSnack(l10n.locationNotFound, isError: true);
                   }
                 }
               },
@@ -831,9 +701,10 @@ class _BottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      margin: EdgeInsets.fromLTRB(16, 0, 16, 8),
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
         color: context.cardColor,
         borderRadius: BorderRadius.circular(AppRadius.xxl),
@@ -841,9 +712,9 @@ class _BottomNavBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          _navItem(context, 0, Icons.map_rounded, '지도'),
-          _navItem(context, 1, Icons.auto_awesome_rounded, '타임라인'),
-          _navItem(context, 2, Icons.person_rounded, '프로필'),
+          _navItem(context, 0, Icons.map_rounded, l10n.navMap),
+          _navItem(context, 1, Icons.auto_awesome_rounded, l10n.navTimeline),
+          _navItem(context, 2, Icons.person_rounded, l10n.navProfile),
         ],
       ),
     );

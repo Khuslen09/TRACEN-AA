@@ -1,9 +1,11 @@
+import '../l10n/strings.dart';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import '../models/activity_type.dart';
 import '../models/pin.dart';
 import '../models/pin_category.dart';
 import '../models/route.dart';
@@ -239,6 +241,8 @@ class CloudSyncService {
           ? null
           : Timestamp.fromDate(route.endedAt!),
       'distance': route.distance,
+      'activityType': route.activityType.key,
+      'memo': route.memo,
       'pointCount': points.length,
       'pinCount': pinCount,
       'encodedPath': encodedPath,
@@ -394,11 +398,14 @@ class CloudSyncService {
       final route = TraceRoute(
         id: existing?.id,
         uuid: routeUuid,
-        title: data['title'] as String? ?? '여정',
+        title: data['title'] as String? ?? Strings.current.journey,
         startedAt: (data['startedAt'] as Timestamp).toDate(),
         endedAt: (data['endedAt'] as Timestamp?)?.toDate(),
         distance: (data['distance'] as num?)?.toDouble() ?? 0.0,
         userId: uid,
+        activityType: ActivityType.fromKey(data['activityType'] as String?),
+        memo: data['memo'] as String?,
+        status: RouteStatus.completed,
       );
       final localId = await RouteDBService.upsertRouteFromCloud(route);
 

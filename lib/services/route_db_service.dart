@@ -1,8 +1,11 @@
+import '../l10n/strings.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:uuid/uuid.dart';
 
+import '../models/activity_type.dart';
 import '../models/route.dart';
+import '../models/route_pause.dart';
 import '../models/route_point.dart';
 import '../models/pin.dart';
 
@@ -18,7 +21,7 @@ import '../models/pin.dart';
 class RouteDBService {
   static Database? _db;
   static const _dbName = 'aa.db';
-  static const _dbVersion = 5; // v4 → v5 (pins.run_id, day_tracks 신규)
+  static const _dbVersion = 6; // v5 → v6 (activity_type/memo/status/last_active_at, route_pauses, altitude)
 
   static const _uuidGen = Uuid();
 
@@ -45,9 +48,9 @@ class RouteDBService {
     );
   }
 
-  /// 새 설치: 처음부터 v5 스키마로 생성
+  /// 새 설치: 처음부터 v6 스키마로 생성
   static Future<void> _onCreate(Database db, int version) async {
-    await _createV5Tables(db);
+    await _createV6Tables(db);
   }
 
   /// 마이그레이션 (각 단계는 다음 단계의 출발점이 된 스키마를 만든다):
@@ -56,6 +59,9 @@ class RouteDBService {
   ///   v3 → v4: pins.category 추가
   ///   v4 → v5: pins에 run_id 추가 (route_id는 호환성 위해 유지),
   ///            day_tracks 테이블 신규 (24시간 백그라운드 추적)
+  ///   v5 → v6: routes에 activity_type/memo/status/last_active_at 추가,
+  ///            route_points에 altitude/altitude_accuracy 추가,
+  ///            route_pauses 테이블 신규 (실시간 기록 엔진)
   static Future<void> _onUpgrade(
     Database db,
     int oldVersion,
@@ -72,6 +78,9 @@ class RouteDBService {
     }
     if (oldVersion < 5) {
       await _migrateV4ToV5(db);
+    }
+    if (oldVersion < 6) {
+      await _migrateV5ToV6(db);
     }
   }
 
@@ -127,7 +136,7 @@ class RouteDBService {
       final lastTime = legacyPoints.last['time'] as String? ?? firstTime;
 
       final legacyRouteId = await db.insert('routes', {
-        'title': '이전 기록 (자동 복구)',
+        'title': Strings.current.recoveredRecord,
         'started_at': firstTime,
         'ended_at': lastTime,
         'distance': 0.0,
@@ -185,27 +194,43 @@ class RouteDBService {
     await _createSyncQueueTable(db);
   }
 
-  static Future<void> _createV5Tables(Database db) async {
+  static Future<void> _createV6Tables(Database db) async {
     // 'routes' 테이블 — 의미상 'runs' (러닝 세션). 호환성 위해 이름 유지.
     await db.execute('''
       CREATE TABLE routes (
-        id          INTEGER PRIMARY KEY AUTOINCREMENT,
-        uuid        TEXT    NOT NULL UNIQUE,
-        title       TEXT    NOT NULL,
-        started_at  TEXT    NOT NULL,
-        ended_at    TEXT,
-        distance    REAL    NOT NULL DEFAULT 0,
-        user_id     TEXT
+        id             INTEGER PRIMARY KEY AUTOINCREMENT,
+        uuid           TEXT    NOT NULL UNIQUE,
+        title          TEXT    NOT NULL,
+        started_at     TEXT    NOT NULL,
+        ended_at       TEXT,
+        distance       REAL    NOT NULL DEFAULT 0,
+        user_id        TEXT,
+        activity_type  TEXT    NOT NULL DEFAULT 'running',
+        memo           TEXT,
+        status         TEXT    NOT NULL DEFAULT 'completed',
+        last_active_at TEXT
       )
     ''');
 
     await db.execute('''
       CREATE TABLE route_points (
-        id        INTEGER PRIMARY KEY AUTOINCREMENT,
-        route_id  INTEGER NOT NULL,
-        lat       REAL    NOT NULL,
-        lng       REAL    NOT NULL,
-        time      TEXT    NOT NULL,
+        id                INTEGER PRIMARY KEY AUTOINCREMENT,
+        route_id          INTEGER NOT NULL,
+        lat               REAL    NOT NULL,
+        lng               REAL    NOT NULL,
+        time              TEXT    NOT NULL,
+        altitude          REAL    NOT NULL DEFAULT 0,
+        altitude_accuracy REAL    NOT NULL DEFAULT 0,
+        FOREIGN KEY (route_id) REFERENCES routes(id) ON DELETE CASCADE
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE route_pauses (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        route_id    INTEGER NOT NULL,
+        started_at  TEXT    NOT NULL,
+        ended_at    TEXT,
         FOREIGN KEY (route_id) REFERENCES routes(id) ON DELETE CASCADE
       )
     ''');
@@ -249,8 +274,12 @@ class RouteDBService {
     await db.execute('CREATE INDEX idx_pins_run_id ON pins(run_id)');
     await db.execute('CREATE INDEX idx_pins_user ON pins(user_id, created_at)');
     await db.execute('CREATE INDEX idx_routes_started ON routes(started_at)');
+    await db.execute('CREATE INDEX idx_routes_status ON routes(status)');
     await db.execute(
       'CREATE INDEX idx_day_tracks ON day_tracks(user_id, day_id, time)',
+    );
+    await db.execute(
+      'CREATE INDEX idx_route_pauses_route_id ON route_pauses(route_id)',
     );
 
     await _createSyncQueueTable(db);
@@ -305,6 +334,50 @@ class RouteDBService {
     );
   }
 
+  /// v5 → v6: 실시간 기록 엔진([ActivityRecorder])을 위한 스키마 확장.
+  ///
+  ///   - routes.activity_type/memo/status/last_active_at 추가.
+  ///     status는 기존 행의 ended_at 유무로 역산: 진행 중이던 건 'recording',
+  ///     이미 끝나있던 건 'completed'(과거 기록은 이미 화면에 정식 노출되던
+  ///     것들이라 저장된 걸로 간주).
+  ///   - route_points.altitude/altitude_accuracy 추가 (고도 상승 계산용).
+  ///   - route_pauses 테이블 신규 (타임스탬프 기반 경과시간 계산의 유일한 출처).
+  static Future<void> _migrateV5ToV6(Database db) async {
+    await db.execute(
+      "ALTER TABLE routes ADD COLUMN activity_type TEXT NOT NULL DEFAULT 'running'",
+    );
+    await db.execute('ALTER TABLE routes ADD COLUMN memo TEXT');
+    await db.execute(
+      "ALTER TABLE routes ADD COLUMN status TEXT NOT NULL DEFAULT 'completed'",
+    );
+    await db.execute('ALTER TABLE routes ADD COLUMN last_active_at TEXT');
+    await db.execute(
+      "UPDATE routes SET status = 'recording' WHERE ended_at IS NULL",
+    );
+
+    await db.execute(
+      'ALTER TABLE route_points ADD COLUMN altitude REAL NOT NULL DEFAULT 0',
+    );
+    await db.execute(
+      'ALTER TABLE route_points ADD COLUMN altitude_accuracy REAL NOT NULL DEFAULT 0',
+    );
+
+    await db.execute('''
+      CREATE TABLE route_pauses (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        route_id    INTEGER NOT NULL,
+        started_at  TEXT    NOT NULL,
+        ended_at    TEXT,
+        FOREIGN KEY (route_id) REFERENCES routes(id) ON DELETE CASCADE
+      )
+    ''');
+
+    await db.execute('CREATE INDEX idx_routes_status ON routes(status)');
+    await db.execute(
+      'CREATE INDEX idx_route_pauses_route_id ON route_pauses(route_id)',
+    );
+  }
+
   static Future<void> _createSyncQueueTable(Database db) async {
     await db.execute('''
       CREATE TABLE sync_queue (
@@ -328,7 +401,11 @@ class RouteDBService {
   // ─────────────────────────────────────────────────────────
 
   /// 새 여정 시작. UUID 자동 생성.
-  static Future<int> startRoute({String? title, String? userId}) async {
+  static Future<int> startRoute({
+    String? title,
+    String? userId,
+    ActivityType activityType = ActivityType.running,
+  }) async {
     final database = await db;
     final now = DateTime.now();
     final route = TraceRoute(
@@ -336,17 +413,44 @@ class RouteDBService {
       title: title ?? _defaultTitle(now),
       startedAt: now,
       userId: userId,
+      activityType: activityType,
+      status: RouteStatus.recording,
+      lastActiveAt: now,
     );
     return database.insert('routes', route.toMap());
   }
 
-  static Future<void> endRoute(int routeId, {double? distance}) async {
+  static Future<void> endRoute(
+    int routeId, {
+    double? distance,
+    RouteStatus status = RouteStatus.pendingReview,
+  }) async {
     final database = await db;
     await database.update(
       'routes',
       {
         'ended_at': DateTime.now().toIso8601String(),
+        'status': status.key,
         if (distance != null) 'distance': distance,
+      },
+      where: 'id = ?',
+      whereArgs: [routeId],
+    );
+  }
+
+  /// 매 GPS 점마다 호출 — 거리/마지막 활동 시각만 가볍게 갱신.
+  /// (전체 [updateRoute]보다 저렴 — 제목/메모 등은 건드리지 않음)
+  static Future<void> updateRouteProgress(
+    int routeId, {
+    required double distance,
+    required DateTime lastActiveAt,
+  }) async {
+    final database = await db;
+    await database.update(
+      'routes',
+      {
+        'distance': distance,
+        'last_active_at': lastActiveAt.toIso8601String(),
       },
       where: 'id = ?',
       whereArgs: [routeId],
@@ -391,29 +495,41 @@ class RouteDBService {
     return TraceRoute.fromMap(rows.first);
   }
 
+  /// 저장 완료('completed')된 여정만 — 진행 중/저장 대기 중인 건
+  /// [ActivityTrackingScreen]/결과 화면에서만 다루고 목록엔 아직 안 보임.
   static Future<List<TraceRoute>> getAllRoutes() async {
     final database = await db;
-    final rows = await database.query('routes', orderBy: 'started_at DESC');
+    final rows = await database.query(
+      'routes',
+      where: "status = 'completed'",
+      orderBy: 'started_at DESC',
+    );
     return rows.map(TraceRoute.fromMap).toList();
   }
 
-  /// 특정 사용자(userId)의 여정만 조회 — 다른 계정 데이터 격리용.
+  /// 특정 사용자(userId)의 저장 완료된 여정만 — 다른 계정 데이터 격리용.
   static Future<List<TraceRoute>> getRoutesForUser(String userId) async {
     final database = await db;
     final rows = await database.query(
       'routes',
-      where: 'user_id = ?',
+      where: "user_id = ? AND status = 'completed'",
       whereArgs: [userId],
       orderBy: 'started_at DESC',
     );
     return rows.map(TraceRoute.fromMap).toList();
   }
 
-  static Future<TraceRoute?> getActiveRoute() async {
+  /// 앱 시작 시 복구해야 할 route 조회 — 진행 중('recording') 또는
+  /// 종료했지만 아직 저장/삭제를 선택 안 한 것('pending_review').
+  ///
+  /// [HomeScreen]이 이 결과로 recording이면 [ActivityTrackingScreen]을
+  /// 기록 상태로, pending_review면 결과 화면을 바로 열어준다 — 더 이상
+  /// 조용히 백그라운드에서 이어 기록하지 않는다.
+  static Future<TraceRoute?> getResumableRoute() async {
     final database = await db;
     final rows = await database.query(
       'routes',
-      where: 'ended_at IS NULL',
+      where: "status IN ('recording', 'pending_review')",
       orderBy: 'started_at DESC',
       limit: 1,
     );
@@ -455,6 +571,8 @@ class RouteDBService {
     required double lat,
     required double lng,
     DateTime? time,
+    double altitude = 0,
+    double altitudeAccuracy = 0,
   }) async {
     final database = await db;
     await database.insert('route_points', {
@@ -462,6 +580,8 @@ class RouteDBService {
       'lat': lat,
       'lng': lng,
       'time': (time ?? DateTime.now()).toIso8601String(),
+      'altitude': altitude,
+      'altitude_accuracy': altitudeAccuracy,
     });
   }
 
@@ -501,6 +621,60 @@ class RouteDBService {
       }
       await batch.commit(noResult: true);
     });
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // ROUTE PAUSES — 경과시간/구간 계산의 유일한 출처
+  // ─────────────────────────────────────────────────────────
+
+  /// 일시정지 구간 기록 시작. [endedAt]을 같이 주면 이미 닫힌 구간으로
+  /// 바로 생성(강제종료로 죽어있던 시간을 사후에 기록할 때 사용).
+  static Future<int> insertPause(
+    int routeId,
+    DateTime startedAt, {
+    DateTime? endedAt,
+  }) async {
+    final database = await db;
+    return database.insert('route_pauses', {
+      'route_id': routeId,
+      'started_at': startedAt.toIso8601String(),
+      'ended_at': endedAt?.toIso8601String(),
+    });
+  }
+
+  static Future<void> closePause(int pauseId, DateTime endedAt) async {
+    final database = await db;
+    await database.update(
+      'route_pauses',
+      {'ended_at': endedAt.toIso8601String()},
+      where: 'id = ?',
+      whereArgs: [pauseId],
+    );
+  }
+
+  /// 아직 끝나지 않은(ended_at IS NULL) 일시정지 구간 — 있어야 최대 1개.
+  static Future<RoutePause?> getOpenPause(int routeId) async {
+    final database = await db;
+    final rows = await database.query(
+      'route_pauses',
+      where: 'route_id = ? AND ended_at IS NULL',
+      whereArgs: [routeId],
+      limit: 1,
+    );
+    if (rows.isEmpty) return null;
+    return RoutePause.fromMap(rows.first);
+  }
+
+  /// 해당 route의 모든 일시정지 구간(시간순). km 구간 계산 시 겹침 제외용.
+  static Future<List<RoutePause>> getPauses(int routeId) async {
+    final database = await db;
+    final rows = await database.query(
+      'route_pauses',
+      where: 'route_id = ?',
+      whereArgs: [routeId],
+      orderBy: 'started_at ASC',
+    );
+    return rows.map(RoutePause.fromMap).toList();
   }
 
   // ─────────────────────────────────────────────────────────
@@ -647,8 +821,9 @@ class RouteDBService {
 
   /// 사용자의 모든 종료된 여정의 점들을 routeId별로 묶어 반환.
   ///
-  /// HomeScreen이 "지나간 길" 표시할 때 사용. 진행 중 여정은 별도로
-  /// 그리니까 제외 (ended_at IS NOT NULL).
+  /// HomeScreen이 "지나간 길" 표시할 때 사용. 저장 완료('completed')된
+  /// 여정만 — 진행 중이거나 아직 저장/삭제를 선택하지 않은(pending_review)
+  /// 여정은 평생 발자취에 아직 포함 안 됨(DB v6: status로 정확히 구분).
   ///
   /// N+1 회피를 위해 한 번의 JOIN 쿼리로 가져옴. 점이 매우 많아질 수 있으니
   /// (수만 개) 메모리 부담 주의 — MVP 범위에선 OK.
@@ -668,7 +843,7 @@ class RouteDBService {
         rp.id, rp.route_id, rp.lat, rp.lng, rp.time
       FROM route_points rp
       INNER JOIN routes r ON r.id = rp.route_id
-      WHERE r.ended_at IS NOT NULL
+      WHERE r.status = 'completed'
         $userClause
       ORDER BY rp.route_id ASC, rp.time ASC
     ''', args);
@@ -855,13 +1030,16 @@ class RouteDBService {
     final database = await db;
     await database.delete('pins');
     await database.delete('route_points');
+    await database.delete('route_pauses');
     await database.delete('routes');
     await database.delete('sync_queue');
   }
 
   static String _defaultTitle(DateTime t) {
     String two(int n) => n.toString().padLeft(2, '0');
-    return '${t.year}.${two(t.month)}.${two(t.day)} 여정';
+    return Strings.current.routeDefaultTitle(
+      '${t.year}.${two(t.month)}.${two(t.day)}',
+    );
   }
 }
 

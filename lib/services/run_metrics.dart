@@ -38,6 +38,26 @@ class RunMetrics {
   }
 
   // ─────────────────────────────────────────────
+  // 속도 계산 (사이클링용 — 러닝/워킹은 페이스를 씀)
+  // ─────────────────────────────────────────────
+
+  /// 평균 속도 (km/h).
+  static double averageSpeedKmh({
+    required double distanceMeters,
+    required Duration elapsed,
+  }) {
+    if (elapsed.inSeconds <= 0) return 0;
+    final hours = elapsed.inSeconds / 3600.0;
+    return (distanceMeters / 1000.0) / hours;
+  }
+
+  /// 속도를 "12.3" 형식으로 (단위 km/h는 화면에서 따로 붙임).
+  static String formatSpeedKmh(double kmh) {
+    if (kmh <= 0 || !kmh.isFinite) return '-.-';
+    return kmh.toStringAsFixed(1);
+  }
+
+  // ─────────────────────────────────────────────
   // 칼로리 계산
   // ─────────────────────────────────────────────
 

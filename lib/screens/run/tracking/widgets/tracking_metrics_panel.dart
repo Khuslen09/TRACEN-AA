@@ -19,7 +19,10 @@ class TrackingMetricsPanel extends StatelessWidget {
   final double currentHeight;
 
   // 레이아웃별 최소 필요 높이 — 이 밑으로 내려가면 즉시 더 작은 레이아웃으로.
-  static const _minHeightBig = 380.0;
+  // _minHeightBig: 그리드가 5칸(2열×3행)까지 늘어날 수 있어(사이클링 등
+  // maxSpeed 항목 추가 시) 380으로는 드래그 중 경계값에서 RenderFlex
+  // 오버플로우가 실제로 발생했음 — 400으로 여유를 둠.
+  static const _minHeightBig = 400.0;
   static const _minHeightBalanced = 220.0;
 
   const TrackingMetricsPanel({
@@ -162,14 +165,16 @@ class _BigLayout extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 14),
         GridView.count(
           crossAxisCount: 2,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: 12,
+          mainAxisSpacing: 10,
           crossAxisSpacing: 12,
-          childAspectRatio: 2.6,
+          // 걷기/러닝(걸음수 포함)과 사이클링(최고속도 포함) 둘 다 5칸(3행)까지
+          // 늘어날 수 있어 2.6보다 살짝 더 눌러서(3.0) 3행도 여유 있게 들어가게 함.
+          childAspectRatio: 3.0,
           children: [
             for (final item in gridItems) _GridStat(label: item.$1, value: item.$2),
           ],

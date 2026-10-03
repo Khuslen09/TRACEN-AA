@@ -1558,6 +1558,12 @@ abstract class AppLocalizations {
   /// **'카테고리'**
   String get categoryLabel;
 
+  /// No description provided for @categoryCustomize.
+  ///
+  /// In ko, this message translates to:
+  /// **'커스터마이즈'**
+  String get categoryCustomize;
+
   /// No description provided for @memoLabel.
   ///
   /// In ko, this message translates to:

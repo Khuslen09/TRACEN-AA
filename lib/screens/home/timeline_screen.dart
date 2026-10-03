@@ -293,11 +293,11 @@ class _DayRow extends StatelessWidget {
           // 사진 그리드 (가로 스크롤)
           Expanded(
             child: SizedBox(
-              height: 56,
+              height: 88,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: entries.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 6),
+                separatorBuilder: (_, __) => const SizedBox(width: 8),
                 itemBuilder: (_, i) => _PhotoThumbnail(
                   entry: entries[i],
                   onTap: () => onTap(entries[i].pin),
@@ -323,7 +323,7 @@ class _PhotoThumbnail extends StatelessWidget {
       onTap: onTap,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(AppRadius.md),
-        child: SizedBox(width: 56, height: 56, child: _buildImage(context)),
+        child: SizedBox(width: 88, height: 88, child: _buildImage(context)),
       ),
     );
   }
@@ -355,7 +355,7 @@ class _PhotoThumbnail extends StatelessWidget {
 
   Widget _fallback(BuildContext context) => Container(
     color: context.cardColor,
-    child: Icon(Icons.image_outlined, color: context.textTertiary, size: 18),
+    child: Icon(Icons.image_outlined, color: context.textTertiary, size: 28),
   );
 }
 

@@ -14,6 +14,7 @@ import '../services/route_db_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/theme_extensions.dart';
+import 'home/category_color_screen.dart';
 
 /// 새 핀(메모 + 사진)을 추가하는 화면.
 ///
@@ -187,7 +188,24 @@ class _SaveFilesScreenState extends State<SaveFilesScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _SectionLabel(l10n.categoryLabel),
+                    Row(
+                      children: [
+                        Expanded(child: _SectionLabel(l10n.categoryLabel)),
+                        if (widget.colorNotifier != null)
+                          TextButton.icon(
+                            onPressed: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => CategoryColorScreen(
+                                  notifier: widget.colorNotifier!,
+                                ),
+                              ),
+                            ),
+                            icon: const Icon(Icons.palette_outlined, size: 16),
+                            label: Text(l10n.categoryCustomize),
+                          ),
+                      ],
+                    ),
                     const SizedBox(height: 8),
                     _CategorySelector(
                       selected: _selectedCategory,

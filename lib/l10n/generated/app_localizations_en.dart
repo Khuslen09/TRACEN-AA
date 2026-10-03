@@ -788,6 +788,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get categoryLabel => 'Category';
 
   @override
+  String get categoryCustomize => 'Customize';
+
+  @override
   String get memoLabel => 'Memo';
 
   @override

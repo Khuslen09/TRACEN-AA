@@ -766,6 +766,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get categoryLabel => '카테고리';
 
   @override
+  String get categoryCustomize => '커스터마이즈';
+
+  @override
   String get memoLabel => '메모';
 
   @override

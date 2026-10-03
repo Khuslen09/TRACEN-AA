@@ -22,7 +22,6 @@ import '../../models/activity_type.dart';
 import '../run/running_live_screen.dart'; // ignore: unused_import — 다음 단계에서 복원
 import '../run/tracking/activity_tracking_screen.dart';
 import '../save_files_screen.dart';
-import 'category_color_screen.dart';
 import 'place_input_screen.dart';
 import 'route_list_screen.dart';
 import 'timeline_screen.dart';
@@ -527,7 +526,9 @@ class _HomeScreenState extends State<HomeScreen> {
           // Week 7: 러닝 시작 버튼 추가
           Positioned(
             top: MediaQuery.of(context).padding.top + 12,
-            right: 16,
+            // 가로모드에서는 카메라 노치가 좌우 중 한쪽에 생기므로, 세로모드에서
+            // 항상 0인 padding.right도 같이 더해야 버튼이 거기 가려지지 않음.
+            right: MediaQuery.of(context).padding.right + 16,
             child: Column(
               children: [
                 // 러닝 시작 버튼 (primary 색, 강조)
@@ -584,20 +585,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                 ),
                 const SizedBox(height: 12),
-                _CircleIconButton(
-                  icon: Icons.palette_outlined,
-                  iconColor: context.textPrimary,
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            CategoryColorScreen(notifier: _colorNotifier),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 12),
                 // AI 장소 추천
                 _CircleIconButton(
                   icon: Icons.auto_awesome_rounded,
@@ -617,7 +604,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
           // ── 우하단: 내 위치 버튼 (네비바 위에 배치) ──
           Positioned(
-            right: 16,
+            right: MediaQuery.of(context).padding.right + 16,
             bottom: MediaQuery.of(context).padding.bottom + 100,
             child: _CircleIconButton(
               icon: Icons.my_location_rounded,
@@ -713,7 +700,7 @@ class _BottomNavBar extends StatelessWidget {
       child: Row(
         children: [
           _navItem(context, 0, Icons.map_rounded, l10n.navMap),
-          _navItem(context, 1, Icons.auto_awesome_rounded, l10n.navTimeline),
+          _navItem(context, 1, Icons.photo_library_rounded, l10n.navTimeline),
           _navItem(context, 2, Icons.person_rounded, l10n.navProfile),
         ],
       ),

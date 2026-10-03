@@ -333,6 +333,7 @@
   "apply": "Apply",
   "addMemoOrPhoto": "Add at least one memo or photo",
   "categoryLabel": "Category",
+  "categoryCustomize": "Customize",
   "memoLabel": "Memo",
   "photoLabel": "Photo",
   "memoHint": "Write a line about today...",

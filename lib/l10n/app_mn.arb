@@ -333,6 +333,7 @@
   "apply": "Хэрэглэх",
   "addMemoOrPhoto": "Хамгийн багадаа нэг тэмдэглэл эсвэл зураг нэмнэ үү",
   "categoryLabel": "Ангилал",
+  "categoryCustomize": "Өөрчлөх",
   "memoLabel": "Тэмдэглэл",
   "photoLabel": "Зураг",
   "memoHint": "Өнөөдрийн тухай нэг мөр бичээрэй...",

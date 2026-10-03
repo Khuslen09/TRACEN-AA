@@ -790,6 +790,9 @@ class AppLocalizationsMn extends AppLocalizations {
   String get categoryLabel => 'Ангилал';
 
   @override
+  String get categoryCustomize => 'Өөрчлөх';
+
+  @override
   String get memoLabel => 'Тэмдэглэл';
 
   @override

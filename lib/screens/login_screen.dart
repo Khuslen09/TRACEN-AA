@@ -160,7 +160,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     textInputAction: TextInputAction.next,
                     autocorrect: false,
                     decoration: const InputDecoration(
-                      hintText: 'aa@gmail.com',
+                      hintText: 'tracen@gmail.com',
                       prefixIcon: Icon(
                         Icons.mail_outline_rounded,
                         color: AppColors.gray400,

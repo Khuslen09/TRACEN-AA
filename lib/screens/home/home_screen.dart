@@ -69,7 +69,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final ScratchTileProvider _scratchTileProvider = ScratchTileProvider();
   static const _scratchTileOverlayId = TileOverlayId('scratch');
 
-
   Set<Marker> get _allMarkers {
     final markers = <Marker>{..._pinMarkers};
     if (_myLocationMarker != null) markers.add(_myLocationMarker!);
@@ -381,12 +380,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _addPinMarker(Pin pin) async {
     final color = _colorNotifier.colorOf(pin.category);
     final categoryIcon = _colorNotifier.iconOf(pin.category);
-    // 카테고리 아이콘이 들어가므로 순수 dot(12)보다는 키워야 하지만,
-    // 28은 지도 위에서 너무 커 보였음 — 20으로 축소.
     final icon = await MarkerBitmapUtil.categoryMarker(
       categoryIcon,
       color,
-      size: 20,
+      size: 10,
     );
     final markerId = MarkerId('pin_${pin.id}');
     _pinByMarkerId[markerId.value] = pin;

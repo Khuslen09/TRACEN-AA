@@ -383,7 +383,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final icon = await MarkerBitmapUtil.categoryMarker(
       categoryIcon,
       color,
-      size: 10,
+      size: 12,
     );
     final markerId = MarkerId('pin_${pin.id}');
     _pinByMarkerId[markerId.value] = pin;

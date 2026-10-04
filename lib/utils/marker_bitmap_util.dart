@@ -158,15 +158,16 @@ class MarkerBitmapUtil {
         ..color = Colors.black.withValues(alpha: 0.18)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
     );
-    canvas.drawCircle(center, radius * 0.78, Paint()..color = Colors.white);
-    canvas.drawCircle(center, radius * 0.62, Paint()..color = color);
+    canvas.drawCircle(center, radius * 0.85, Paint()..color = Colors.white);
+    canvas.drawCircle(center, radius * 0.75, Paint()..color = color);
 
-    // 아이콘 글리프 (흰색, 색 원 안에 중앙 정렬).
+    // 아이콘 글리프 (흰색, 색 원 안에 중앙 정렬) — 마커 자체가 작아서
+    // (size: 10) 색 원 대부분을 채울 만큼 크게 그려야 알아볼 수 있음.
     final textPainter = TextPainter(textDirection: TextDirection.ltr)
       ..text = TextSpan(
         text: String.fromCharCode(icon.codePoint),
         style: TextStyle(
-          fontSize: radius * 0.62 * 0.9,
+          fontSize: radius * 0.75 * 1.3,
           fontFamily: icon.fontFamily,
           package: icon.fontPackage,
           color: Colors.white,

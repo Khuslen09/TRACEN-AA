@@ -1005,6 +1005,9 @@ class AppLocalizationsMn extends AppLocalizations {
   String get cameraRatio => 'Харьцаа';
 
   @override
+  String get cameraMirrorFront => 'Урд камерыг тольдох';
+
+  @override
   String get cameraFlashOff => 'Гэрэл унтраах';
 
   @override

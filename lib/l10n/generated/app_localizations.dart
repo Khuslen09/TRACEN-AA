@@ -1942,6 +1942,12 @@ abstract class AppLocalizations {
   /// **'비율'**
   String get cameraRatio;
 
+  /// No description provided for @cameraMirrorFront.
+  ///
+  /// In ko, this message translates to:
+  /// **'전면 카메라 미러링'**
+  String get cameraMirrorFront;
+
   /// No description provided for @cameraFlashOff.
   ///
   /// In ko, this message translates to:

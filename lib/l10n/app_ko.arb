@@ -452,6 +452,7 @@
   "cameraGrid": "그리드",
   "cameraSwitch": "카메라 전환",
   "cameraRatio": "비율",
+  "cameraMirrorFront": "전면 카메라 미러링",
   "cameraFlashOff": "플래시 끔",
   "cameraFlashAuto": "플래시 자동",
   "cameraFlashOn": "플래시 켬",

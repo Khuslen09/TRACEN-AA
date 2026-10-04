@@ -973,6 +973,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get cameraRatio => '비율';
 
   @override
+  String get cameraMirrorFront => '전면 카메라 미러링';
+
+  @override
   String get cameraFlashOff => '플래시 끔';
 
   @override

@@ -1003,6 +1003,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cameraRatio => 'Ratio';
 
   @override
+  String get cameraMirrorFront => 'Mirror front camera';
+
+  @override
   String get cameraFlashOff => 'Flash off';
 
   @override

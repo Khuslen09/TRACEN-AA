@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +9,7 @@ import '../../l10n/generated/app_localizations.dart';
 import '../../models/camera_filter.dart';
 import '../../models/camera_filter_l10n.dart';
 import '../../models/capture_ratio.dart';
+import '../../services/camera_lens_channel.dart';
 import '../../services/lut_shader_service.dart';
 import '../../services/permission_service.dart';
 import '../../services/tracen_overlay_service.dart';
@@ -48,6 +50,15 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
   bool _showStrengthSlider = false;
   Timer? _strengthHideTimer;
 
+  double _minZoom = 1.0;
+  double _maxZoom = 1.0;
+  double _currentZoom = 1.0;
+  double _pinchBaseZoom = 1.0;
+  Map<CameraLensType, double> _androidLensRatios = {};
+
+  bool _showZoomDial = false;
+  Timer? _zoomDialHideTimer;
+
   @override
   void initState() {
     super.initState();
@@ -62,6 +73,13 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
 
   Future<void> _bootstrap() async {
     _filterController = await CameraFilterController.load();
+    if (Platform.isAndroid) {
+      // 안드로이드는 물리 렌즈 구분이 기기 속성이라 세션과 무관하게 한 번만
+      // 조회하면 됨 — 권한/카메라 초기화와 동시에 진행.
+      CameraLensChannel.getBackLensZoomRatios().then((ratios) {
+        if (mounted) setState(() => _androidLensRatios = ratios);
+      });
+    }
 
     var status = await PermissionService.cameraStatus();
     if (status != AppPermissionStatus.granted) {
@@ -95,7 +113,7 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
     await _openCamera(0);
   }
 
-  Future<void> _openCamera(int index) async {
+  Future<void> _openCamera(int index, {double? initialZoom}) async {
     final old = _camera;
     final description = _cameras[index];
     final controller = CameraController(
@@ -105,6 +123,7 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
       imageFormatGroup: ImageFormatGroup.jpeg,
     );
 
+    double minZoom = 1.0, maxZoom = 1.0;
     try {
       await controller.initialize();
 
@@ -116,6 +135,13 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
       if (step > 0) target = (target / step).round() * step;
       await controller.setExposureOffset(target);
       await controller.setFlashMode(_flash);
+
+      minZoom = await controller.getMinZoomLevel();
+      maxZoom = await controller.getMaxZoomLevel();
+      if (initialZoom != null) {
+        final clamped = initialZoom.clamp(minZoom, maxZoom);
+        await controller.setZoomLevel(clamped);
+      }
     } catch (_) {
       await controller.dispose();
       if (mounted) {
@@ -136,6 +162,10 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
       _camera = controller;
       _cameraIndex = index;
       _initializing = false;
+      _minZoom = minZoom;
+      _maxZoom = maxZoom;
+      _currentZoom = initialZoom?.clamp(minZoom, maxZoom) ??
+          (minZoom <= 1.0 && maxZoom >= 1.0 ? 1.0 : minZoom);
     });
   }
 
@@ -197,11 +227,128 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
     } catch (_) {}
   }
 
+  /// 전/후면 전환 — `_cameras`엔 후면 렌즈가 여러 개(초광각/표준/망원) 들어
+  ///있을 수 있어서, 그냥 다음 인덱스로 가면 같은 방향의 다른 렌즈로 가버릴
+  /// 수 있음. 반대 방향에서 "표준(wide)" 렌즈를 찾아서 그쪽으로 전환.
   Future<void> _switchCamera() async {
-    if (_cameras.length < 2) return;
-    final next = (_cameraIndex + 1) % _cameras.length;
+    final current = _cameras[_cameraIndex];
+    final targetDirection = current.lensDirection == CameraLensDirection.back
+        ? CameraLensDirection.front
+        : CameraLensDirection.back;
+    final candidates = [
+      for (var i = 0; i < _cameras.length; i++)
+        if (_cameras[i].lensDirection == targetDirection) i,
+    ];
+    if (candidates.isEmpty) return;
+    final wideIndex = candidates.firstWhere(
+      (i) => _cameras[i].lensType == CameraLensType.wide,
+      orElse: () => candidates.first,
+    );
     setState(() => _initializing = true);
-    await _openCamera(next);
+    await _openCamera(wideIndex, initialZoom: 1.0);
+  }
+
+  void _onPinchStart() {
+    _pinchBaseZoom = _currentZoom;
+  }
+
+  Future<void> _onPinchUpdate(double scale) async {
+    final cam = _camera;
+    if (cam == null) return;
+    final target = (_pinchBaseZoom * scale).clamp(_minZoom, _maxZoom);
+    if ((target - _currentZoom).abs() < 0.01) return;
+    setState(() => _currentZoom = target);
+    try {
+      await cam.setZoomLevel(target);
+    } catch (_) {}
+  }
+
+  Future<void> _setZoom(double zoom) async {
+    final cam = _camera;
+    if (cam == null) return;
+    final target = zoom.clamp(_minZoom, _maxZoom);
+    setState(() => _currentZoom = target);
+    try {
+      await cam.setZoomLevel(target);
+    } catch (_) {}
+  }
+
+  void _toggleZoomDial() {
+    setState(() => _showZoomDial = !_showZoomDial);
+    _armZoomDialHideTimer();
+  }
+
+  void _armZoomDialHideTimer() {
+    _zoomDialHideTimer?.cancel();
+    if (!_showZoomDial) return;
+    _zoomDialHideTimer = Timer(const Duration(milliseconds: 2500), () {
+      if (mounted) setState(() => _showZoomDial = false);
+    });
+  }
+
+  /// iOS는 패키지가 이미 후면 렌즈별로 별도 CameraDescription(lensType 포함)을
+  /// 주므로 버튼 = 그 렌즈로 카메라 재생성. Android는 CameraX 논리 카메라가
+  /// 줌 배율만으로 내부적으로 렌즈를 바꿔주므로(camera_android_camerax가
+  /// lensType을 안 채워서 _androidLensRatios로 직접 분류, 버튼 = 그 배율로
+  /// setZoomLevel.
+  List<_LensOption> _lensOptions() {
+    if (_cameras.isEmpty) return const [];
+    final current = _cameras[_cameraIndex];
+    if (current.lensDirection != CameraLensDirection.back) return const [];
+
+    if (Platform.isIOS) {
+      final byType = <CameraLensType, int>{};
+      for (var i = 0; i < _cameras.length; i++) {
+        final c = _cameras[i];
+        if (c.lensDirection != CameraLensDirection.back) continue;
+        byType.putIfAbsent(c.lensType, () => i);
+      }
+      if (byType.length < 2) return const [];
+      return [
+        for (final type in const [
+          CameraLensType.ultraWide,
+          CameraLensType.wide,
+          CameraLensType.telephoto,
+        ])
+          if (byType.containsKey(type))
+            _LensOption(
+              label: _lensLabel(type),
+              isSelected: current.lensType == type,
+              onSelect: () => _openCamera(byType[type]!, initialZoom: 1.0),
+            ),
+      ];
+    }
+
+    if (Platform.isAndroid && _androidLensRatios.length > 1) {
+      return [
+        for (final type in const [
+          CameraLensType.ultraWide,
+          CameraLensType.wide,
+          CameraLensType.telephoto,
+        ])
+          if (_androidLensRatios.containsKey(type))
+            _LensOption(
+              label: _lensLabel(type, androidRatio: _androidLensRatios[type]),
+              isSelected: (_currentZoom - _androidLensRatios[type]!).abs() < 0.05,
+              onSelect: () => _setZoom(_androidLensRatios[type]!),
+            ),
+      ];
+    }
+
+    return const [];
+  }
+
+  String _lensLabel(CameraLensType type, {double? androidRatio}) {
+    if (androidRatio != null) {
+      return androidRatio == androidRatio.roundToDouble()
+          ? '${androidRatio.toStringAsFixed(0)}x'
+          : '${androidRatio.toStringAsFixed(1)}x';
+    }
+    return switch (type) {
+      CameraLensType.ultraWide => '0.5x',
+      CameraLensType.telephoto => '3x',
+      _ => '1x',
+    };
   }
 
   void _onFilterTap(CameraFilterController controller, TracenFilter filter) {
@@ -288,6 +435,8 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
               children: [
                 _buildTopBar(l10n, controller),
                 Expanded(child: _buildPreviewArea(cam, controller)),
+                _buildLensRow(),
+                if (_showZoomDial) _buildZoomDial(),
                 if (_showStrengthSlider) _buildStrengthSlider(l10n, controller),
                 _buildFilterStrip(cam, controller),
                 _buildShutterRow(l10n),
@@ -341,6 +490,16 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
                 onTap: _cameras.length > 1 ? _switchCamera : null,
                 tooltip: l10n.cameraSwitch,
               ),
+              if (_cameras.isNotEmpty &&
+                  _cameras[_cameraIndex].lensDirection == CameraLensDirection.front) ...[
+                const SizedBox(width: 4),
+                _TopBarIcon(
+                  icon: Icons.flip_rounded,
+                  active: controller.mirrorFrontCamera,
+                  onTap: controller.toggleMirrorFrontCamera,
+                  tooltip: l10n.cameraMirrorFront,
+                ),
+              ],
             ],
           ),
         ],
@@ -349,6 +508,9 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
   }
 
   Widget _buildPreviewArea(CameraController cam, CameraFilterController controller) {
+    final isFront = _cameras[_cameraIndex].lensDirection == CameraLensDirection.front;
+    final mirror = isFront && controller.mirrorFrontCamera;
+
     return Center(
       child: AspectRatio(
         aspectRatio: controller.ratio.aspect,
@@ -359,18 +521,32 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
               return GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTapUp: (d) => _onTapFocus(d.localPosition, previewSize),
+                onDoubleTap: _switchCamera,
+                onScaleStart: (_) => _onPinchStart(),
+                onScaleUpdate: (d) => _onPinchUpdate(d.scale),
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    _CroppedCameraPreview(controller: cam),
-                    ColorFiltered(
-                      colorFilter: ColorFilter.matrix(
-                        lerpWithIdentity(
-                          fitColorMatrix(controller.selected.recipe),
-                          controller.strength,
-                        ),
+                    Transform(
+                      alignment: Alignment.center,
+                      transform: mirror
+                          ? Matrix4.diagonal3Values(-1, 1, 1)
+                          : Matrix4.identity(),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          _CroppedCameraPreview(controller: cam),
+                          ColorFiltered(
+                            colorFilter: ColorFilter.matrix(
+                              lerpWithIdentity(
+                                fitColorMatrix(controller.selected.recipe),
+                                controller.strength,
+                              ),
+                            ),
+                            child: _CroppedCameraPreview(controller: cam),
+                          ),
+                        ],
                       ),
-                      child: _CroppedCameraPreview(controller: cam),
                     ),
                     if (controller.grid) const _GridOverlay(),
                     if (_focusPoint != null) _FocusIndicator(center: _focusPoint!),
@@ -380,6 +556,79 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
             },
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildLensRow() {
+    final options = _lensOptions();
+    if (options.isEmpty) return const SizedBox(height: 12);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          for (final option in options) ...[
+            GestureDetector(
+              onTap: option.onSelect,
+              onLongPress: _toggleZoomDial,
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: option.isSelected
+                      ? Colors.white24
+                      : Colors.black.withValues(alpha: 0.3),
+                  border: Border.all(
+                    color: option.isSelected ? Colors.white : Colors.white38,
+                  ),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  option.label,
+                  style: AppTextStyles.caption.copyWith(
+                    color: Colors.white,
+                    fontWeight: option.isSelected ? FontWeight.w700 : FontWeight.w400,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildZoomDial() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 40),
+      child: Row(
+        children: [
+          Text(
+            '${_currentZoom.toStringAsFixed(1)}x',
+            style: AppTextStyles.caption.copyWith(color: Colors.white70),
+          ),
+          Expanded(
+            child: SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                activeTrackColor: AppColors.primary,
+                inactiveTrackColor: Colors.white24,
+                thumbColor: Colors.white,
+              ),
+              child: Slider(
+                value: _currentZoom,
+                min: _minZoom,
+                max: _maxZoom,
+                onChanged: (v) {
+                  _setZoom(v);
+                  _armZoomDialHideTimer();
+                },
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -583,6 +832,18 @@ class _FocusIndicator extends StatelessWidget {
       ),
     );
   }
+}
+
+class _LensOption {
+  final String label;
+  final bool isSelected;
+  final Future<void> Function() onSelect;
+
+  const _LensOption({
+    required this.label,
+    required this.isSelected,
+    required this.onSelect,
+  });
 }
 
 class _TopBarIcon extends StatelessWidget {

@@ -442,6 +442,7 @@
   "cameraGrid": "Тор",
   "cameraSwitch": "Камер солих",
   "cameraRatio": "Харьцаа",
+  "cameraMirrorFront": "Урд камерыг тольдох",
   "cameraFlashOff": "Гэрэл унтраах",
   "cameraFlashAuto": "Гэрэл автомат",
   "cameraFlashOn": "Гэрэл асаах",

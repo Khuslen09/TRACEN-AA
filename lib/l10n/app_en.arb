@@ -442,6 +442,7 @@
   "cameraGrid": "Grid",
   "cameraSwitch": "Switch camera",
   "cameraRatio": "Ratio",
+  "cameraMirrorFront": "Mirror front camera",
   "cameraFlashOff": "Flash off",
   "cameraFlashAuto": "Flash auto",
   "cameraFlashOn": "Flash on",

@@ -17,6 +17,7 @@ class CameraFilterController extends ChangeNotifier {
   static const _watermarkKey = 'camera_overlay_watermark';
   static const _ratioKey = 'camera_ratio';
   static const _gridKey = 'camera_grid';
+  static const _mirrorFrontKey = 'camera_mirror_front';
 
   TracenFilter _selected;
   final Map<TracenFilter, double> _strengths;
@@ -25,6 +26,7 @@ class CameraFilterController extends ChangeNotifier {
   bool _showWatermark = true;
   CaptureRatio _ratio = CaptureRatio.r4x5;
   bool _grid = false;
+  bool _mirrorFrontCamera = true;
 
   static Future<CameraFilterController> load() async {
     final prefs = await SharedPreferences.getInstance();
@@ -45,6 +47,7 @@ class CameraFilterController extends ChangeNotifier {
     controller._showRoute = prefs.getBool(_routeKey) ?? true;
     controller._showWatermark = prefs.getBool(_watermarkKey) ?? true;
     controller._grid = prefs.getBool(_gridKey) ?? false;
+    controller._mirrorFrontCamera = prefs.getBool(_mirrorFrontKey) ?? true;
 
     final savedRatio = prefs.getString(_ratioKey);
     controller._ratio = CaptureRatio.values.firstWhere(
@@ -64,6 +67,7 @@ class CameraFilterController extends ChangeNotifier {
   bool get showWatermark => _showWatermark;
   CaptureRatio get ratio => _ratio;
   bool get grid => _grid;
+  bool get mirrorFrontCamera => _mirrorFrontCamera;
 
   Future<void> selectFilter(TracenFilter filter) async {
     _selected = filter;
@@ -113,5 +117,12 @@ class CameraFilterController extends ChangeNotifier {
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_gridKey, _grid);
+  }
+
+  Future<void> toggleMirrorFrontCamera() async {
+    _mirrorFrontCamera = !_mirrorFrontCamera;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_mirrorFrontKey, _mirrorFrontCamera);
   }
 }

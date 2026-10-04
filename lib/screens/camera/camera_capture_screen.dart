@@ -113,6 +113,16 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
 
   Future<void> _openCamera(int index, {double? initialZoom}) async {
     final old = _camera;
+    if (old != null) {
+      // 새 세션을 열기 전에 기존 세션을 완전히 정리 — iOS에서
+      // CameraController 두 개(특히 전/후면이 다르거나 물리 렌즈가 다른
+      // 경우)가 동시에 살아있으면 새 세션 초기화가 멎거나 기존 프리뷰가
+      // 까맣게 멈추는 문제가 있어서, 화면에서 먼저 떼어내고(_camera = null
+      // → build()가 로딩 화면 표시) 완전히 dispose한 다음에 새로 연다.
+      if (mounted) setState(() => _camera = null);
+      await old.dispose();
+    }
+
     final description = _cameras[index];
     final controller = CameraController(
       description,
@@ -132,7 +142,12 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
       if (target < minOffset) target = minOffset;
       if (step > 0) target = (target / step).round() * step;
       await controller.setExposureOffset(target);
-      await controller.setFlashMode(_flash);
+      try {
+        await controller.setFlashMode(_flash);
+      } catch (_) {
+        // 전면 카메라 등 플래시 미지원 렌즈 — 이것 때문에 세션 전체를
+        // 실패 처리하면 안 되므로 따로 무시.
+      }
 
       minZoom = await controller.getMinZoomLevel();
       maxZoom = await controller.getMaxZoomLevel();
@@ -151,7 +166,6 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
       return;
     }
 
-    await old?.dispose();
     if (!mounted) {
       await controller.dispose();
       return;

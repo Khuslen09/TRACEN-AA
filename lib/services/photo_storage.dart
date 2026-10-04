@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -30,6 +31,21 @@ class PhotoStorage {
     return dest.path;
   }
 
+  /// 바이트를 영구 저장소(또는 [subdir] 하위 폴더)에 직접 써서 저장하고,
+  /// 새 경로 반환 — [persist]와 같은 `<micros><ext>` 네이밍이지만, 이미
+  /// 메모리에 있는 바이트(예: 필터 적용 후 인코딩한 JPEG)를 쓸 때 쓴다.
+  static Future<String> persistBytes(
+    Uint8List bytes, {
+    String ext = '.jpg',
+    String subdir = _subdir,
+  }) async {
+    final dir = await _ensureDir(subdir: subdir);
+    final fileName = '${DateTime.now().microsecondsSinceEpoch}$ext';
+    final dest = File(p.join(dir.path, fileName));
+    await dest.writeAsBytes(bytes);
+    return dest.path;
+  }
+
   /// 핀 삭제 시 함께 지우기. 파일이 없어도 throw 안 함.
   static Future<void> delete(String path) async {
     try {
@@ -40,9 +56,9 @@ class PhotoStorage {
     }
   }
 
-  static Future<Directory> _ensureDir() async {
+  static Future<Directory> _ensureDir({String subdir = _subdir}) async {
     final base = await getApplicationDocumentsDirectory();
-    final dir = Directory(p.join(base.path, _subdir));
+    final dir = Directory(p.join(base.path, subdir));
     if (!await dir.exists()) {
       await dir.create(recursive: true);
     }

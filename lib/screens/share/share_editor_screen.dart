@@ -11,6 +11,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../widgets/share_card/share_card.dart';
 import '../../widgets/share_card/share_card_controller.dart';
+import '../../widgets/share_card/share_card_layout.dart';
 
 /// 핀 공유 카드 편집 화면 — `photo_edit_screen.dart`와 같은 다크 풀스크린
 /// 에디터 구조(상단바 / 중앙 미리보기 / 컨트롤 줄 / 하단 액션).
@@ -151,45 +152,79 @@ class _ShareEditorScreenState extends State<ShareEditorScreen> {
 
   Widget _buildPreview(ShareCardController controller) {
     final model = controller.viewModel;
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Stack(
-            alignment: Alignment.center,
+    final cardSize = ShareCardLayout.cardSize;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Transform.scale은 그린 결과만 줄이고 레이아웃 공간은 원본 크기
+        // (360×640)를 그대로 차지해서, 화면이 작으면 아래 컨트롤(템플릿 칩
+        // 등)이 넘쳐서 잘려나가는 버그가 있었음 — FittedBox로 실제 레이아웃
+        // 크기 자체를 가용 공간에 맞게 줄여야 함.
+        const hintReserve = 36.0;
+        final maxW = constraints.maxWidth - 32;
+        final maxH = (constraints.maxHeight - hintReserve).clamp(80.0, double.infinity);
+        var w = maxW;
+        var h = w * cardSize.height / cardSize.width;
+        if (h > maxH) {
+          h = maxH;
+          w = h * cardSize.width / cardSize.height;
+        }
+
+        return Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Transform.scale(
-                scale: 0.75,
-                child: ShareCard(
-                  model: model,
-                  interactive: true,
-                  selectedSticker: controller.selectedSticker,
-                  onStickerSelected: controller.selectSticker,
-                  onStickerGestureStart: controller.beginStickerGesture,
-                  onStickerGestureUpdate: controller.updateStickerGesture,
+              SizedBox(
+                width: w,
+                height: h,
+                child: FittedBox(
+                  fit: BoxFit.contain,
+                  child: SizedBox(
+                    width: cardSize.width,
+                    height: cardSize.height,
+                    child: ShareCard(
+                      model: model,
+                      interactive: true,
+                      selectedSticker: controller.selectedSticker,
+                      onStickerSelected: controller.selectSticker,
+                      onStickerGestureStart: controller.beginStickerGesture,
+                      onStickerGestureUpdate: controller.updateStickerGesture,
+                    ),
+                  ),
                 ),
               ),
-              // 화면엔 안 보이지만(opacity 0) 실제로 레이아웃/페인트는 되는
-              // 캡처용 인스턴스 — RepaintBoundary.toImage는 이 레이어의
-              // 페인트 결과를 그대로 읽으므로 화면 표시 여부와 무관하게 동작.
-              IgnorePointer(
-                child: Opacity(
-                  opacity: 0,
-                  child: RepaintBoundary(
-                    key: _exportKey,
-                    child: ShareCard(model: model, interactive: false),
+              const SizedBox(height: 12),
+              Text(
+                AppLocalizations.of(context).shareStickerHint,
+                style: AppTextStyles.caption.copyWith(color: Colors.white54),
+              ),
+              // 화면엔 안 보이지만(opacity 0, 크기 0×0으로 레이아웃엔 기여 안
+              // 함) 실제로는 풀사이즈(360×640)로 페인트되는 캡처용 인스턴스 —
+              // RepaintBoundary.toImage는 이 레이어의 페인트 결과를 그대로
+              // 읽으므로 화면 표시 여부와 무관하게 동작.
+              SizedBox(
+                width: 0,
+                height: 0,
+                child: OverflowBox(
+                  minWidth: cardSize.width,
+                  maxWidth: cardSize.width,
+                  minHeight: cardSize.height,
+                  maxHeight: cardSize.height,
+                  child: IgnorePointer(
+                    child: Opacity(
+                      opacity: 0,
+                      child: RepaintBoundary(
+                        key: _exportKey,
+                        child: ShareCard(model: model, interactive: false),
+                      ),
+                    ),
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            AppLocalizations.of(context).shareStickerHint,
-            style: AppTextStyles.caption.copyWith(color: Colors.white54),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 

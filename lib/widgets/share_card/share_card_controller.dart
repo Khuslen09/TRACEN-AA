@@ -16,25 +16,35 @@ import 'share_card_view_model.dart';
 
 /// 공유 카드 편집 화면 전용 [ChangeNotifier] — `CameraFilterController`와
 /// 같은 화면 전용 상태 패턴. SharedPreferences 영속화는 안 함(세션 한정).
+///
+/// 두 가지 경로로 만들어짐: 저장된 핀에서([forPin], `PinPreviewSheet`의 공유
+/// 버튼) 또는 방금 찍은 사진에서([forCapture], `PhotoEditScreen`의 "템플릿"
+/// 섹션 — 아직 DB에 저장된 Pin이 없으므로 위치/사진을 직접 받음).
 class ShareCardController extends ChangeNotifier {
   ShareCardController._({
-    required this.pin,
+    required this.lat,
+    required this.lng,
+    required this.date,
     required ui.Image? photo,
     required CountryOutline? countryOutline,
     required String? placeName,
+    bool defaultVisible = true,
   }) : _photo = photo,
        _countryOutline = countryOutline,
-       _placeName = placeName;
+       _placeName = placeName,
+       _visibility = {for (final id in StickerId.values) id: defaultVisible};
 
-  final Pin pin;
+  final double lat;
+  final double lng;
+  final DateTime date;
 
   ShareCardTemplate _template = ShareCardTemplate.minimal;
   ShareInkColor _inkColor = ShareInkColor.white;
-  final Map<StickerId, bool> _visibility = {for (final id in StickerId.values) id: true};
+  final Map<StickerId, bool> _visibility;
   final Map<StickerId, StickerTransform> _overrides = {};
   StickerId? _selectedSticker;
 
-  final ui.Image? _photo;
+  ui.Image? _photo;
   final CountryOutline? _countryOutline;
   final String? _placeName;
 
@@ -42,17 +52,47 @@ class ShareCardController extends ChangeNotifier {
   /// 배율에 곱해야 올바르므로, 제스처가 시작될 때 스냅샷을 떠 둔다.
   final Map<StickerId, StickerTransform> _gestureStartTransforms = {};
 
-  static Future<ShareCardController> load(Pin pin) async {
+  /// 저장된 핀에서 — 모든 스티커가 기본으로 보임(이 화면 자체가 "공유 카드
+  /// 만들기"라서).
+  static Future<ShareCardController> forPin(Pin pin) async {
     final results = await Future.wait([
       _decodePhoto(pin.photoPath),
       CountryOutlineService.findCountryAt(pin.lat, pin.lng),
       PlaceNameService.placeNameFor(pin.lat, pin.lng),
     ]);
     return ShareCardController._(
-      pin: pin,
+      lat: pin.lat,
+      lng: pin.lng,
+      date: pin.createdAt,
       photo: results[0] as ui.Image?,
       countryOutline: results[1] as CountryOutline?,
       placeName: results[2] as String?,
+    );
+  }
+
+  /// 방금 촬영한 사진에서 — 아직 저장된 Pin이 없어 위치/사진을 직접 받고,
+  /// [photo]는 호출부(`PhotoEditScreen`)가 이미 디코드해서 넘겨준다(보통
+  /// TRACEN 필터가 적용된 결과물). 스티커는 기존 촬영 플로우를 방해하지
+  /// 않도록 기본으로 전부 꺼져 있음 — 사용자가 "템플릿" 섹션을 실제로
+  /// 건드려야(스티커를 켜야) 최종 저장/공유에 반영됨.
+  static Future<ShareCardController> forCapture({
+    required double lat,
+    required double lng,
+    required DateTime date,
+    required ui.Image photo,
+  }) async {
+    final results = await Future.wait([
+      CountryOutlineService.findCountryAt(lat, lng),
+      PlaceNameService.placeNameFor(lat, lng),
+    ]);
+    return ShareCardController._(
+      lat: lat,
+      lng: lng,
+      date: date,
+      photo: photo,
+      countryOutline: results[0] as CountryOutline?,
+      placeName: results[1] as String?,
+      defaultVisible: false,
     );
   }
 
@@ -73,6 +113,9 @@ class ShareCardController extends ChangeNotifier {
   ShareCardTemplate get template => _template;
   ShareInkColor get inkColor => _inkColor;
   StickerId? get selectedSticker => _selectedSticker;
+
+  /// 스티커 중 하나라도 켜져 있으면(= 사용자가 템플릿을 실제로 쓰기로 함).
+  bool get hasAnyStickerVisible => StickerId.values.any(isVisible);
 
   void setTemplate(ShareCardTemplate value) {
     if (_template == value) return;
@@ -117,12 +160,21 @@ class ShareCardController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// TRACEN 필터가 다시 적용된 새 배경 사진으로 갱신([PhotoEditScreen]에서
+  /// 필터/강도를 바꿀 때마다) — 템플릿/스티커 상태는 그대로 유지.
+  void updatePhoto(ui.Image newPhoto) {
+    final old = _photo;
+    _photo = newPhoto;
+    notifyListeners();
+    old?.dispose();
+  }
+
   ShareCardViewModel get viewModel => ShareCardViewModel(
     template: _template,
     inkColor: _inkColor,
-    date: pin.createdAt,
-    pinLat: pin.lat,
-    pinLng: pin.lng,
+    date: date,
+    pinLat: lat,
+    pinLng: lng,
     placeName: _placeName,
     countryOutline: _countryOutline,
     photo: _photo,

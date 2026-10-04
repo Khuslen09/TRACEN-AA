@@ -1060,10 +1060,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shareInkBlack => 'Ink black';
 
   @override
-  String get shareInkSunset => 'Sunset';
-
-  @override
-  String get shareInkMint => 'Mint';
+  String get shareInkPurple => 'Purple';
 
   @override
   String get shareToInstagramStory => 'Share to Instagram Story';

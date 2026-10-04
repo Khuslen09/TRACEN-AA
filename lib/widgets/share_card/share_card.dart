@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/share_card_template.dart';
 import '../../models/sticker_id.dart';
+import '../../theme/app_colors.dart';
 import '../../utils/country_outline_painter.dart';
 import 'share_card_fonts.dart';
 import 'share_card_layout.dart';
@@ -179,10 +180,10 @@ class _DateContent extends StatelessWidget {
             style: ShareCardFonts.mono(
               size: 15,
               weight: FontWeight.w600,
-              color: const Color(0xFFFF9A4D),
+              color: AppColors.primary,
             ).copyWith(
               shadows: [
-                Shadow(color: const Color(0xFFFF9A4D).withValues(alpha: 0.65), blurRadius: 8),
+                Shadow(color: AppColors.primary.withValues(alpha: 0.65), blurRadius: 8),
               ],
             ),
           ),
@@ -300,8 +301,8 @@ class _MapContent extends StatelessWidget {
           country: country,
           pinLat: model.pinLat,
           pinLng: model.pinLng,
-          strokeColor: model.template == ShareCardTemplate.film ? const Color(0xFFFF9A4D) : color,
-          pinColor: model.template == ShareCardTemplate.film ? const Color(0xFFFF9A4D) : color,
+          strokeColor: model.template == ShareCardTemplate.film ? AppColors.primary : color,
+          pinColor: model.template == ShareCardTemplate.film ? AppColors.primary : color,
         ),
       ),
     );

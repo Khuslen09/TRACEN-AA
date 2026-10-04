@@ -1063,10 +1063,7 @@ class AppLocalizationsMn extends AppLocalizations {
   String get shareInkBlack => 'Бэх хар';
 
   @override
-  String get shareInkSunset => 'Нар жаргах';
-
-  @override
-  String get shareInkMint => 'Мент';
+  String get shareInkPurple => 'Ягаан';
 
   @override
   String get shareToInstagramStory => 'Instagram Story-д хуваалцах';

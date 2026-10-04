@@ -2056,17 +2056,11 @@ abstract class AppLocalizations {
   /// **'먹색'**
   String get shareInkBlack;
 
-  /// No description provided for @shareInkSunset.
+  /// No description provided for @shareInkPurple.
   ///
   /// In ko, this message translates to:
-  /// **'노을'**
-  String get shareInkSunset;
-
-  /// No description provided for @shareInkMint.
-  ///
-  /// In ko, this message translates to:
-  /// **'민트'**
-  String get shareInkMint;
+  /// **'보라'**
+  String get shareInkPurple;
 
   /// No description provided for @shareToInstagramStory.
   ///

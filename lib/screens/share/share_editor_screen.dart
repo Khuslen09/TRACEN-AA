@@ -3,15 +3,11 @@ import 'package:provider/provider.dart';
 
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/pin.dart';
-import '../../models/share_card_template.dart';
-import '../../models/share_ink_color.dart';
-import '../../models/sticker_id.dart';
 import '../../services/share_card_exporter.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
-import '../../widgets/share_card/share_card.dart';
 import '../../widgets/share_card/share_card_controller.dart';
-import '../../widgets/share_card/share_card_layout.dart';
+import 'share_template_section.dart';
 
 /// 핀 공유 카드 편집 화면 — `photo_edit_screen.dart`와 같은 다크 풀스크린
 /// 에디터 구조(상단바 / 중앙 미리보기 / 컨트롤 줄 / 하단 액션).
@@ -34,7 +30,7 @@ class _ShareEditorScreenState extends State<ShareEditorScreen> {
   @override
   void initState() {
     super.initState();
-    ShareCardController.load(widget.pin).then((c) {
+    ShareCardController.forPin(widget.pin).then((c) {
       if (mounted) setState(() => _controller = c);
     });
   }
@@ -102,12 +98,26 @@ class _ShareEditorScreenState extends State<ShareEditorScreen> {
             child: Column(
               children: [
                 _buildTopBar(context),
-                Expanded(child: _buildPreview(controller)),
-                _buildTemplateChips(controller),
-                const SizedBox(height: 10),
-                _buildColorSwatches(controller),
-                const SizedBox(height: 10),
-                _buildToggleChips(context, controller),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: ShareCardPreviewBox(controller: controller, exportKey: _exportKey),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        AppLocalizations.of(context).shareStickerHint,
+                        style: AppTextStyles.caption.copyWith(color: Colors.white54),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                  ),
+                ),
+                ShareTemplateControls(controller: controller),
                 _buildActions(context, controller),
               ],
             ),
@@ -150,171 +160,6 @@ class _ShareEditorScreenState extends State<ShareEditorScreen> {
     );
   }
 
-  Widget _buildPreview(ShareCardController controller) {
-    final model = controller.viewModel;
-    final cardSize = ShareCardLayout.cardSize;
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // Transform.scale은 그린 결과만 줄이고 레이아웃 공간은 원본 크기
-        // (360×640)를 그대로 차지해서, 화면이 작으면 아래 컨트롤(템플릿 칩
-        // 등)이 넘쳐서 잘려나가는 버그가 있었음 — FittedBox로 실제 레이아웃
-        // 크기 자체를 가용 공간에 맞게 줄여야 함.
-        const hintReserve = 36.0;
-        final maxW = constraints.maxWidth - 32;
-        final maxH = (constraints.maxHeight - hintReserve).clamp(80.0, double.infinity);
-        var w = maxW;
-        var h = w * cardSize.height / cardSize.width;
-        if (h > maxH) {
-          h = maxH;
-          w = h * cardSize.width / cardSize.height;
-        }
-
-        return Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(
-                width: w,
-                height: h,
-                child: FittedBox(
-                  fit: BoxFit.contain,
-                  child: SizedBox(
-                    width: cardSize.width,
-                    height: cardSize.height,
-                    child: ShareCard(
-                      model: model,
-                      interactive: true,
-                      selectedSticker: controller.selectedSticker,
-                      onStickerSelected: controller.selectSticker,
-                      onStickerGestureStart: controller.beginStickerGesture,
-                      onStickerGestureUpdate: controller.updateStickerGesture,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                AppLocalizations.of(context).shareStickerHint,
-                style: AppTextStyles.caption.copyWith(color: Colors.white54),
-              ),
-              // 화면엔 안 보이지만(opacity 0, 크기 0×0으로 레이아웃엔 기여 안
-              // 함) 실제로는 풀사이즈(360×640)로 페인트되는 캡처용 인스턴스 —
-              // RepaintBoundary.toImage는 이 레이어의 페인트 결과를 그대로
-              // 읽으므로 화면 표시 여부와 무관하게 동작.
-              SizedBox(
-                width: 0,
-                height: 0,
-                child: OverflowBox(
-                  minWidth: cardSize.width,
-                  maxWidth: cardSize.width,
-                  minHeight: cardSize.height,
-                  maxHeight: cardSize.height,
-                  child: IgnorePointer(
-                    child: Opacity(
-                      opacity: 0,
-                      child: RepaintBoundary(
-                        key: _exportKey,
-                        child: ShareCard(model: model, interactive: false),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildTemplateChips(ShareCardController controller) {
-    return SizedBox(
-      height: 36,
-      child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        scrollDirection: Axis.horizontal,
-        itemCount: ShareCardTemplate.values.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 10),
-        itemBuilder: (context, i) {
-          final template = ShareCardTemplate.values[i];
-          final selected = controller.template == template;
-          return GestureDetector(
-            onTap: () => controller.setTemplate(template),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              decoration: BoxDecoration(
-                color: selected ? AppColors.primary.withValues(alpha: 0.25) : Colors.white10,
-                borderRadius: BorderRadius.circular(999),
-                border: Border.all(color: selected ? AppColors.primary : Colors.white24),
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                template.label,
-                style: AppTextStyles.caption.copyWith(
-                  color: selected ? Colors.white : Colors.white70,
-                  fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildColorSwatches(ShareCardController controller) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        for (final ink in ShareInkColor.values) ...[
-          GestureDetector(
-            onTap: () => controller.setInkColor(ink),
-            child: Container(
-              width: 32,
-              height: 32,
-              margin: const EdgeInsets.symmetric(horizontal: 8),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: ink.color,
-                border: Border.all(
-                  color: controller.inkColor == ink ? AppColors.primary : Colors.white24,
-                  width: controller.inkColor == ink ? 2.5 : 1,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildToggleChips(BuildContext context, ShareCardController controller) {
-    final l10n = AppLocalizations.of(context);
-    final entries = [
-      (StickerId.date, l10n.shareToggleDate),
-      (StickerId.map, l10n.shareToggleMap),
-      (StickerId.place, l10n.shareTogglePlace),
-      (StickerId.logo, l10n.shareToggleLogo),
-    ];
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      child: Wrap(
-        alignment: WrapAlignment.center,
-        spacing: 8,
-        children: [
-          for (final (id, label) in entries)
-            _ToggleChip(
-              label: label,
-              selected: controller.isVisible(id),
-              onTap: () => controller.toggleVisibility(id),
-            ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildActions(BuildContext context, ShareCardController controller) {
     final l10n = AppLocalizations.of(context);
     return Padding(
@@ -326,8 +171,8 @@ class _ShareEditorScreenState extends State<ShareEditorScreen> {
               key: _instaButtonKey,
               onPressed: _busy ? null : () => _share(_instaButtonKey),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFF9A4D),
-                foregroundColor: const Color(0xFF1A0E05),
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
                 minimumSize: const Size.fromHeight(50),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
@@ -335,7 +180,7 @@ class _ShareEditorScreenState extends State<ShareEditorScreen> {
                   ? const SizedBox(
                       width: 18,
                       height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF1A0E05)),
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                     )
                   : Text(l10n.shareToInstagramStory),
             ),
@@ -354,47 +199,6 @@ class _ShareEditorScreenState extends State<ShareEditorScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _ToggleChip extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _ToggleChip({required this.label, required this.selected, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: selected ? AppColors.primary.withValues(alpha: 0.25) : Colors.white10,
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: selected ? AppColors.primary : Colors.white24),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              selected ? Icons.check_circle_rounded : Icons.circle_outlined,
-              size: 14,
-              color: selected ? AppColors.primary : Colors.white54,
-            ),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: AppTextStyles.caption.copyWith(
-                color: selected ? Colors.white : Colors.white70,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

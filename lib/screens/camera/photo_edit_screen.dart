@@ -12,10 +12,14 @@ import '../../models/camera_filter.dart';
 import '../../models/camera_filter_l10n.dart';
 import '../../models/tracen_overlay_data.dart';
 import '../../services/filtered_photo_renderer.dart';
+import '../../services/location_service.dart';
 import '../../services/lut_shader_service.dart';
+import '../../services/share_card_exporter.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../utils/tracen_overlay_painter.dart';
+import '../../widgets/share_card/share_card_controller.dart';
+import '../share/share_template_section.dart';
 import 'camera_filter_controller.dart';
 
 /// 촬영 후 미리보기 — 실제 LUT 셰이더로 정확한 결과를 보여주고, 필터/강도/
@@ -38,6 +42,7 @@ class PhotoEditScreen extends StatefulWidget {
 
 class _PhotoEditScreenState extends State<PhotoEditScreen> {
   final _shareButtonKey = GlobalKey();
+  final _templateExportKey = GlobalKey();
 
   ui.Image? _source;
   TracenOverlayData? _overlay;
@@ -46,6 +51,8 @@ class _PhotoEditScreenState extends State<PhotoEditScreen> {
   bool _loading = true;
   bool _busy = false;
   int _shaderGeneration = 0;
+
+  ShareCardController? _shareCardController;
 
   @override
   void initState() {
@@ -66,10 +73,77 @@ class _PhotoEditScreenState extends State<PhotoEditScreen> {
 
     unawaited(_updatePreviewShader());
     unawaited(_rebuildAllThumbnails());
+    unawaited(_initShareCardController());
 
     widget.overlayFuture.then((data) {
       if (mounted) setState(() => _overlay = data);
     });
+  }
+
+  /// "템플릿" 섹션용 — 아직 저장된 Pin이 없으니 현재 위치를 직접 가져오고,
+  /// 지금 선택된 TRACEN 필터를 적용한 풀해상도 이미지를 배경으로 넘긴다.
+  /// 위치를 못 가져오면(권한 없음/타임아웃) 템플릿 섹션 자체를 안 보여줌 —
+  /// 기존 촬영 플로우엔 전혀 영향 없음.
+  Future<void> _initShareCardController() async {
+    try {
+      final position = await LocationService.currentPosition().timeout(
+        const Duration(seconds: 6),
+      );
+      final photo = await _renderFullFiltered();
+      final controller = await ShareCardController.forCapture(
+        lat: position.latitude,
+        lng: position.longitude,
+        date: DateTime.now(),
+        photo: photo,
+      );
+      if (!mounted) {
+        controller.dispose();
+        return;
+      }
+      setState(() => _shareCardController = controller);
+    } catch (_) {
+      // 위치 권한 없음/타임아웃 — 템플릿 섹션 없이 기존 플로우 그대로.
+    }
+  }
+
+  /// 현재 선택된 TRACEN 필터를 원본 전체 이미지에 적용해 하나의 [ui.Image]로
+  /// 굽는다 — "템플릿" 섹션의 공유 카드 배경 사진용(크롭 없이 원본 비율
+  /// 그대로, `ShareCard`가 `BoxFit.cover`로 알아서 채움).
+  Future<ui.Image> _renderFullFiltered() async {
+    final source = _source!;
+    final controller = widget.filterController;
+    final shader = await LutShaderService.configure(
+      filter: controller.selected,
+      source: source,
+      outSize: Size(source.width.toDouble(), source.height.toDouble()),
+      srcRectUv: const Rect.fromLTWH(0, 0, 1, 1),
+      strength: controller.strength,
+    );
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, source.width.toDouble(), source.height.toDouble()),
+      Paint()..shader = shader,
+    );
+    shader.dispose();
+    final picture = recorder.endRecording();
+    final image = await picture.toImage(source.width, source.height);
+    picture.dispose();
+    return image;
+  }
+
+  /// 필터/강도가 바뀔 때마다(탭 또는 슬라이더를 놓았을 때만 — 드래그 중
+  /// 연속으로는 안 부름, `_refreshThumbnailFor`와 같은 정책) 템플릿 배경을
+  /// 새로 구워 반영.
+  Future<void> _refreshTemplateBackground() async {
+    final shareCtrl = _shareCardController;
+    if (shareCtrl == null || _source == null) return;
+    final image = await _renderFullFiltered();
+    if (!mounted) {
+      image.dispose();
+      return;
+    }
+    shareCtrl.updatePhoto(image);
   }
 
   void _onControllerChanged() {
@@ -196,10 +270,17 @@ class _PhotoEditScreenState extends State<PhotoEditScreen> {
       image.dispose();
     }
     _source?.dispose();
+    _shareCardController?.dispose();
     super.dispose();
   }
 
+  /// 템플릿 섹션에서 스티커를 하나라도 켰으면(= 실제로 쓰기로 함) 그 결과를
+  /// 저장/공유하고, 아니면 기존 필터+오버레이 결과를 그대로 저장/공유.
   Future<String> _renderFinal() {
+    final shareCtrl = _shareCardController;
+    if (shareCtrl != null && shareCtrl.hasAnyStickerVisible) {
+      return ShareCardExporter.exportToTempFile(_templateExportKey);
+    }
     final controller = widget.filterController;
     return FilteredPhotoRenderer.render(
       sourcePath: widget.sourcePath,
@@ -249,9 +330,10 @@ class _PhotoEditScreenState extends State<PhotoEditScreen> {
       final path = await _renderFinal();
       final box = _shareButtonKey.currentContext?.findRenderObject() as RenderBox?;
       final origin = box == null ? null : (box.localToGlobal(Offset.zero) & box.size);
+      final mimeType = path.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
       await SharePlus.instance.share(
         ShareParams(
-          files: [XFile(path, mimeType: 'image/jpeg')],
+          files: [XFile(path, mimeType: mimeType)],
           sharePositionOrigin: origin,
         ),
       );
@@ -273,6 +355,8 @@ class _PhotoEditScreenState extends State<PhotoEditScreen> {
       );
     }
 
+    final hasTemplate = _shareCardController != null;
+
     return ChangeNotifierProvider.value(
       value: widget.filterController,
       child: Consumer<CameraFilterController>(
@@ -282,14 +366,64 @@ class _PhotoEditScreenState extends State<PhotoEditScreen> {
             child: Column(
               children: [
                 _buildTopBar(l10n),
-                Expanded(child: _buildPreview(controller)),
-                _buildOverlayToggles(l10n, controller),
-                _buildStrengthRow(l10n, controller),
-                _buildFilterStrip(l10n, controller),
+                Expanded(flex: hasTemplate ? 3 : 1, child: _buildPreview(controller)),
+                if (!hasTemplate) ...[
+                  _buildOverlayToggles(l10n, controller),
+                  _buildStrengthRow(l10n, controller),
+                  _buildFilterStrip(l10n, controller),
+                ] else
+                  Flexible(
+                    flex: 4,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          _buildOverlayToggles(l10n, controller),
+                          _buildStrengthRow(l10n, controller),
+                          _buildFilterStrip(l10n, controller),
+                          _buildTemplateSection(context, l10n),
+                        ],
+                      ),
+                    ),
+                  ),
                 _buildActions(l10n),
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  /// "필터에 이어서" 붙는 템플릿 섹션 — 필터는 그대로 두고 그 위에 공유
+  /// 카드 템플릿(미니멀/필름/스탬프 + 날짜/지도/위치명/로고 스티커)을 얹을
+  /// 수 있게 한다. 스티커를 하나도 안 켜면(기본값) 저장/공유 결과는 기존과
+  /// 동일 — 사용자가 실제로 켜야만 최종 결과에 반영됨([_renderFinal] 참고).
+  Widget _buildTemplateSection(BuildContext context, AppLocalizations l10n) {
+    final shareController = _shareCardController!;
+    return ChangeNotifierProvider.value(
+      value: shareController,
+      child: Consumer<ShareCardController>(
+        builder: (context, shareController, _) => Column(
+          children: [
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: Divider(color: Colors.white12, height: 1),
+            ),
+            Text(
+              l10n.shareEditorTitle,
+              style: AppTextStyles.caption.copyWith(color: Colors.white54),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 200,
+              child: ShareCardPreviewBox(
+                controller: shareController,
+                exportKey: _templateExportKey,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ShareTemplateControls(controller: shareController),
+          ],
         ),
       ),
     );
@@ -376,7 +510,10 @@ class _PhotoEditScreenState extends State<PhotoEditScreen> {
                 onChanged: (v) {
                   controller.setStrength(v);
                 },
-                onChangeEnd: (_) => _refreshThumbnailFor(controller.selected),
+                onChangeEnd: (_) {
+                  _refreshThumbnailFor(controller.selected);
+                  unawaited(_refreshTemplateBackground());
+                },
               ),
             ),
           ),
@@ -405,7 +542,10 @@ class _PhotoEditScreenState extends State<PhotoEditScreen> {
           final isSelected = controller.selected == filter;
           final thumb = _thumbnails[filter];
           return GestureDetector(
-            onTap: () => controller.selectFilter(filter),
+            onTap: () {
+              controller.selectFilter(filter);
+              unawaited(_refreshTemplateBackground());
+            },
             child: Column(
               children: [
                 Container(

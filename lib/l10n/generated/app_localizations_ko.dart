@@ -1030,10 +1030,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get shareInkBlack => '먹색';
 
   @override
-  String get shareInkSunset => '노을';
-
-  @override
-  String get shareInkMint => '민트';
+  String get shareInkPurple => '보라';
 
   @override
   String get shareToInstagramStory => '인스타 스토리에 공유';

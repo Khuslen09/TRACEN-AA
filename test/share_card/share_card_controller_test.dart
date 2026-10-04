@@ -1,8 +1,20 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tracen/models/pin.dart';
 import 'package:tracen/models/share_card_template.dart';
 import 'package:tracen/models/sticker_id.dart';
 import 'package:tracen/widgets/share_card/share_card_controller.dart';
+
+Future<ui.Image> _tinyImage() async {
+  final recorder = ui.PictureRecorder();
+  final canvas = ui.Canvas(recorder);
+  canvas.drawRect(const ui.Rect.fromLTWH(0, 0, 1, 1), ui.Paint());
+  final picture = recorder.endRecording();
+  final image = await picture.toImage(1, 1);
+  picture.dispose();
+  return image;
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -16,7 +28,7 @@ void main() {
 
   group('ShareCardController', () {
     test('초기 상태는 minimal 템플릿 + 모든 스티커 표시 + 기본 transform', () async {
-      final controller = await ShareCardController.load(pin);
+      final controller = await ShareCardController.forPin(pin);
       expect(controller.template, ShareCardTemplate.minimal);
       for (final id in StickerId.values) {
         expect(controller.isVisible(id), isTrue);
@@ -26,7 +38,7 @@ void main() {
     });
 
     test('드래그/핀치 제스처가 해당 스티커의 transform만 갱신', () async {
-      final controller = await ShareCardController.load(pin);
+      final controller = await ShareCardController.forPin(pin);
       controller.beginStickerGesture(StickerId.logo);
       controller.updateStickerGesture(StickerId.logo, const Offset(10, -5), 1.0);
 
@@ -36,7 +48,7 @@ void main() {
     });
 
     test('핀치 배율은 제스처 시작 시점 배율에 누적 배율을 곱함', () async {
-      final controller = await ShareCardController.load(pin);
+      final controller = await ShareCardController.forPin(pin);
       controller.beginStickerGesture(StickerId.map);
       controller.updateStickerGesture(StickerId.map, Offset.zero, 1.5);
       expect(controller.transformFor(StickerId.map).scale, closeTo(1.5, 1e-9));
@@ -47,7 +59,7 @@ void main() {
     });
 
     test('setTemplate이 모든 오버라이드를 비우고 새 템플릿 기본값으로 리셋', () async {
-      final controller = await ShareCardController.load(pin);
+      final controller = await ShareCardController.forPin(pin);
       controller.beginStickerGesture(StickerId.logo);
       controller.updateStickerGesture(StickerId.logo, const Offset(20, 20), 1.8);
       expect(controller.transformFor(StickerId.logo).offset, isNot(Offset.zero));
@@ -59,7 +71,7 @@ void main() {
     });
 
     test('toggleVisibility가 해당 스티커만 토글', () async {
-      final controller = await ShareCardController.load(pin);
+      final controller = await ShareCardController.forPin(pin);
       expect(controller.isVisible(StickerId.map), isTrue);
       controller.toggleVisibility(StickerId.map);
       expect(controller.isVisible(StickerId.map), isFalse);
@@ -69,12 +81,46 @@ void main() {
     });
 
     test('selectSticker가 selectedSticker를 갱신', () async {
-      final controller = await ShareCardController.load(pin);
+      final controller = await ShareCardController.forPin(pin);
       expect(controller.selectedSticker, isNull);
       controller.selectSticker(StickerId.place);
       expect(controller.selectedSticker, StickerId.place);
       controller.selectSticker(null);
       expect(controller.selectedSticker, isNull);
+    });
+  });
+
+  group('ShareCardController.forCapture', () {
+    test('기본으로 스티커가 전부 꺼져 있음 — 촬영 플로우에 영향 없어야 함', () async {
+      final controller = await ShareCardController.forCapture(
+        lat: 37.5665,
+        lng: 126.9780,
+        date: DateTime(2026, 10, 4),
+        photo: await _tinyImage(),
+      );
+      for (final id in StickerId.values) {
+        expect(controller.isVisible(id), isFalse);
+      }
+      expect(controller.hasAnyStickerVisible, isFalse);
+
+      controller.toggleVisibility(StickerId.date);
+      expect(controller.hasAnyStickerVisible, isTrue);
+    });
+
+    test('updatePhoto가 기존 템플릿/스티커 상태는 유지한 채 배경 사진만 교체', () async {
+      final controller = await ShareCardController.forCapture(
+        lat: 37.5665,
+        lng: 126.9780,
+        date: DateTime(2026, 10, 4),
+        photo: await _tinyImage(),
+      );
+      controller.setTemplate(ShareCardTemplate.film);
+      controller.toggleVisibility(StickerId.logo);
+
+      controller.updatePhoto(await _tinyImage());
+
+      expect(controller.template, ShareCardTemplate.film);
+      expect(controller.isVisible(StickerId.logo), isTrue);
     });
   });
 }

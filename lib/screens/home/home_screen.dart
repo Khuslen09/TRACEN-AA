@@ -18,7 +18,6 @@ import '../../theme/theme_extensions.dart';
 import '../../utils/marker_bitmap_util.dart';
 import 'widgets/scratch_tile_provider.dart';
 import '../profile/profile_screen.dart';
-import '../camera/camera_capture_screen.dart';
 import '../../models/activity_type.dart';
 import '../run/running_live_screen.dart'; // ignore: unused_import — 다음 단계에서 복원
 import '../run/tracking/activity_tracking_screen.dart';
@@ -598,20 +597,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       context,
                       MaterialPageRoute(
                         builder: (_) => const PlaceInputScreen(),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 12),
-                // TRACEN 시그니처 카메라
-                _CircleIconButton(
-                  icon: Icons.camera_alt_rounded,
-                  iconColor: context.textPrimary,
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const CameraCaptureScreen(),
                       ),
                     );
                   },

@@ -8,6 +8,7 @@ import '../../l10n/generated/app_localizations.dart';
 import '../../models/camera_filter.dart';
 import '../../models/camera_filter_l10n.dart';
 import '../../models/capture_ratio.dart';
+import '../../services/lut_shader_service.dart';
 import '../../services/permission_service.dart';
 import '../../services/tracen_overlay_service.dart';
 import '../../theme/app_colors.dart';
@@ -52,6 +53,10 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     TracenOverlayPainter.ensureAssets();
+    // 셰이더 프로그램 + 4개 LUT 이미지를 지금부터 디코드해두면, 촬영 후
+    // 결과 화면(PhotoEditScreen)에 들어갈 때 이미 캐시돼 있어 체감 로딩이
+    // 크게 줄어듦 — 권한/카메라 초기화와 동시에 진행.
+    LutShaderService.warmUp();
     _bootstrap();
   }
 
@@ -235,7 +240,7 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
       final file = await cam.takePicture();
       final overlayFuture = TracenOverlayService.loadToday();
       if (!mounted) return;
-      await Navigator.push(
+      final resultPath = await Navigator.push<String>(
         context,
         MaterialPageRoute(
           builder: (_) => PhotoEditScreen(
@@ -245,6 +250,11 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
           ),
         ),
       );
+      // 핀 저장 화면 등 결과를 기다리는 호출자가 있으면(이 화면이
+      // Navigator.push<String>로 열렸으면) 그 경로를 그대로 위로 전달.
+      if (resultPath != null && mounted) {
+        Navigator.pop(context, resultPath);
+      }
     } catch (_) {
       // 촬영 실패 — 다시 시도할 수 있게 그냥 화면에 머무름.
     } finally {

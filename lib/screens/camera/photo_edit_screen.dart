@@ -129,44 +129,12 @@ class _PhotoEditScreenState extends State<PhotoEditScreen> {
     return Rect.fromLTWH(x, y, w, h);
   }
 
-  Future<void> _rebuildAllThumbnails() async {
-    final source = _source;
-    if (source == null) return;
-    final cropUv = _squareCropUv(source);
-    for (final filter in TracenFilter.values) {
-      final shader = await LutShaderService.configure(
-        filter: filter,
-        source: source,
-        outSize: const Size(90, 90),
-        srcRectUv: cropUv,
-        strength: widget.filterController.strengthOf(filter),
-      );
-      final recorder = ui.PictureRecorder();
-      final canvas = Canvas(recorder);
-      canvas.drawRect(const Rect.fromLTWH(0, 0, 90, 90), Paint()..shader = shader);
-      shader.dispose();
-      final picture = recorder.endRecording();
-      final image = await picture.toImage(90, 90);
-      picture.dispose();
-      if (!mounted) {
-        image.dispose();
-        return;
-      }
-      setState(() {
-        _thumbnails[filter]?.dispose();
-        _thumbnails[filter] = image;
-      });
-    }
-  }
-
-  Future<void> _refreshThumbnailFor(TracenFilter filter) async {
-    final source = _source;
-    if (source == null) return;
+  Future<ui.Image> _renderThumbnail(ui.Image source, TracenFilter filter, Rect cropUv) async {
     final shader = await LutShaderService.configure(
       filter: filter,
       source: source,
       outSize: const Size(90, 90),
-      srcRectUv: _squareCropUv(source),
+      srcRectUv: cropUv,
       strength: widget.filterController.strengthOf(filter),
     );
     final recorder = ui.PictureRecorder();
@@ -176,6 +144,40 @@ class _PhotoEditScreenState extends State<PhotoEditScreen> {
     final picture = recorder.endRecording();
     final image = await picture.toImage(90, 90);
     picture.dispose();
+    return image;
+  }
+
+  /// 4개를 동시에 렌더링 — LUT 이미지는 이미 캐시돼 있어(보통 촬영 화면에서
+  /// `LutShaderService.warmUp()`으로 미리 로드됨) 순차로 하나씩 기다릴
+  /// 이유가 없음. 순차 실행 대비 체감 로딩이 크게 줄어듦.
+  Future<void> _rebuildAllThumbnails() async {
+    final source = _source;
+    if (source == null) return;
+    final cropUv = _squareCropUv(source);
+
+    final images = await Future.wait([
+      for (final filter in TracenFilter.values) _renderThumbnail(source, filter, cropUv),
+    ]);
+
+    if (!mounted) {
+      for (final image in images) {
+        image.dispose();
+      }
+      return;
+    }
+    setState(() {
+      for (var i = 0; i < TracenFilter.values.length; i++) {
+        final filter = TracenFilter.values[i];
+        _thumbnails[filter]?.dispose();
+        _thumbnails[filter] = images[i];
+      }
+    });
+  }
+
+  Future<void> _refreshThumbnailFor(TracenFilter filter) async {
+    final source = _source;
+    if (source == null) return;
+    final image = await _renderThumbnail(source, filter, _squareCropUv(source));
     if (!mounted) {
       image.dispose();
       return;
@@ -223,11 +225,9 @@ class _PhotoEditScreenState extends State<PhotoEditScreen> {
         await Gal.requestAccess(toAlbum: false);
       }
       await Gal.putImage(path);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.photoSavedToGallery)),
-        );
-      }
+      // 핀 저장 화면 등에서 Navigator.push<String>로 이 플로우를 열었으면
+      // 그 호출자에게 바로 결과 경로를 돌려줌 — 갤러리 저장 + 반환 둘 다.
+      if (mounted) Navigator.pop(context, path);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

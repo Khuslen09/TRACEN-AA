@@ -14,6 +14,7 @@ import '../services/route_db_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/theme_extensions.dart';
+import 'camera/camera_capture_screen.dart';
 import 'home/category_color_screen.dart';
 
 /// 새 핀(메모 + 사진)을 추가하는 화면.
@@ -81,12 +82,14 @@ class _SaveFilesScreenState extends State<SaveFilesScreen> {
     if (file != null) setState(() => _photoPath = file.path);
   }
 
+  /// TRACEN 시그니처 카메라로 촬영 — 필터/오버레이까지 적용한 최종 사진
+  /// 경로를 돌려받음. image_picker의 OS 기본 카메라 대신 이 플로우로 교체.
   Future<void> _pickFromCamera() async {
-    final file = await _picker.pickImage(
-      source: ImageSource.camera,
-      imageQuality: 85,
+    final path = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(builder: (_) => const CameraCaptureScreen()),
     );
-    if (file != null) setState(() => _photoPath = file.path);
+    if (path != null) setState(() => _photoPath = path);
   }
 
   void _removePhoto() => setState(() => _photoPath = null);

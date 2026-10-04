@@ -995,24 +995,34 @@ class RouteDBService {
   /// userId가 null이면 전체(개발용 fallback).
   static Future<UserStats> getUserStats(String? userId) async {
     final database = await db;
-    final args = <Object>[];
-    final whereSQL = userId == null ? '' : 'WHERE user_id = ?';
-    if (userId != null) args.add(userId);
+
+    // routes: 저장 완료('completed')된 것만 — 진행 중/저장 대기 중인 테스트
+    // 기록이 "러닝 횟수"/"총 거리"에 잘못 섞여 들어가지 않게 함.
+    final routeArgs = <Object>[];
+    final routeWhere = userId == null
+        ? "status = 'completed'"
+        : "status = 'completed' AND user_id = ?";
+    if (userId != null) routeArgs.add(userId);
 
     final routeRows = await database.rawQuery('''
       SELECT
         COUNT(*) AS route_count,
         COALESCE(SUM(distance), 0) AS total_distance
       FROM routes
-      $whereSQL
-    ''', args);
+      WHERE $routeWhere
+    ''', routeArgs);
+
+    // pins: v5부터 route_id가 아니라 user_id로 독립 소유 — route 조인은
+    // route_id가 없는 일반 핀(지도 길게 눌러 추가한 대다수)을 다 빠뜨렸음.
+    final pinArgs = <Object>[];
+    final pinWhere = userId == null ? '' : 'WHERE user_id = ?';
+    if (userId != null) pinArgs.add(userId);
 
     final pinRows = await database.rawQuery('''
       SELECT COUNT(*) AS pin_count
-      FROM pins p
-      INNER JOIN routes r ON r.id = p.route_id
-      ${userId == null ? '' : 'WHERE r.user_id = ?'}
-    ''', args);
+      FROM pins
+      $pinWhere
+    ''', pinArgs);
 
     return UserStats(
       routeCount: (routeRows.first['route_count'] as int?) ?? 0,

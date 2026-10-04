@@ -53,9 +53,9 @@ class ShareCardLayout {
         final mapRect = _minimalRect(StickerId.map);
         return Rect.fromLTWH(
           mapRect.right + 12,
-          mapRect.top + (mapRect.height - 72) / 2,
+          mapRect.top + (mapRect.height - 88) / 2,
           cardSize.width - mapRect.right - 12 - margin,
-          72,
+          88,
         );
       case StickerId.logo:
         return const Rect.fromLTWH(246, 592, 90, 20);
@@ -63,6 +63,8 @@ class ShareCardLayout {
   }
 
   static Rect _filmRect(StickerId id) {
+    // 하드 테두리는 없음(스크림 그라데이션으로 대체) — frame/bandHeight는
+    // 그냥 배치 기준 숫자.
     const frame = 16.0;
     const bandHeight = 108.0;
     final bandTop = cardSize.height - frame - bandHeight;

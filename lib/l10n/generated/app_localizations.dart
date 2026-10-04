@@ -1996,6 +1996,12 @@ abstract class AppLocalizations {
   /// **'공유 카드 만들기'**
   String get pinShareTooltip;
 
+  /// No description provided for @shareEditorTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'스토리 편집'**
+  String get shareEditorTitle;
+
   /// No description provided for @shareTemplateMinimal.
   ///
   /// In ko, this message translates to:

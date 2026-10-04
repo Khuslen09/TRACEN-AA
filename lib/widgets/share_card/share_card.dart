@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../models/share_card_template.dart';
-import '../../models/share_ink_color.dart';
 import '../../models/sticker_id.dart';
 import '../../utils/country_outline_painter.dart';
 import 'share_card_fonts.dart';
@@ -25,6 +24,8 @@ String _stampDate(DateTime d) {
   ];
   return '${_two(d.day)} ${months[d.month - 1]} ${d.year}';
 }
+
+const _textShadow = [Shadow(color: Color(0x80000000), blurRadius: 6, offset: Offset(0, 1))];
 
 String _formatCoords(double lat, double lng) {
   final ns = lat >= 0 ? 'N' : 'S';
@@ -71,7 +72,7 @@ class ShareCard extends StatelessWidget {
           clipBehavior: Clip.hardEdge,
           children: [
             Positioned.fill(child: _buildBackground()),
-            ..._buildFrameDecoration(),
+            Positioned.fill(child: IgnorePointer(child: _buildScrim())),
             for (final id in _activeStickerIds)
               if (model.isVisible(id)) _buildSticker(context, id),
           ],
@@ -88,18 +89,24 @@ class ShareCard extends StatelessWidget {
     return RawImage(image: photo, fit: BoxFit.cover);
   }
 
-  List<Widget> _buildFrameDecoration() {
-    if (model.template != ShareCardTemplate.film) return const [];
-    final frameColor = model.inkColor == ShareInkColor.black
-        ? const Color(0xFFF3EFE6)
-        : const Color(0xFF121212);
-    return [
-      Positioned.fill(
-        child: IgnorePointer(
-          child: CustomPaint(painter: _FilmFramePainter(color: frameColor)),
+  /// 사진 위에 어느 템플릿이든 텍스트/지도가 잘 읽히도록 위/아래를 살짝
+  /// 어둡게 — 사진이 없을 때(단색 배경)도 자연스럽게 섞임.
+  Widget _buildScrim() {
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color(0x99000000),
+            Color(0x00000000),
+            Color(0x00000000),
+            Color(0xB3000000),
+          ],
+          stops: [0.0, 0.22, 0.55, 1.0],
         ),
       ),
-    ];
+    );
   }
 
   Widget _buildSticker(BuildContext context, StickerId id) {
@@ -188,11 +195,16 @@ class _DateContent extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(_fullDate(model.date), style: ShareCardFonts.mono(size: 15, weight: FontWeight.w600, color: color, letterSpacing: 1.2)),
+          Text(
+            _fullDate(model.date),
+            style: ShareCardFonts.mono(size: 15, weight: FontWeight.w600, color: color, letterSpacing: 1.2)
+                .copyWith(shadows: _textShadow),
+          ),
           const SizedBox(height: 2),
           Text(
             _weekdaysEn[model.date.weekday - 1],
-            style: ShareCardFonts.mono(size: 10, color: color, letterSpacing: 3, opacity: 0.8),
+            style: ShareCardFonts.mono(size: 10, color: color, letterSpacing: 3, opacity: 0.8)
+                .copyWith(shadows: _textShadow),
           ),
         ],
       ),
@@ -318,23 +330,25 @@ class _PlaceContent extends StatelessWidget {
           if (place != null)
             Text(
               place,
-              style: ShareCardFonts.unbounded(size: isFilm ? 13 : 17, weight: FontWeight.w700, color: color),
+              style: ShareCardFonts.unbounded(size: isFilm ? 17 : 24, weight: FontWeight.w700, color: color)
+                  .copyWith(shadows: _textShadow),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
           if (country != null) ...[
-            const SizedBox(height: 2),
+            const SizedBox(height: 3),
             Text(
               country,
-              style: ShareCardFonts.mono(size: 10, color: color, letterSpacing: 1.8, opacity: 0.85),
+              style: ShareCardFonts.mono(size: 11, color: color, letterSpacing: 2, opacity: 0.85)
+                  .copyWith(shadows: _textShadow),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
           ],
-          const SizedBox(height: 2),
+          const SizedBox(height: 4),
           Text(
             _formatCoords(model.pinLat, model.pinLng),
-            style: ShareCardFonts.mono(size: 9, color: color, opacity: 0.8),
+            style: ShareCardFonts.mono(size: 9, color: color, opacity: 0.8).copyWith(shadows: _textShadow),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -366,29 +380,4 @@ class _LogoContent extends StatelessWidget {
       ),
     );
   }
-}
-
-class _FilmFramePainter extends CustomPainter {
-  final Color color;
-  const _FilmFramePainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    const frame = 16.0;
-    const bandHeight = 108.0;
-    final paint = Paint()..color = color;
-
-    // 위/좌/우 테두리
-    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, frame), paint);
-    canvas.drawRect(Rect.fromLTWH(0, 0, frame, size.height), paint);
-    canvas.drawRect(Rect.fromLTWH(size.width - frame, 0, frame, size.height), paint);
-    // 아래쪽 띠(테두리 포함)
-    canvas.drawRect(
-      Rect.fromLTWH(0, size.height - frame - bandHeight, size.width, frame + bandHeight),
-      paint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _FilmFramePainter oldDelegate) => oldDelegate.color != color;
 }

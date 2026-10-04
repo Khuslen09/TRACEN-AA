@@ -1030,6 +1030,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pinShareTooltip => 'Create share card';
 
   @override
+  String get shareEditorTitle => 'Edit story';
+
+  @override
   String get shareTemplateMinimal => 'Minimal';
 
   @override

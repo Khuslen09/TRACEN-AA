@@ -1033,6 +1033,9 @@ class AppLocalizationsMn extends AppLocalizations {
   String get pinShareTooltip => 'Хуваалцах карт үүсгэх';
 
   @override
+  String get shareEditorTitle => 'Түүх засах';
+
+  @override
   String get shareTemplateMinimal => 'Минимал';
 
   @override

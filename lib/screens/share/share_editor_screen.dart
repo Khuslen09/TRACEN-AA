@@ -117,13 +117,32 @@ class _ShareEditorScreenState extends State<ShareEditorScreen> {
   }
 
   Widget _buildTopBar(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       child: Row(
         children: [
           IconButton(
             icon: const Icon(Icons.close_rounded, color: Colors.white),
             onPressed: _busy ? null : () => Navigator.of(context).pop(),
+          ),
+          Expanded(
+            child: Text(
+              l10n.shareEditorTitle,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.smallBold.copyWith(color: Colors.white),
+            ),
+          ),
+          IconButton(
+            icon: _busy
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                  )
+                : const Icon(Icons.download_rounded, color: Colors.white),
+            onPressed: _busy ? null : _saveToGallery,
+            tooltip: l10n.shareSaveToGallery,
           ),
         ],
       ),
@@ -287,16 +306,17 @@ class _ShareEditorScreenState extends State<ShareEditorScreen> {
             ),
           ),
           const SizedBox(width: 10),
-          IconButton(
-            key: _otherButtonKey,
-            onPressed: _busy ? null : () => _share(_otherButtonKey),
-            icon: const Icon(Icons.ios_share_rounded, color: Colors.white),
-            tooltip: l10n.shareToOtherApps,
-          ),
-          IconButton(
-            onPressed: _busy ? null : _saveToGallery,
-            icon: const Icon(Icons.download_rounded, color: Colors.white),
-            tooltip: l10n.shareSaveToGallery,
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white10,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: IconButton(
+              key: _otherButtonKey,
+              onPressed: _busy ? null : () => _share(_otherButtonKey),
+              icon: const Icon(Icons.ios_share_rounded, color: Colors.white),
+              tooltip: l10n.shareToOtherApps,
+            ),
           ),
         ],
       ),

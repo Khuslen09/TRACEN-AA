@@ -1000,6 +1000,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get pinShareTooltip => '공유 카드 만들기';
 
   @override
+  String get shareEditorTitle => '스토리 편집';
+
+  @override
   String get shareTemplateMinimal => '미니멀';
 
   @override

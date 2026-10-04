@@ -1863,6 +1863,126 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'켜기'**
   String get trackingPreciseLocationTurnOn;
+
+  /// No description provided for @filterGoldenRoute.
+  ///
+  /// In ko, this message translates to:
+  /// **'Golden Route'**
+  String get filterGoldenRoute;
+
+  /// No description provided for @filterNightTrace.
+  ///
+  /// In ko, this message translates to:
+  /// **'Night Trace'**
+  String get filterNightTrace;
+
+  /// No description provided for @filterFadedMap.
+  ///
+  /// In ko, this message translates to:
+  /// **'Faded Map'**
+  String get filterFadedMap;
+
+  /// No description provided for @filterMonoPath.
+  ///
+  /// In ko, this message translates to:
+  /// **'Mono Path'**
+  String get filterMonoPath;
+
+  /// No description provided for @filterStrength.
+  ///
+  /// In ko, this message translates to:
+  /// **'강도'**
+  String get filterStrength;
+
+  /// No description provided for @overlayTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'TRACEN 오버레이'**
+  String get overlayTitle;
+
+  /// No description provided for @overlayDateStamp.
+  ///
+  /// In ko, this message translates to:
+  /// **'날짜 스탬프'**
+  String get overlayDateStamp;
+
+  /// No description provided for @overlayRoute.
+  ///
+  /// In ko, this message translates to:
+  /// **'오늘의 경로'**
+  String get overlayRoute;
+
+  /// No description provided for @overlayWatermark.
+  ///
+  /// In ko, this message translates to:
+  /// **'워터마크'**
+  String get overlayWatermark;
+
+  /// No description provided for @cameraEntry.
+  ///
+  /// In ko, this message translates to:
+  /// **'TRACEN 카메라'**
+  String get cameraEntry;
+
+  /// No description provided for @cameraGrid.
+  ///
+  /// In ko, this message translates to:
+  /// **'그리드'**
+  String get cameraGrid;
+
+  /// No description provided for @cameraSwitch.
+  ///
+  /// In ko, this message translates to:
+  /// **'카메라 전환'**
+  String get cameraSwitch;
+
+  /// No description provided for @cameraRatio.
+  ///
+  /// In ko, this message translates to:
+  /// **'비율'**
+  String get cameraRatio;
+
+  /// No description provided for @cameraFlashOff.
+  ///
+  /// In ko, this message translates to:
+  /// **'플래시 끔'**
+  String get cameraFlashOff;
+
+  /// No description provided for @cameraFlashAuto.
+  ///
+  /// In ko, this message translates to:
+  /// **'플래시 자동'**
+  String get cameraFlashAuto;
+
+  /// No description provided for @cameraFlashOn.
+  ///
+  /// In ko, this message translates to:
+  /// **'플래시 켬'**
+  String get cameraFlashOn;
+
+  /// No description provided for @cameraPermissionNeeded.
+  ///
+  /// In ko, this message translates to:
+  /// **'촬영하려면 카메라 권한이 필요해요'**
+  String get cameraPermissionNeeded;
+
+  /// No description provided for @cameraUnavailable.
+  ///
+  /// In ko, this message translates to:
+  /// **'카메라를 사용할 수 없어요'**
+  String get cameraUnavailable;
+
+  /// No description provided for @photoProcessing.
+  ///
+  /// In ko, this message translates to:
+  /// **'필터 적용 중…'**
+  String get photoProcessing;
+
+  /// No description provided for @sharePhoto.
+  ///
+  /// In ko, this message translates to:
+  /// **'공유'**
+  String get sharePhoto;
 }
 
 class _AppLocalizationsDelegate

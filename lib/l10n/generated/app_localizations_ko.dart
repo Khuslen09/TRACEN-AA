@@ -932,4 +932,64 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get trackingPreciseLocationTurnOn => '켜기';
+
+  @override
+  String get filterGoldenRoute => 'Golden Route';
+
+  @override
+  String get filterNightTrace => 'Night Trace';
+
+  @override
+  String get filterFadedMap => 'Faded Map';
+
+  @override
+  String get filterMonoPath => 'Mono Path';
+
+  @override
+  String get filterStrength => '강도';
+
+  @override
+  String get overlayTitle => 'TRACEN 오버레이';
+
+  @override
+  String get overlayDateStamp => '날짜 스탬프';
+
+  @override
+  String get overlayRoute => '오늘의 경로';
+
+  @override
+  String get overlayWatermark => '워터마크';
+
+  @override
+  String get cameraEntry => 'TRACEN 카메라';
+
+  @override
+  String get cameraGrid => '그리드';
+
+  @override
+  String get cameraSwitch => '카메라 전환';
+
+  @override
+  String get cameraRatio => '비율';
+
+  @override
+  String get cameraFlashOff => '플래시 끔';
+
+  @override
+  String get cameraFlashAuto => '플래시 자동';
+
+  @override
+  String get cameraFlashOn => '플래시 켬';
+
+  @override
+  String get cameraPermissionNeeded => '촬영하려면 카메라 권한이 필요해요';
+
+  @override
+  String get cameraUnavailable => '카메라를 사용할 수 없어요';
+
+  @override
+  String get photoProcessing => '필터 적용 중…';
+
+  @override
+  String get sharePhoto => '공유';
 }

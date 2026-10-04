@@ -964,4 +964,65 @@ class AppLocalizationsMn extends AppLocalizations {
 
   @override
   String get trackingPreciseLocationTurnOn => 'Асаах';
+
+  @override
+  String get filterGoldenRoute => 'Golden Route';
+
+  @override
+  String get filterNightTrace => 'Night Trace';
+
+  @override
+  String get filterFadedMap => 'Faded Map';
+
+  @override
+  String get filterMonoPath => 'Mono Path';
+
+  @override
+  String get filterStrength => 'Хүч';
+
+  @override
+  String get overlayTitle => 'TRACEN давхарга';
+
+  @override
+  String get overlayDateStamp => 'Огнооны тамга';
+
+  @override
+  String get overlayRoute => 'Өнөөдрийн зам';
+
+  @override
+  String get overlayWatermark => 'Усан тэмдэг';
+
+  @override
+  String get cameraEntry => 'TRACEN камер';
+
+  @override
+  String get cameraGrid => 'Тор';
+
+  @override
+  String get cameraSwitch => 'Камер солих';
+
+  @override
+  String get cameraRatio => 'Харьцаа';
+
+  @override
+  String get cameraFlashOff => 'Гэрэл унтраах';
+
+  @override
+  String get cameraFlashAuto => 'Гэрэл автомат';
+
+  @override
+  String get cameraFlashOn => 'Гэрэл асаах';
+
+  @override
+  String get cameraPermissionNeeded =>
+      'Зураг авахын тулд камерын зөвшөөрөл хэрэгтэй';
+
+  @override
+  String get cameraUnavailable => 'Камер ашиглах боломжгүй';
+
+  @override
+  String get photoProcessing => 'Шүүлтүүр хэрэглэж байна…';
+
+  @override
+  String get sharePhoto => 'Хуваалцах';
 }

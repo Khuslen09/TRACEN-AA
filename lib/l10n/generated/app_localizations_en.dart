@@ -962,4 +962,64 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trackingPreciseLocationTurnOn => 'Turn on';
+
+  @override
+  String get filterGoldenRoute => 'Golden Route';
+
+  @override
+  String get filterNightTrace => 'Night Trace';
+
+  @override
+  String get filterFadedMap => 'Faded Map';
+
+  @override
+  String get filterMonoPath => 'Mono Path';
+
+  @override
+  String get filterStrength => 'Strength';
+
+  @override
+  String get overlayTitle => 'TRACEN overlay';
+
+  @override
+  String get overlayDateStamp => 'Date stamp';
+
+  @override
+  String get overlayRoute => 'Today\'s route';
+
+  @override
+  String get overlayWatermark => 'Watermark';
+
+  @override
+  String get cameraEntry => 'TRACEN camera';
+
+  @override
+  String get cameraGrid => 'Grid';
+
+  @override
+  String get cameraSwitch => 'Switch camera';
+
+  @override
+  String get cameraRatio => 'Ratio';
+
+  @override
+  String get cameraFlashOff => 'Flash off';
+
+  @override
+  String get cameraFlashAuto => 'Flash auto';
+
+  @override
+  String get cameraFlashOn => 'Flash on';
+
+  @override
+  String get cameraPermissionNeeded => 'Camera access is needed to take photos';
+
+  @override
+  String get cameraUnavailable => 'Camera unavailable';
+
+  @override
+  String get photoProcessing => 'Applying filter…';
+
+  @override
+  String get sharePhoto => 'Share';
 }

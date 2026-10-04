@@ -1057,6 +1057,12 @@ class AppLocalizationsMn extends AppLocalizations {
   String get shareToggleLogo => 'Лого';
 
   @override
+  String get shareToggleRoute => 'Маршрут';
+
+  @override
+  String get shareEditPlaceName => 'Байршлын нэр засах';
+
+  @override
   String get shareInkWhite => 'Цагаан';
 
   @override

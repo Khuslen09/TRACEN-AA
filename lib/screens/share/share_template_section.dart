@@ -19,12 +19,14 @@ class ShareCardPreviewBox extends StatelessWidget {
   final ShareCardController controller;
   final GlobalKey exportKey;
   final void Function(StickerId id)? onStickerTap;
+  final double borderRadius;
 
   const ShareCardPreviewBox({
     super.key,
     required this.controller,
     required this.exportKey,
     this.onStickerTap,
+    this.borderRadius = 0,
   });
 
   @override
@@ -50,19 +52,22 @@ class ShareCardPreviewBox extends StatelessWidget {
             child: Stack(
               alignment: Alignment.center,
               children: [
-                FittedBox(
-                  fit: BoxFit.contain,
-                  child: SizedBox(
-                    width: cardSize.width,
-                    height: cardSize.height,
-                    child: ShareCard(
-                      model: model,
-                      interactive: true,
-                      selectedSticker: controller.selectedSticker,
-                      onStickerSelected: controller.selectSticker,
-                      onStickerGestureStart: controller.beginStickerGesture,
-                      onStickerGestureUpdate: controller.updateStickerGesture,
-                      onStickerTap: onStickerTap,
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(borderRadius),
+                  child: FittedBox(
+                    fit: BoxFit.contain,
+                    child: SizedBox(
+                      width: cardSize.width,
+                      height: cardSize.height,
+                      child: ShareCard(
+                        model: model,
+                        interactive: true,
+                        selectedSticker: controller.selectedSticker,
+                        onStickerSelected: controller.selectSticker,
+                        onStickerGestureStart: controller.beginStickerGesture,
+                        onStickerGestureUpdate: controller.updateStickerGesture,
+                        onStickerTap: onStickerTap,
+                      ),
                     ),
                   ),
                 ),
@@ -97,11 +102,13 @@ class ShareCardPreviewBox extends StatelessWidget {
 }
 
 /// 템플릿 칩(미니멀/필름/스탬프) + 잉크 색상 스와치 + 스티커(날짜/지도/
-/// 위치명/로고) 표시 토글 — `ShareEditorScreen`과 `PhotoEditScreen`이 공유.
+/// 위치명/로고/경로) 표시 토글 — `ShareEditorScreen`과 `PhotoEditScreen`이
+/// 공유.
 class ShareTemplateControls extends StatelessWidget {
   final ShareCardController controller;
+  final VoidCallback? onEditPlace;
 
-  const ShareTemplateControls({super.key, required this.controller});
+  const ShareTemplateControls({super.key, required this.controller, this.onEditPlace});
 
   @override
   Widget build(BuildContext context) {
@@ -185,6 +192,7 @@ class ShareTemplateControls extends StatelessWidget {
       (StickerId.map, l10n.shareToggleMap),
       (StickerId.place, l10n.shareTogglePlace),
       (StickerId.logo, l10n.shareToggleLogo),
+      (StickerId.route, l10n.shareToggleRoute),
     ];
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -193,11 +201,31 @@ class ShareTemplateControls extends StatelessWidget {
         spacing: 8,
         children: [
           for (final (id, label) in entries)
-            _ToggleChip(
-              label: label,
-              selected: controller.isVisible(id),
-              onTap: () => controller.toggleVisibility(id),
-            ),
+            if (id == StickerId.place && onEditPlace != null)
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _ToggleChip(
+                    label: label,
+                    selected: controller.isVisible(id),
+                    onTap: () => controller.toggleVisibility(id),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.edit_rounded, size: 16, color: Colors.white54),
+                    tooltip: l10n.shareEditPlaceName,
+                    onPressed: onEditPlace,
+                    visualDensity: VisualDensity.compact,
+                    constraints: const BoxConstraints(),
+                    padding: const EdgeInsets.only(left: 4),
+                  ),
+                ],
+              )
+            else
+              _ToggleChip(
+                label: label,
+                selected: controller.isVisible(id),
+                onTap: () => controller.toggleVisibility(id),
+              ),
         ],
       ),
     );

@@ -3,9 +3,11 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../models/share_card_template.dart';
+import '../../models/share_ink_color.dart';
 import '../../models/sticker_id.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/country_outline_painter.dart';
+import 'route_sticker_painter.dart';
 import 'share_card_fonts.dart';
 import 'share_card_layout.dart';
 import 'share_card_logo_mark.dart';
@@ -60,6 +62,8 @@ class ShareCard extends StatelessWidget {
 
   List<StickerId> get _activeStickerIds {
     if (model.template == ShareCardTemplate.stamp) {
+      // 날짜/위치명처럼 경로도 도장 안에 녹여넣지 않고 그냥 생략 — 스탬프는
+      // 지도+로고만 독립 스티커.
       return const [StickerId.map, StickerId.logo];
     }
     return StickerId.values;
@@ -89,12 +93,21 @@ class ShareCard extends StatelessWidget {
     if (photo == null) {
       return const ColoredBox(color: Color(0xFF1A1D27));
     }
-    return RawImage(image: photo, fit: BoxFit.cover);
+    final raw = RawImage(image: photo, fit: BoxFit.cover);
+    final matrix = model.previewColorMatrix;
+    if (matrix == null) return raw;
+    // 실시간 필터 미리보기 — 래스터화 없이 GPU 합성만(필터 선택의 싼 근사
+    // 치). 정확한 LUT 결과는 저장/공유 시 호출부가 [photo] 자체를 구워서
+    // 넣는다(그때는 matrix가 반드시 null).
+    return ColorFiltered(colorFilter: ColorFilter.matrix(matrix), child: raw);
   }
 
-  /// 사진 위에 어느 템플릿이든 텍스트/지도가 잘 읽히도록 위/아래를 살짝
-  /// 어둡게 — 사진이 없을 때(단색 배경)도 자연스럽게 섞임.
+  /// 사진 위에 텍스트/지도가 잘 읽히게 위/아래를 살짝 어둡게 — 스탬프
+  /// 템플릿이거나 잉크색이 먹색이면 그 자체로 이미 충분히 대비돼서 끔.
   Widget _buildScrim() {
+    if (model.template == ShareCardTemplate.stamp || model.inkColor == ShareInkColor.black) {
+      return const SizedBox.shrink();
+    }
     return DecoratedBox(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -161,7 +174,27 @@ class ShareCard extends StatelessWidget {
         return _PlaceContent(model: model, size: size);
       case StickerId.logo:
         return _LogoContent(model: model, size: size);
+      case StickerId.route:
+        return _RouteContent(model: model, size: size);
     }
+  }
+}
+
+class _RouteContent extends StatelessWidget {
+  final ShareCardViewModel model;
+  final Size size;
+  const _RouteContent({required this.model, required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    if (model.routePath.length < 2) return SizedBox.fromSize(size: size);
+    final color = model.template == ShareCardTemplate.film ? AppColors.primary : model.inkColor.color;
+    return SizedBox.fromSize(
+      size: size,
+      child: CustomPaint(
+        painter: RouteStickerPainter(path: model.routePath, strokeColor: color),
+      ),
+    );
   }
 }
 
@@ -275,7 +308,12 @@ class _MapContent extends StatelessWidget {
                           Text(
                             model.placeName!.toUpperCase(),
                             textAlign: TextAlign.center,
-                            style: ShareCardFonts.unbounded(size: 12, weight: FontWeight.w600, color: color),
+                            style: ShareCardFonts.placeName(
+                              text: model.placeName!,
+                              size: 12,
+                              weight: FontWeight.w600,
+                              color: color,
+                            ),
                           ),
                         if (model.isVisible(StickerId.date)) ...[
                           const SizedBox(height: 4),
@@ -332,12 +370,13 @@ class _PlaceContent extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           if (place != null)
-            Text(
-              place,
-              style: ShareCardFonts.unbounded(size: isFilm ? 17 : 24, weight: FontWeight.w700, color: color)
+            _ShrinkToFitText(
+              text: place,
+              maxSize: isFilm ? 17 : 24,
+              minSize: 12,
+              maxLines: 2,
+              styleFor: (s) => ShareCardFonts.placeName(text: place, size: s, color: color)
                   .copyWith(shadows: _textShadow),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
             ),
           if (country != null) ...[
             const SizedBox(height: 3),
@@ -358,6 +397,51 @@ class _PlaceContent extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// 긴 위치명이 박스 폭을 넘치면 [maxSize]에서 [minSize]까지 1px씩 줄여가며
+/// [maxLines] 안에 들어가는 첫 크기로 그린다 — 그래도 안 들어가면
+/// [minSize]에서 말줄임. 새 패키지(auto_size_text 등) 없이 `TextPainter`로
+/// 직접 측정(이 저장소가 Canvas/TextPainter를 직접 쓰는 걸 선호하는 기존
+/// 관례와 일치 — `TracenOverlayPainter` 등 참고).
+class _ShrinkToFitText extends StatelessWidget {
+  final String text;
+  final TextStyle Function(double size) styleFor;
+  final double maxSize;
+  final double minSize;
+  final int maxLines;
+
+  const _ShrinkToFitText({
+    required this.text,
+    required this.styleFor,
+    required this.maxSize,
+    this.minSize = 12,
+    this.maxLines = 2,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        var fontSize = maxSize;
+        while (fontSize > minSize) {
+          final painter = TextPainter(
+            text: TextSpan(text: text, style: styleFor(fontSize)),
+            maxLines: maxLines,
+            textDirection: TextDirection.ltr,
+          )..layout(maxWidth: constraints.maxWidth);
+          if (!painter.didExceedMaxLines) break;
+          fontSize -= 1;
+        }
+        return Text(
+          text,
+          style: styleFor(fontSize),
+          maxLines: maxLines,
+          overflow: TextOverflow.ellipsis,
+        );
+      },
     );
   }
 }

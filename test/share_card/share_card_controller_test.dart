@@ -91,7 +91,7 @@ void main() {
   });
 
   group('ShareCardController.forCapture', () {
-    test('기본으로 스티커가 전부 꺼져 있음 — 촬영 플로우에 영향 없어야 함', () async {
+    test('기본으로 스티커가 전부 켜져 있음 — forPin과 동일(템플릿이 유일한 저장 경로)', () async {
       final controller = await ShareCardController.forCapture(
         lat: 37.5665,
         lng: 126.9780,
@@ -99,12 +99,14 @@ void main() {
         photo: await _tinyImage(),
       );
       for (final id in StickerId.values) {
-        expect(controller.isVisible(id), isFalse);
+        expect(controller.isVisible(id), isTrue);
+      }
+      expect(controller.hasAnyStickerVisible, isTrue);
+
+      for (final id in StickerId.values) {
+        controller.toggleVisibility(id);
       }
       expect(controller.hasAnyStickerVisible, isFalse);
-
-      controller.toggleVisibility(StickerId.date);
-      expect(controller.hasAnyStickerVisible, isTrue);
     });
 
     test('updatePhoto가 기존 템플릿/스티커 상태는 유지한 채 배경 사진만 교체', () async {
@@ -115,12 +117,37 @@ void main() {
         photo: await _tinyImage(),
       );
       controller.setTemplate(ShareCardTemplate.film);
-      controller.toggleVisibility(StickerId.logo);
+      controller.toggleVisibility(StickerId.logo); // 기본 켜짐 → 끔
 
       controller.updatePhoto(await _tinyImage());
 
       expect(controller.template, ShareCardTemplate.film);
-      expect(controller.isVisible(StickerId.logo), isTrue);
+      expect(controller.isVisible(StickerId.logo), isFalse);
+    });
+
+    test('routePath 파라미터를 그대로 반영(새 DB 조회 없음)', () async {
+      final controller = await ShareCardController.forCapture(
+        lat: 37.5665,
+        lng: 126.9780,
+        date: DateTime(2026, 10, 4),
+        photo: await _tinyImage(),
+        routePath: const [(lat: 37.5, lng: 127.0), (lat: 37.51, lng: 127.01)],
+      );
+      expect(controller.viewModel.routePath.length, 2);
+    });
+
+    test('setPreviewColorMatrix가 viewModel에 즉시 반영', () async {
+      final controller = await ShareCardController.forCapture(
+        lat: 37.5665,
+        lng: 126.9780,
+        date: DateTime(2026, 10, 4),
+        photo: await _tinyImage(),
+      );
+      expect(controller.viewModel.previewColorMatrix, isNull);
+      controller.setPreviewColorMatrix(List.filled(20, 0.0));
+      expect(controller.viewModel.previewColorMatrix, isNotNull);
+      controller.setPreviewColorMatrix(null);
+      expect(controller.viewModel.previewColorMatrix, isNull);
     });
   });
 }

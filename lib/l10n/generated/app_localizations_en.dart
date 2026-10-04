@@ -1054,6 +1054,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shareToggleLogo => 'Logo';
 
   @override
+  String get shareToggleRoute => 'Route';
+
+  @override
+  String get shareEditPlaceName => 'Edit place name';
+
+  @override
   String get shareInkWhite => 'White';
 
   @override

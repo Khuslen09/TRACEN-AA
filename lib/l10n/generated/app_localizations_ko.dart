@@ -1024,6 +1024,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get shareToggleLogo => '로고';
 
   @override
+  String get shareToggleRoute => '경로';
+
+  @override
+  String get shareEditPlaceName => '위치명 수정';
+
+  @override
   String get shareInkWhite => '흰색';
 
   @override

@@ -22,6 +22,18 @@ class ShareCardViewModel {
   /// null이면 사진 없는 핀(단색 배경으로 렌더).
   final ui.Image? photo;
 
+  /// 사진 레이어에만 적용할 실시간 미리보기용 ColorMatrix(필터 선택의 싼
+  /// GPU 근사치 — `fitColorMatrix`+`lerpWithIdentity` 결과). null이면 필터
+  /// 없이 그대로. **중요**: [photo]가 이미 정확한 LUT으로 구워진 결과라면
+  /// (예: 내보내기 직전) 반드시 null이어야 함 — 아니면 필터가 두 번 걸림.
+  /// `share_card/`는 카메라 필터 모델(`TracenFilter`)을 몰라야 해서, 이미
+  /// 계산된 행렬만 받는다.
+  final List<double>? previewColorMatrix;
+
+  /// 오늘(또는 핀이 찍힌 날)의 GPS 경로 — "경로" 스티커용. 2점 미만이면
+  /// 빈 채로 렌더(에러 아님).
+  final List<({double lat, double lng})> routePath;
+
   final Map<StickerId, bool> visibility;
   final Map<StickerId, StickerTransform> transforms;
 
@@ -34,6 +46,8 @@ class ShareCardViewModel {
     required this.placeName,
     required this.countryOutline,
     required this.photo,
+    this.previewColorMatrix,
+    this.routePath = const [],
     required this.visibility,
     required this.transforms,
   });

@@ -2044,6 +2044,18 @@ abstract class AppLocalizations {
   /// **'로고'**
   String get shareToggleLogo;
 
+  /// No description provided for @shareToggleRoute.
+  ///
+  /// In ko, this message translates to:
+  /// **'경로'**
+  String get shareToggleRoute;
+
+  /// No description provided for @shareEditPlaceName.
+  ///
+  /// In ko, this message translates to:
+  /// **'위치명 수정'**
+  String get shareEditPlaceName;
+
   /// No description provided for @shareInkWhite.
   ///
   /// In ko, this message translates to:

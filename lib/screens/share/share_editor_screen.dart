@@ -149,7 +149,10 @@ class _ShareEditorScreenState extends State<ShareEditorScreen> {
                     ],
                   ),
                 ),
-                ShareTemplateControls(controller: controller),
+                ShareTemplateControls(
+                  controller: controller,
+                  onEditPlace: () => _onStickerTap(StickerId.place),
+                ),
                 _buildActions(context, controller),
               ],
             ),

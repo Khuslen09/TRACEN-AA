@@ -459,6 +459,8 @@
   "shareToggleMap": "Map",
   "shareTogglePlace": "Place",
   "shareToggleLogo": "Logo",
+  "shareToggleRoute": "Route",
+  "shareEditPlaceName": "Edit place name",
   "shareInkWhite": "White",
   "shareInkBlack": "Ink black",
   "shareInkPurple": "Purple",

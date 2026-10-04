@@ -11,6 +11,8 @@ import '../../models/sticker_id.dart';
 import '../../models/sticker_transform.dart';
 import '../../services/country_outline_service.dart';
 import '../../services/place_name_service.dart';
+import '../../services/route_db_service.dart';
+import '../../services/tracen_overlay_service.dart';
 import 'share_card_layout.dart';
 import 'share_card_view_model.dart';
 
@@ -28,11 +30,12 @@ class ShareCardController extends ChangeNotifier {
     required ui.Image? photo,
     required CountryOutline? countryOutline,
     required String? placeName,
-    bool defaultVisible = true,
+    required List<({double lat, double lng})> routePath,
   }) : _photo = photo,
        _countryOutline = countryOutline,
        _placeName = placeName,
-       _visibility = {for (final id in StickerId.values) id: defaultVisible};
+       _routePath = routePath,
+       _visibility = {for (final id in StickerId.values) id: true};
 
   final double lat;
   final double lng;
@@ -47,18 +50,22 @@ class ShareCardController extends ChangeNotifier {
   ui.Image? _photo;
   final CountryOutline? _countryOutline;
   String? _placeName;
+  final List<({double lat, double lng})> _routePath;
+  List<double>? _previewColorMatrix;
 
   /// 핀치 제스처의 누적 배율(`ScaleUpdateDetails.scale`)을 제스처 시작 시의
   /// 배율에 곱해야 올바르므로, 제스처가 시작될 때 스냅샷을 떠 둔다.
   final Map<StickerId, StickerTransform> _gestureStartTransforms = {};
 
   /// 저장된 핀에서 — 모든 스티커가 기본으로 보임(이 화면 자체가 "공유 카드
-  /// 만들기"라서).
+  /// 만들기"라서). 경로는 러닝 중 만든 핀이면 그 러닝의 실제 경로, 일반
+  /// 핀이면 핀이 찍힌 **그날**의 일상 경로(day track)에서 가져온다.
   static Future<ShareCardController> forPin(Pin pin) async {
     final results = await Future.wait([
       _decodePhoto(pin.photoPath),
       CountryOutlineService.findCountryAt(pin.lat, pin.lng),
       PlaceNameService.placeNameFor(pin.lat, pin.lng),
+      _routePathForPin(pin),
     ]);
     return ShareCardController._(
       lat: pin.lat,
@@ -67,19 +74,38 @@ class ShareCardController extends ChangeNotifier {
       photo: results[0] as ui.Image?,
       countryOutline: results[1] as CountryOutline?,
       placeName: results[2] as String?,
+      routePath: results[3] as List<({double lat, double lng})>,
     );
   }
 
+  static Future<List<({double lat, double lng})>> _routePathForPin(Pin pin) async {
+    try {
+      if (pin.runId != null) {
+        final points = await RouteDBService.getPoints(pin.runId!);
+        return [for (final p in points) (lat: p.lat, lng: p.lng)];
+      }
+      return await RouteDBService.getDayTrackRawPoints(
+        TracenOverlayService.dayIdFor(pin.createdAt),
+        userId: pin.userId,
+      );
+    } catch (_) {
+      return const [];
+    }
+  }
+
   /// 방금 촬영한 사진에서 — 아직 저장된 Pin이 없어 위치/사진을 직접 받고,
-  /// [photo]는 호출부(`PhotoEditScreen`)가 이미 디코드해서 넘겨준다(보통
-  /// TRACEN 필터가 적용된 결과물). 스티커는 기존 촬영 플로우를 방해하지
-  /// 않도록 기본으로 전부 꺼져 있음 — 사용자가 "템플릿" 섹션을 실제로
-  /// 건드려야(스티커를 켜야) 최종 저장/공유에 반영됨.
+  /// [photo]는 호출부(`PhotoEditScreen`)가 디코드한 원본(필터 미적용 —
+  /// 실시간 미리보기는 [setPreviewColorMatrix]로, 정확한 LUT 결과는
+  /// 저장/공유 직전에만 [updatePhoto]로 구워 넣는다). [routePath]는
+  /// 호출부가 이미 가지고 있는 오늘의 경로(`TracenOverlayData.path`)를
+  /// 그대로 받음 — 새 DB 조회 없음. 핀 공유 화면과 동일하게 스티커는 기본
+  /// 전부 켜짐.
   static Future<ShareCardController> forCapture({
     required double lat,
     required double lng,
     required DateTime date,
     required ui.Image photo,
+    List<({double lat, double lng})> routePath = const [],
   }) async {
     final results = await Future.wait([
       CountryOutlineService.findCountryAt(lat, lng),
@@ -92,7 +118,7 @@ class ShareCardController extends ChangeNotifier {
       photo: photo,
       countryOutline: results[0] as CountryOutline?,
       placeName: results[1] as String?,
-      defaultVisible: false,
+      routePath: routePath,
     );
   }
 
@@ -169,12 +195,22 @@ class ShareCardController extends ChangeNotifier {
   }
 
   /// TRACEN 필터가 다시 적용된 새 배경 사진으로 갱신([PhotoEditScreen]에서
-  /// 필터/강도를 바꿀 때마다) — 템플릿/스티커 상태는 그대로 유지.
+  /// 저장/공유 직전에만 호출 — 템플릿/스티커 상태는 그대로 유지). 이
+  /// 사진은 이미 정확한 LUT이 구워진 결과이므로, 호출부는 같이
+  /// [setPreviewColorMatrix]를 null로 돌려야 이중 필터를 안 건다.
   void updatePhoto(ui.Image newPhoto) {
     final old = _photo;
     _photo = newPhoto;
     notifyListeners();
     old?.dispose();
+  }
+
+  /// 실시간 미리보기용 — 래스터화 없이 GPU 합성만으로 즉시 반영(싼 근사치).
+  /// [updatePhoto]와 반대로 이건 [_photo] 자체는 안 건드리고 사진 레이어
+  /// 위에 `ColorFiltered`로만 얹는다.
+  void setPreviewColorMatrix(List<double>? matrix) {
+    _previewColorMatrix = matrix;
+    notifyListeners();
   }
 
   ShareCardViewModel get viewModel => ShareCardViewModel(
@@ -186,6 +222,8 @@ class ShareCardController extends ChangeNotifier {
     placeName: _placeName,
     countryOutline: _countryOutline,
     photo: _photo,
+    previewColorMatrix: _previewColorMatrix,
+    routePath: _routePath,
     visibility: Map.unmodifiable(_visibility),
     transforms: {for (final id in StickerId.values) id: transformFor(id)},
   );

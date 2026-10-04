@@ -59,6 +59,8 @@ class ShareCardLayout {
         );
       case StickerId.logo:
         return const Rect.fromLTWH(246, 592, 90, 20);
+      case StickerId.route:
+        return Rect.fromLTWH(cardSize.width - margin - 90, 30, 90, 90);
     }
   }
 
@@ -83,6 +85,8 @@ class ShareCardLayout {
         );
       case StickerId.logo:
         return Rect.fromLTWH(cardSize.width - frame - 28, bandTop + 14, 18, bandHeight - 28);
+      case StickerId.route:
+        return Rect.fromLTWH(frame + 14, 30, 80, 80);
     }
   }
 
@@ -98,8 +102,10 @@ class ShareCardLayout {
         return discRect;
       case StickerId.date:
       case StickerId.place:
-        // 도장 안에 내용으로 녹아 들어가서 독립적으로 그려지지 않음 — 위치
-        // 데이터는 일관성을 위해 도장 영역을 그대로 돌려줌(실제 사용 안 함).
+      case StickerId.route:
+        // 도장 안에 내용으로 녹아 들어가서 독립적으로 그려지지 않음(route는
+        // 스탬프에서 아예 스티커로 안 둠, `ShareCard._activeStickerIds`
+        // 참고) — 위치 데이터는 일관성을 위해 도장 영역을 그대로 돌려줌.
         return discRect;
       case StickerId.logo:
         return const Rect.fromLTWH(130, 578, 100, 24);

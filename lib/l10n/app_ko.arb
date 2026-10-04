@@ -469,6 +469,8 @@
   "shareToggleMap": "지도",
   "shareTogglePlace": "위치명",
   "shareToggleLogo": "로고",
+  "shareToggleRoute": "경로",
+  "shareEditPlaceName": "위치명 수정",
   "shareInkWhite": "흰색",
   "shareInkBlack": "먹색",
   "shareInkPurple": "보라",

@@ -254,6 +254,27 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
     } catch (_) {}
   }
 
+  /// 전/후면 전환 — `_cameras`엔 후면 렌즈가 여러 개(초광각/표준/망원) 들어
+  /// 있을 수 있어서, 그냥 다음 인덱스로 가면 같은 방향의 다른 렌즈로 가버릴
+  /// 수 있음. 반대 방향에서 "표준(wide)" 렌즈를 찾아서 그쪽으로 전환.
+  /// 미러링은 안 함 — 미리보기도 찍히는 그대로(좌우 반전 없이) 보여줌.
+  Future<void> _switchCamera() async {
+    final current = _cameras[_cameraIndex];
+    final targetDirection = current.lensDirection == CameraLensDirection.back
+        ? CameraLensDirection.front
+        : CameraLensDirection.back;
+    final candidates = [
+      for (var i = 0; i < _cameras.length; i++)
+        if (_cameras[i].lensDirection == targetDirection) i,
+    ];
+    if (candidates.isEmpty) return;
+    final wideIndex = candidates.firstWhere(
+      (i) => _cameras[i].lensType == CameraLensType.wide,
+      orElse: () => candidates.first,
+    );
+    await _openCamera(wideIndex, initialZoom: 1.0);
+  }
+
   void _onPinchStart() {
     _pinchBaseZoom = _currentZoom;
   }
@@ -493,6 +514,13 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
                   _ => l10n.cameraFlashOn,
                 },
               ),
+              const SizedBox(width: 4),
+              _TopBarIcon(
+                icon: Icons.cameraswitch_rounded,
+                active: false,
+                onTap: _cameras.length > 1 ? _switchCamera : null,
+                tooltip: l10n.cameraSwitch,
+              ),
             ],
           ),
         ],
@@ -524,6 +552,7 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
               return GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTapUp: (d) => _onTapFocus(d.localPosition, previewSize),
+                onDoubleTap: _switchCamera,
                 onScaleStart: (_) => _onPinchStart(),
                 onScaleUpdate: (d) => _onPinchUpdate(d.scale),
                 child: Stack(

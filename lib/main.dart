@@ -122,9 +122,20 @@ class _TracenAppState extends State<TracenApp> with WidgetsBindingObserver {
         return child ?? const SizedBox.shrink();
       },
       supportedLocales: LocaleProvider.supportedLocales,
-      // "기기 언어 사용"일 때: 기기 언어가 지원 목록(ko/en/mn)에 있으면 그대로,
-      // 없는 언어(일본어 등)면 영어로.
+      // "기기 언어 사용"일 때:
+      //   1) 기기 지역(국가)이 한국/몽골이면 그 언어를 우선 — 예: 기기 언어가
+      //      영어여도 지역이 몽골이면 몽골어로 (지역 신호가 언어보다 그
+      //      사람이 실제로 쓸 언어를 더 잘 반영한다고 판단).
+      //   2) 그 외엔 기기 언어가 지원 목록(ko/en/mn)에 있으면 그대로.
+      //   3) 둘 다 아니면(일본어 등) 영어로.
       localeResolutionCallback: (deviceLocale, supported) {
+        const countryToLanguage = {'KR': 'ko', 'MN': 'mn'};
+        final byCountry = countryToLanguage[deviceLocale?.countryCode];
+        if (byCountry != null) {
+          for (final l in supported) {
+            if (l.languageCode == byCountry) return l;
+          }
+        }
         for (final l in supported) {
           if (l.languageCode == deviceLocale?.languageCode) return l;
         }

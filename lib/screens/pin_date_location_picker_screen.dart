@@ -1,5 +1,7 @@
 import '../l10n/generated/app_localizations.dart';
 import '../l10n/strings.dart';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
@@ -7,6 +9,7 @@ import 'package:intl/intl.dart';
 import '../models/pin.dart';
 import '../services/cloud_sync_service.dart';
 import '../services/location_service.dart';
+import '../services/pin_place_lookup_service.dart';
 import '../services/route_db_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -141,6 +144,13 @@ class _PinDateLocationPickerScreenState
     );
 
     if (pin == null) return;
+
+    unawaited(
+      PinPlaceLookupService.resolveAndPersist(
+        pin,
+        languageCode: Strings.current.localeName,
+      ),
+    );
 
     // SaveFilesScreen이 createdAt = DateTime.now()로 만들었는데
     // 사용자가 과거 날짜 골랐을 수 있어서 덮어쓰기 필요.

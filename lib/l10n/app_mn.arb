@@ -465,5 +465,19 @@
   "shareToInstagramStory": "Instagram Story-д хуваалцах",
   "shareToOtherApps": "Бусад аппаар хуваалцах",
   "shareSaveToGallery": "Зурагт хадгалах",
-  "shareStickerHint": "Наалтыг чирж зөөж, хоёр хуруугаар хэмжээг нь өөрчилнө үү"
+  "shareStickerHint": "Наалтыг чирж зөөж, хоёр хуруугаар хэмжээг нь өөрчилнө үү",
+  "poiPickerTitle": "Байршлын нэр сонгох",
+  "poiPickerDistanceMeters": "{meters}м",
+  "@poiPickerDistanceMeters": {
+    "placeholders": {
+      "meters": {
+        "type": "int"
+      }
+    }
+  },
+  "poiPickerNeighborhoodFallback": "Хорооллын нэр ашиглах",
+  "poiPickerManualEntry": "Гараар оруулах",
+  "poiPickerManualHint": "Байршлын нэрийг оруулна уу",
+  "poiPickerConfirm": "Баталгаажуулах",
+  "poiPickerNoCandidates": "Ойролцоо байршил олдсонгүй"
 }

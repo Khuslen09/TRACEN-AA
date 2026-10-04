@@ -18,8 +18,14 @@ import '../../widgets/share_card/share_card_layout.dart';
 class ShareCardPreviewBox extends StatelessWidget {
   final ShareCardController controller;
   final GlobalKey exportKey;
+  final void Function(StickerId id)? onStickerTap;
 
-  const ShareCardPreviewBox({super.key, required this.controller, required this.exportKey});
+  const ShareCardPreviewBox({
+    super.key,
+    required this.controller,
+    required this.exportKey,
+    this.onStickerTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +62,7 @@ class ShareCardPreviewBox extends StatelessWidget {
                       onStickerSelected: controller.selectSticker,
                       onStickerGestureStart: controller.beginStickerGesture,
                       onStickerGestureUpdate: controller.updateStickerGesture,
+                      onStickerTap: onStickerTap,
                     ),
                   ),
                 ),

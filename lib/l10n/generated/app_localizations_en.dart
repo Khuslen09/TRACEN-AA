@@ -1073,4 +1073,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shareStickerHint => 'Drag stickers to move them, pinch to resize';
+
+  @override
+  String get poiPickerTitle => 'Choose a place name';
+
+  @override
+  String poiPickerDistanceMeters(int meters) {
+    return '${meters}m';
+  }
+
+  @override
+  String get poiPickerNeighborhoodFallback => 'Use neighborhood name';
+
+  @override
+  String get poiPickerManualEntry => 'Enter manually';
+
+  @override
+  String get poiPickerManualHint => 'Enter a place name';
+
+  @override
+  String get poiPickerConfirm => 'Confirm';
+
+  @override
+  String get poiPickerNoCandidates => 'Couldn\'t find nearby places';
 }

@@ -4,12 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart' hide ActivityType;
 
+import '../../l10n/strings.dart';
 import '../../models/pin.dart';
 import '../../models/route.dart';
 import '../../services/auth_service.dart';
 import '../../services/category_color_service.dart';
 import '../../services/cloud_sync_service.dart';
 import '../../services/photo_storage.dart';
+import '../../services/pin_place_lookup_service.dart';
 import '../../services/route_db_service.dart';
 import '../../services/location_service.dart';
 import '../../theme/app_colors.dart';
@@ -373,6 +375,12 @@ class _HomeScreenState extends State<HomeScreen> {
       await _addPinMarker(result);
       setState(() {});
       CloudSyncService.syncPinAdded(result);
+      unawaited(
+        PinPlaceLookupService.resolveAndPersist(
+          result,
+          languageCode: Strings.current.localeName,
+        ),
+      );
       _showSnack(l10n.pinAdded);
     }
   }

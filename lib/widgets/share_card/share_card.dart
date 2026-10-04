@@ -45,6 +45,7 @@ class ShareCard extends StatelessWidget {
   final void Function(StickerId id)? onStickerSelected;
   final void Function(StickerId id)? onStickerGestureStart;
   final void Function(StickerId id, Offset focalPointDelta, double scale)? onStickerGestureUpdate;
+  final void Function(StickerId id)? onStickerTap;
 
   const ShareCard({
     super.key,
@@ -54,6 +55,7 @@ class ShareCard extends StatelessWidget {
     this.onStickerSelected,
     this.onStickerGestureStart,
     this.onStickerGestureUpdate,
+    this.onStickerTap,
   });
 
   List<StickerId> get _activeStickerIds {
@@ -136,6 +138,7 @@ class ShareCard extends StatelessWidget {
       rect: effectiveRect,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
+        onTap: onStickerTap == null ? null : () => onStickerTap!(id),
         onScaleStart: (_) {
           onStickerSelected?.call(id);
           onStickerGestureStart?.call(id);

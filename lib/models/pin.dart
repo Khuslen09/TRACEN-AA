@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'pin_category.dart';
+import 'place_candidate.dart';
 
 /// 사용자가 지도에 남긴 지점 (사진/메모 + 카테고리).
 ///
@@ -15,6 +18,9 @@ import 'pin_category.dart';
 /// - [photoStoragePath]: 클라우드 삭제용 Storage 경로
 /// - [memo]: 사용자 메모 (선택)
 /// - [userId]: 사용자 격리용 (DB 단위에서 user 별 분리)
+/// - [placeName]/[placeCity]: 공유 카드용 POI 위치명 — 핀 저장 시 1회만
+///   조회해서 캐시(공유 카드를 열 때마다 재조회하지 않음). [placeCandidates]
+///   는 그때 같이 받아온 다른 후보들(최대 5개) — 사용자가 나중에 바꿀 수 있게.
 class Pin {
   final int? id;
   final String uuid;
@@ -28,6 +34,9 @@ class Pin {
   final String? photoStoragePath;
   final String? memo;
   final DateTime createdAt;
+  final String? placeName;
+  final String? placeCity;
+  final List<PlaceCandidate> placeCandidates;
 
   Pin({
     this.id,
@@ -42,6 +51,9 @@ class Pin {
     this.photoStoragePath,
     this.memo,
     required this.createdAt,
+    this.placeName,
+    this.placeCity,
+    this.placeCandidates = const [],
   });
 
   /// 적어도 사진이나 메모 중 하나는 있어야 의미 있는 핀
@@ -52,6 +64,20 @@ class Pin {
 
   /// 러닝 중 만든 핀인지
   bool get isFromRun => runId != null;
+
+  static List<PlaceCandidate> _decodeCandidates(String? raw) {
+    if (raw == null || raw.isEmpty) return const [];
+    try {
+      final decoded = jsonDecode(raw) as List;
+      return decoded
+          .map((e) => PlaceCandidate.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      // 손상된 로컬 데이터 — 조용히 빈 리스트로 (CountryOutlineService와
+      // 같은 "로컬 JSON은 신뢰하되 안 죽는다" 관례).
+      return const [];
+    }
+  }
 
   Map<String, dynamic> toMap() => {
     if (id != null) 'id': id,
@@ -66,6 +92,11 @@ class Pin {
     'photo_storage_path': photoStoragePath,
     'memo': memo,
     'created_at': createdAt.toIso8601String(),
+    'place_name': placeName,
+    'place_city': placeCity,
+    'place_candidates': placeCandidates.isEmpty
+        ? null
+        : jsonEncode(placeCandidates.map((c) => c.toJson()).toList()),
   };
 
   factory Pin.fromMap(Map<String, dynamic> map) => Pin(
@@ -81,6 +112,9 @@ class Pin {
     photoStoragePath: map['photo_storage_path'] as String?,
     memo: map['memo'] as String?,
     createdAt: DateTime.parse(map['created_at'] as String),
+    placeName: map['place_name'] as String?,
+    placeCity: map['place_city'] as String?,
+    placeCandidates: _decodeCandidates(map['place_candidates'] as String?),
   );
 
   Pin copyWith({
@@ -96,6 +130,9 @@ class Pin {
     String? photoStoragePath,
     String? memo,
     DateTime? createdAt,
+    String? placeName,
+    String? placeCity,
+    List<PlaceCandidate>? placeCandidates,
   }) => Pin(
     id: id ?? this.id,
     uuid: uuid ?? this.uuid,
@@ -109,5 +146,8 @@ class Pin {
     photoStoragePath: photoStoragePath ?? this.photoStoragePath,
     memo: memo ?? this.memo,
     createdAt: createdAt ?? this.createdAt,
+    placeName: placeName ?? this.placeName,
+    placeCity: placeCity ?? this.placeCity,
+    placeCandidates: placeCandidates ?? this.placeCandidates,
   );
 }

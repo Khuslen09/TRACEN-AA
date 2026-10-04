@@ -21,7 +21,7 @@ import '../models/pin.dart';
 class RouteDBService {
   static Database? _db;
   static const _dbName = 'aa.db';
-  static const _dbVersion = 6; // v5 → v6 (activity_type/memo/status/last_active_at, route_pauses, altitude)
+  static const _dbVersion = 7; // v6 → v7 (pins.place_name/place_city/place_candidates — POI 캐시)
 
   static const _uuidGen = Uuid();
 
@@ -48,9 +48,12 @@ class RouteDBService {
     );
   }
 
-  /// 새 설치: 처음부터 v6 스키마로 생성
+  /// 새 설치: v6 스키마로 만든 뒤 v7 마이그레이션을 그대로 태워서, 신규
+  /// 설치와 업그레이드 경로가 항상 같은 최종 스키마로 수렴하게 함(스키마가
+  /// 두 곳에서 따로 갈라지지 않도록).
   static Future<void> _onCreate(Database db, int version) async {
     await _createV6Tables(db);
+    await _migrateV6ToV7(db);
   }
 
   /// 마이그레이션 (각 단계는 다음 단계의 출발점이 된 스키마를 만든다):
@@ -62,6 +65,8 @@ class RouteDBService {
   ///   v5 → v6: routes에 activity_type/memo/status/last_active_at 추가,
   ///            route_points에 altitude/altitude_accuracy 추가,
   ///            route_pauses 테이블 신규 (실시간 기록 엔진)
+  ///   v6 → v7: pins에 place_name/place_city/place_candidates 추가
+  ///            (공유 카드 POI 위치명 캐시 — 핀 저장 시 1회만 조회)
   static Future<void> _onUpgrade(
     Database db,
     int oldVersion,
@@ -81,6 +86,9 @@ class RouteDBService {
     }
     if (oldVersion < 6) {
       await _migrateV5ToV6(db);
+    }
+    if (oldVersion < 7) {
+      await _migrateV6ToV7(db);
     }
   }
 
@@ -376,6 +384,15 @@ class RouteDBService {
     await db.execute(
       'CREATE INDEX idx_route_pauses_route_id ON route_pauses(route_id)',
     );
+  }
+
+  /// v6 → v7: 공유 카드용 POI 위치명 캐시 — 핀 저장 시 1회만 조회해서
+  /// 저장해두고, 공유 카드를 열 때마다 재조회하지 않는다. 기존 핀은 이
+  /// 마이그레이션에서 백필 안 함 — 공유 편집 화면을 처음 열 때 지연 조회.
+  static Future<void> _migrateV6ToV7(Database db) async {
+    await db.execute('ALTER TABLE pins ADD COLUMN place_name TEXT');
+    await db.execute('ALTER TABLE pins ADD COLUMN place_city TEXT');
+    await db.execute('ALTER TABLE pins ADD COLUMN place_candidates TEXT');
   }
 
   static Future<void> _createSyncQueueTable(Database db) async {

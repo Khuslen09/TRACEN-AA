@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../l10n/generated/app_localizations.dart';
+import '../../l10n/strings.dart';
 import '../../models/pin.dart';
+import '../../models/sticker_id.dart';
+import '../../services/pin_place_lookup_service.dart';
 import '../../services/share_card_exporter.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../widgets/share_card/share_card_controller.dart';
+import 'poi_picker_sheet.dart';
 import 'share_template_section.dart';
 
 /// 핀 공유 카드 편집 화면 — `photo_edit_screen.dart`와 같은 다크 풀스크린
@@ -24,6 +28,7 @@ class _ShareEditorScreenState extends State<ShareEditorScreen> {
   final _instaButtonKey = GlobalKey();
   final _otherButtonKey = GlobalKey();
 
+  late Pin _pin = widget.pin;
   ShareCardController? _controller;
   bool _busy = false;
 
@@ -33,12 +38,35 @@ class _ShareEditorScreenState extends State<ShareEditorScreen> {
     ShareCardController.forPin(widget.pin).then((c) {
       if (mounted) setState(() => _controller = c);
     });
+
+    // 옛날에 저장된 핀은 POI 후보가 비어 있을 수 있음 — 편집 화면을 처음
+    // 열 때만 지연 조회(공유 카드를 열 때마다 재조회하지 않는다는 원칙은
+    // 유지 — 이 조회 자체가 1회성이고, 끝나면 DB에 캐시됨).
+    if (widget.pin.placeCandidates.isEmpty) {
+      PinPlaceLookupService.resolveAndPersist(
+        widget.pin,
+        languageCode: Strings.current.localeName,
+      ).then((updated) {
+        if (!mounted || updated == null) return;
+        setState(() => _pin = updated);
+        _controller?.setPlaceName(updated.placeName);
+      });
+    }
   }
 
   @override
   void dispose() {
     _controller?.dispose();
     super.dispose();
+  }
+
+  Future<void> _onStickerTap(StickerId id) async {
+    if (id != StickerId.place) return;
+    final chosen = await showPoiPickerSheet(context, _pin);
+    if (chosen != null && mounted) {
+      setState(() => _pin = _pin.copyWith(placeName: chosen));
+      _controller?.setPlaceName(chosen);
+    }
   }
 
   Future<void> _share(GlobalKey originKey) async {
@@ -105,7 +133,11 @@ class _ShareEditorScreenState extends State<ShareEditorScreen> {
                       Expanded(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: ShareCardPreviewBox(controller: controller, exportKey: _exportKey),
+                          child: ShareCardPreviewBox(
+                            controller: controller,
+                            exportKey: _exportKey,
+                            onStickerTap: _onStickerTap,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 12),

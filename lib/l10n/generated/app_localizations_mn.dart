@@ -1077,4 +1077,27 @@ class AppLocalizationsMn extends AppLocalizations {
   @override
   String get shareStickerHint =>
       'Наалтыг чирж зөөж, хоёр хуруугаар хэмжээг нь өөрчилнө үү';
+
+  @override
+  String get poiPickerTitle => 'Байршлын нэр сонгох';
+
+  @override
+  String poiPickerDistanceMeters(int meters) {
+    return '$metersм';
+  }
+
+  @override
+  String get poiPickerNeighborhoodFallback => 'Хорооллын нэр ашиглах';
+
+  @override
+  String get poiPickerManualEntry => 'Гараар оруулах';
+
+  @override
+  String get poiPickerManualHint => 'Байршлын нэрийг оруулна уу';
+
+  @override
+  String get poiPickerConfirm => 'Баталгаажуулах';
+
+  @override
+  String get poiPickerNoCandidates => 'Ойролцоо байршил олдсонгүй';
 }

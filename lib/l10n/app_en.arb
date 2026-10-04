@@ -465,5 +465,19 @@
   "shareToInstagramStory": "Share to Instagram Story",
   "shareToOtherApps": "Share to other apps",
   "shareSaveToGallery": "Save to Photos",
-  "shareStickerHint": "Drag stickers to move them, pinch to resize"
+  "shareStickerHint": "Drag stickers to move them, pinch to resize",
+  "poiPickerTitle": "Choose a place name",
+  "poiPickerDistanceMeters": "{meters}m",
+  "@poiPickerDistanceMeters": {
+    "placeholders": {
+      "meters": {
+        "type": "int"
+      }
+    }
+  },
+  "poiPickerNeighborhoodFallback": "Use neighborhood name",
+  "poiPickerManualEntry": "Enter manually",
+  "poiPickerManualHint": "Enter a place name",
+  "poiPickerConfirm": "Confirm",
+  "poiPickerNoCandidates": "Couldn't find nearby places"
 }

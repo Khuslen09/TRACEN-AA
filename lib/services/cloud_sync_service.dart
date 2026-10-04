@@ -8,6 +8,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../models/activity_type.dart';
 import '../models/pin.dart';
 import '../models/pin_category.dart';
+import '../models/place_candidate.dart';
 import '../models/route.dart';
 import '../utils/polyline_codec.dart';
 import 'auth_service.dart';
@@ -30,6 +31,18 @@ class CloudSyncService {
   CloudSyncService._();
 
   static final _firestore = FirebaseFirestore.instance;
+
+  /// Firestore는 리스트를 네이티브 배열(`List<dynamic>`, 각 원소가
+  /// `Map<String,dynamic>`)로 주므로, [Pin.fromMap]의 JSON 문자열 디코드
+  /// (`_decodeCandidates`, SQLite TEXT 컬럼용)와는 다른 경로가 필요하다.
+  /// `_uploadPin`이 쓰는 인코딩과 쌍을 이루니 같이 고칠 것.
+  static List<PlaceCandidate> _decodeCandidatesFromFirestore(dynamic raw) {
+    if (raw is! List) return const [];
+    return raw
+        .whereType<Map<String, dynamic>>()
+        .map(PlaceCandidate.fromJson)
+        .toList();
+  }
 
   // ─────────────────────────────────────────────
   // 컬렉션 참조 헬퍼
@@ -306,6 +319,10 @@ class CloudSyncService {
       'photoStoragePath': storagePath,
       'memo': pin.memo,
       'createdAt': Timestamp.fromDate(pin.createdAt),
+      'placeName': pin.placeName,
+      'placeCity': pin.placeCity,
+      // 디코드 쪽은 _decodeCandidatesFromFirestore — 같이 고칠 것.
+      'placeCandidates': pin.placeCandidates.map((c) => c.toJson()).toList(),
     };
 
     if (pin.runId == null) {
@@ -437,6 +454,9 @@ class CloudSyncService {
             photoStoragePath: pd['photoStoragePath'] as String?,
             memo: pd['memo'] as String?,
             createdAt: (pd['createdAt'] as Timestamp).toDate(),
+            placeName: pd['placeName'] as String?,
+            placeCity: pd['placeCity'] as String?,
+            placeCandidates: _decodeCandidatesFromFirestore(pd['placeCandidates']),
           );
           await RouteDBService.upsertPinFromCloud(pin);
         }
@@ -458,6 +478,9 @@ class CloudSyncService {
         photoStoragePath: pd['photoStoragePath'] as String?,
         memo: pd['memo'] as String?,
         createdAt: (pd['createdAt'] as Timestamp).toDate(),
+        placeName: pd['placeName'] as String?,
+        placeCity: pd['placeCity'] as String?,
+        placeCandidates: _decodeCandidatesFromFirestore(pd['placeCandidates']),
       );
       await RouteDBService.upsertPinFromCloud(pin);
     }

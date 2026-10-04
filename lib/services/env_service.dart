@@ -19,4 +19,9 @@ class Env {
   static String get geminiApiKey => dotenv.env['GEMINI_API_KEY'] ?? '';
 
   static bool get hasGeminiKey => geminiApiKey.isNotEmpty;
+
+  /// 카카오 로컬 API(REST) — 한국 좌표의 POI(장소명) 검색용.
+  static String get kakaoRestApiKey => dotenv.env['KAKAO_REST_API_KEY'] ?? '';
+
+  static bool get hasKakaoKey => kakaoRestApiKey.isNotEmpty;
 }

@@ -46,7 +46,7 @@ class ShareCardController extends ChangeNotifier {
 
   ui.Image? _photo;
   final CountryOutline? _countryOutline;
-  final String? _placeName;
+  String? _placeName;
 
   /// 핀치 제스처의 누적 배율(`ScaleUpdateDetails.scale`)을 제스처 시작 시의
   /// 배율에 곱해야 올바르므로, 제스처가 시작될 때 스냅샷을 떠 둔다.
@@ -113,6 +113,14 @@ class ShareCardController extends ChangeNotifier {
   ShareCardTemplate get template => _template;
   ShareInkColor get inkColor => _inkColor;
   StickerId? get selectedSticker => _selectedSticker;
+  String? get placeName => _placeName;
+
+  /// 사용자가 [showPoiPickerSheet]에서 직접 고른 위치명으로 즉시 반영
+  /// (DB 저장은 그 시트 자체가 처리 — 여기선 화면 상태만 갱신).
+  void setPlaceName(String? value) {
+    _placeName = value;
+    notifyListeners();
+  }
 
   /// 스티커 중 하나라도 켜져 있으면(= 사용자가 템플릿을 실제로 쓰기로 함).
   bool get hasAnyStickerVisible => StickerId.values.any(isVisible);

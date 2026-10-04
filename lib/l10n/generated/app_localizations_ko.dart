@@ -1043,4 +1043,27 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get shareStickerHint => '스티커를 끌어서 옮기고, 두 손가락으로 크기를 바꿔요';
+
+  @override
+  String get poiPickerTitle => '위치명 선택';
+
+  @override
+  String poiPickerDistanceMeters(int meters) {
+    return '${meters}m';
+  }
+
+  @override
+  String get poiPickerNeighborhoodFallback => '동네 이름 사용';
+
+  @override
+  String get poiPickerManualEntry => '직접 입력';
+
+  @override
+  String get poiPickerManualHint => '위치명을 입력하세요';
+
+  @override
+  String get poiPickerConfirm => '확인';
+
+  @override
+  String get poiPickerNoCandidates => '근처 장소를 찾지 못했어요';
 }

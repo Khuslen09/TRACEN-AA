@@ -2085,6 +2085,48 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'스티커를 끌어서 옮기고, 두 손가락으로 크기를 바꿔요'**
   String get shareStickerHint;
+
+  /// No description provided for @poiPickerTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'위치명 선택'**
+  String get poiPickerTitle;
+
+  /// No description provided for @poiPickerDistanceMeters.
+  ///
+  /// In ko, this message translates to:
+  /// **'{meters}m'**
+  String poiPickerDistanceMeters(int meters);
+
+  /// No description provided for @poiPickerNeighborhoodFallback.
+  ///
+  /// In ko, this message translates to:
+  /// **'동네 이름 사용'**
+  String get poiPickerNeighborhoodFallback;
+
+  /// No description provided for @poiPickerManualEntry.
+  ///
+  /// In ko, this message translates to:
+  /// **'직접 입력'**
+  String get poiPickerManualEntry;
+
+  /// No description provided for @poiPickerManualHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'위치명을 입력하세요'**
+  String get poiPickerManualHint;
+
+  /// No description provided for @poiPickerConfirm.
+  ///
+  /// In ko, this message translates to:
+  /// **'확인'**
+  String get poiPickerConfirm;
+
+  /// No description provided for @poiPickerNoCandidates.
+  ///
+  /// In ko, this message translates to:
+  /// **'근처 장소를 찾지 못했어요'**
+  String get poiPickerNoCandidates;
 }
 
 class _AppLocalizationsDelegate

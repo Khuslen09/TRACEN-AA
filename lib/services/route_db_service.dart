@@ -525,6 +525,11 @@ class RouteDBService {
   /// [HomeScreen]이 이 결과로 recording이면 [ActivityTrackingScreen]을
   /// 기록 상태로, pending_review면 결과 화면을 바로 열어준다 — 더 이상
   /// 조용히 백그라운드에서 이어 기록하지 않는다.
+  /// 'recording' 상태가 이보다 오래 방치됐으면 복구 대상이 아니라 비정상
+  /// 종료/개발 중 테스트로 간주하고 정리한다 — 실제 러닝/워킹/사이클링이
+  /// 이렇게 오래 걸리는 경우는 없음.
+  static const _recordingAbandonedAfter = Duration(hours: 24);
+
   static Future<TraceRoute?> getResumableRoute() async {
     final database = await db;
     final rows = await database.query(
@@ -534,7 +539,16 @@ class RouteDBService {
       limit: 1,
     );
     if (rows.isEmpty) return null;
-    return TraceRoute.fromMap(rows.first);
+    final route = TraceRoute.fromMap(rows.first);
+
+    if (route.status == RouteStatus.recording) {
+      final lastActive = route.lastActiveAt ?? route.startedAt;
+      if (DateTime.now().difference(lastActive) > _recordingAbandonedAfter) {
+        await deleteRoute(route.id!);
+        return null;
+      }
+    }
+    return route;
   }
 
   static Future<void> deleteRoute(int routeId) async {

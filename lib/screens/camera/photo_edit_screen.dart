@@ -508,7 +508,7 @@ class _PhotoEditScreenState extends State<PhotoEditScreen> {
   Widget _buildDisplayTab(ShareCardController shareCtrl) {
     return Center(
       key: const ValueKey('display'),
-      child: ShareTemplateControls(controller: shareCtrl),
+      child: ShareStickerToggles(controller: shareCtrl),
     );
   }
 

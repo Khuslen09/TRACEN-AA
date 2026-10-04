@@ -39,6 +39,11 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
   int _cameraIndex = 0;
   FlashMode _flash = FlashMode.off;
   bool _initializing = true;
+  // 카메라를 한 번이라도 성공적으로 띄운 적 있는지 — 렌즈/전후면 전환 중엔
+  // _camera가 잠깐 null이 되는데, 그때마다 화면 전체를 로딩 스피너로 갈아
+  // 치우면 탭 바/필터 스트립까지 다 사라져서 너무 느리게/끊기게 느껴짐.
+  // 한 번 띄운 뒤로는 전체 화면 대신 미리보기 영역에만 로딩 상태를 보여줌.
+  bool _everOpened = false;
   bool _unavailable = false;
   bool _permissionDenied = false;
   bool _capturing = false;
@@ -135,26 +140,35 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
     try {
       await controller.initialize();
 
+      // 독립적인 조회는 한꺼번에 — 순차로 하나씩 기다리면 플랫폼 채널
+      // 왕복이 쌓여서 전환이 느리게 느껴짐.
+      final results = await Future.wait([
+        controller.getMinExposureOffset(),
+        controller.getExposureOffsetStepSize(),
+        controller.getMinZoomLevel(),
+        controller.getMaxZoomLevel(),
+      ]);
+      final minOffset = results[0];
+      final step = results[1];
+      minZoom = results[2];
+      maxZoom = results[3];
+
       // 기본 노출 보정 -0.3EV — 기기가 지원하는 범위/스텝에 맞춰 보정.
-      final minOffset = await controller.getMinExposureOffset();
-      final step = await controller.getExposureOffsetStepSize();
       var target = -0.3;
       if (target < minOffset) target = minOffset;
       if (step > 0) target = (target / step).round() * step;
-      await controller.setExposureOffset(target);
-      try {
-        await controller.setFlashMode(_flash);
-      } catch (_) {
-        // 전면 카메라 등 플래시 미지원 렌즈 — 이것 때문에 세션 전체를
-        // 실패 처리하면 안 되므로 따로 무시.
-      }
 
-      minZoom = await controller.getMinZoomLevel();
-      maxZoom = await controller.getMaxZoomLevel();
+      final setupFutures = <Future<void>>[
+        controller.setExposureOffset(target),
+        // 전면 카메라 등 플래시 미지원 렌즈 — 이것 때문에 세션 전체가
+        // 실패 처리되면 안 되므로 따로 무시.
+        controller.setFlashMode(_flash).catchError((_) {}),
+      ];
       if (initialZoom != null) {
         final clamped = initialZoom.clamp(minZoom, maxZoom);
-        await controller.setZoomLevel(clamped);
+        setupFutures.add(controller.setZoomLevel(clamped));
       }
+      await Future.wait(setupFutures);
     } catch (_) {
       await controller.dispose();
       if (mounted) {
@@ -174,6 +188,7 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
       _camera = controller;
       _cameraIndex = index;
       _initializing = false;
+      _everOpened = true;
       _minZoom = minZoom;
       _maxZoom = maxZoom;
       _currentZoom = initialZoom?.clamp(minZoom, maxZoom) ??
@@ -237,27 +252,6 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
       await cam.setFlashMode(next);
       if (mounted) setState(() => _flash = next);
     } catch (_) {}
-  }
-
-  /// 전/후면 전환 — `_cameras`엔 후면 렌즈가 여러 개(초광각/표준/망원) 들어
-  ///있을 수 있어서, 그냥 다음 인덱스로 가면 같은 방향의 다른 렌즈로 가버릴
-  /// 수 있음. 반대 방향에서 "표준(wide)" 렌즈를 찾아서 그쪽으로 전환.
-  Future<void> _switchCamera() async {
-    final current = _cameras[_cameraIndex];
-    final targetDirection = current.lensDirection == CameraLensDirection.back
-        ? CameraLensDirection.front
-        : CameraLensDirection.back;
-    final candidates = [
-      for (var i = 0; i < _cameras.length; i++)
-        if (_cameras[i].lensDirection == targetDirection) i,
-    ];
-    if (candidates.isEmpty) return;
-    final wideIndex = candidates.firstWhere(
-      (i) => _cameras[i].lensType == CameraLensType.wide,
-      orElse: () => candidates.first,
-    );
-    setState(() => _initializing = true);
-    await _openCamera(wideIndex, initialZoom: 1.0);
   }
 
   void _onPinchStart() {
@@ -430,7 +424,11 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
 
     final cam = _camera;
     final filterController = _filterController;
-    if (_initializing || cam == null || filterController == null) {
+    // 최초 부팅 중이거나 아직 한 번도 못 띄웠으면(또는 권한/필터 컨트롤러가
+    // 아직 준비 안 됐으면) 전체 화면 스피너 — 그 이후엔 cam이 잠깐
+    // null이어도(렌즈 전환 중) 전체 UI를 유지하고 미리보기 영역만 로딩
+    // 상태를 보여줌(_buildPreviewArea가 처리).
+    if (_initializing || filterController == null || (cam == null && !_everOpened)) {
       return const Scaffold(
         backgroundColor: AppColors.darkBackground,
         body: Center(child: CircularProgressIndicator(color: AppColors.primary)),
@@ -495,23 +493,6 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
                   _ => l10n.cameraFlashOn,
                 },
               ),
-              const SizedBox(width: 4),
-              _TopBarIcon(
-                icon: Icons.cameraswitch_rounded,
-                active: false,
-                onTap: _cameras.length > 1 ? _switchCamera : null,
-                tooltip: l10n.cameraSwitch,
-              ),
-              if (_cameras.isNotEmpty &&
-                  _cameras[_cameraIndex].lensDirection == CameraLensDirection.front) ...[
-                const SizedBox(width: 4),
-                _TopBarIcon(
-                  icon: Icons.flip_rounded,
-                  active: controller.mirrorFrontCamera,
-                  onTap: controller.toggleMirrorFrontCamera,
-                  tooltip: l10n.cameraMirrorFront,
-                ),
-              ],
             ],
           ),
         ],
@@ -519,9 +500,19 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
     );
   }
 
-  Widget _buildPreviewArea(CameraController cam, CameraFilterController controller) {
-    final isFront = _cameras[_cameraIndex].lensDirection == CameraLensDirection.front;
-    final mirror = isFront && controller.mirrorFrontCamera;
+  Widget _buildPreviewArea(CameraController? cam, CameraFilterController controller) {
+    if (cam == null) {
+      // 렌즈/전후면 전환 중 — 미리보기 영역에만 로딩 상태, 나머지 UI는 유지.
+      return Center(
+        child: AspectRatio(
+          aspectRatio: controller.ratio.aspect,
+          child: const ColoredBox(
+            color: Colors.black,
+            child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+          ),
+        ),
+      );
+    }
 
     return Center(
       child: AspectRatio(
@@ -533,32 +524,20 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
               return GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTapUp: (d) => _onTapFocus(d.localPosition, previewSize),
-                onDoubleTap: _switchCamera,
                 onScaleStart: (_) => _onPinchStart(),
                 onScaleUpdate: (d) => _onPinchUpdate(d.scale),
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    Transform(
-                      alignment: Alignment.center,
-                      transform: mirror
-                          ? Matrix4.diagonal3Values(-1, 1, 1)
-                          : Matrix4.identity(),
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          _CroppedCameraPreview(controller: cam),
-                          ColorFiltered(
-                            colorFilter: ColorFilter.matrix(
-                              lerpWithIdentity(
-                                fitColorMatrix(controller.selected.recipe),
-                                controller.strength,
-                              ),
-                            ),
-                            child: _CroppedCameraPreview(controller: cam),
-                          ),
-                        ],
+                    _CroppedCameraPreview(controller: cam),
+                    ColorFiltered(
+                      colorFilter: ColorFilter.matrix(
+                        lerpWithIdentity(
+                          fitColorMatrix(controller.selected.recipe),
+                          controller.strength,
+                        ),
                       ),
+                      child: _CroppedCameraPreview(controller: cam),
                     ),
                     if (controller.grid) const _GridOverlay(),
                     if (_focusPoint != null) _FocusIndicator(center: _focusPoint!),
@@ -682,7 +661,7 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
     );
   }
 
-  Widget _buildFilterStrip(CameraController cam, CameraFilterController controller) {
+  Widget _buildFilterStrip(CameraController? cam, CameraFilterController controller) {
     final l10n = AppLocalizations.of(context);
     return SizedBox(
       height: 92,
@@ -710,15 +689,17 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
                     ),
                   ),
                   child: ClipOval(
-                    child: ColorFiltered(
-                      colorFilter: ColorFilter.matrix(
-                        lerpWithIdentity(
-                          fitColorMatrix(filter.recipe),
-                          controller.strengthOf(filter),
-                        ),
-                      ),
-                      child: _CroppedCameraPreview(controller: cam),
-                    ),
+                    child: cam == null
+                        ? const ColoredBox(color: Colors.white10)
+                        : ColorFiltered(
+                            colorFilter: ColorFilter.matrix(
+                              lerpWithIdentity(
+                                fitColorMatrix(filter.recipe),
+                                controller.strengthOf(filter),
+                              ),
+                            ),
+                            child: _CroppedCameraPreview(controller: cam),
+                          ),
                   ),
                 ),
                 const SizedBox(height: 4),

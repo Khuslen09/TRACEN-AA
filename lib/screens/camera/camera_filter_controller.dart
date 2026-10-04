@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/camera_filter.dart';
 import '../../models/capture_ratio.dart';
 
-/// 촬영 화면의 선택 상태(필터/강도/비율/그리드/전면 미러링) — 화면 scope로만
+/// 촬영 화면의 선택 상태(필터/강도/비율/그리드) — 화면 scope로만
 /// provide(`main.dart`는 안 건드림). [ThemeProvider]와 같은 패턴으로
 /// SharedPreferences에 즉시 저장해 다음 촬영에도 마지막 선택이 남는다.
 class CameraFilterController extends ChangeNotifier {
@@ -14,13 +14,11 @@ class CameraFilterController extends ChangeNotifier {
   static const _strengthPrefix = 'camera_filter_strength_';
   static const _ratioKey = 'camera_ratio';
   static const _gridKey = 'camera_grid';
-  static const _mirrorFrontKey = 'camera_mirror_front';
 
   TracenFilter _selected;
   final Map<TracenFilter, double> _strengths;
   CaptureRatio _ratio = CaptureRatio.r4x5;
   bool _grid = false;
-  bool _mirrorFrontCamera = true;
 
   static Future<CameraFilterController> load() async {
     final prefs = await SharedPreferences.getInstance();
@@ -38,7 +36,6 @@ class CameraFilterController extends ChangeNotifier {
 
     final controller = CameraFilterController._(selected, strengths);
     controller._grid = prefs.getBool(_gridKey) ?? false;
-    controller._mirrorFrontCamera = prefs.getBool(_mirrorFrontKey) ?? true;
 
     final savedRatio = prefs.getString(_ratioKey);
     controller._ratio = CaptureRatio.values.firstWhere(
@@ -55,7 +52,6 @@ class CameraFilterController extends ChangeNotifier {
       _strengths[f] ?? TracenFilter.defaultStrength;
   CaptureRatio get ratio => _ratio;
   bool get grid => _grid;
-  bool get mirrorFrontCamera => _mirrorFrontCamera;
 
   Future<void> selectFilter(TracenFilter filter) async {
     _selected = filter;
@@ -84,12 +80,5 @@ class CameraFilterController extends ChangeNotifier {
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_gridKey, _grid);
-  }
-
-  Future<void> toggleMirrorFrontCamera() async {
-    _mirrorFrontCamera = !_mirrorFrontCamera;
-    notifyListeners();
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_mirrorFrontKey, _mirrorFrontCamera);
   }
 }

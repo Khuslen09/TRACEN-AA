@@ -102,8 +102,10 @@ class ShareCardPreviewBox extends StatelessWidget {
 }
 
 /// 템플릿 칩(미니멀/필름/스탬프) + 잉크 색상 스와치 + 스티커(날짜/지도/
-/// 위치명/로고/경로) 표시 토글 — `ShareEditorScreen`과 `PhotoEditScreen`이
-/// 공유.
+/// 위치명/로고/경로) 표시 토글 — `ShareEditorScreen`이 한 화면에 전부
+/// 쌓아서 보여줄 때 씀. `PhotoEditScreen`은 탭마다 따로 분리해서 쓰므로
+/// (필터/템플릿/표시/색상 탭이 각자 있어서 중복하면 안 됨)
+/// [ShareStickerToggles]만 직접 가져다 씀.
 class ShareTemplateControls extends StatelessWidget {
   final ShareCardController controller;
   final VoidCallback? onEditPlace;
@@ -119,7 +121,7 @@ class ShareTemplateControls extends StatelessWidget {
         const SizedBox(height: 10),
         _buildColorSwatches(),
         const SizedBox(height: 10),
-        _buildToggleChips(context),
+        ShareStickerToggles(controller: controller, onEditPlace: onEditPlace),
       ],
     );
   }
@@ -185,7 +187,20 @@ class ShareTemplateControls extends StatelessWidget {
     );
   }
 
-  Widget _buildToggleChips(BuildContext context) {
+}
+
+/// 스티커(날짜/지도/위치명/로고/경로) 표시 토글만 — 템플릿 칩/색상 스와치는
+/// 안 보여줌. `ShareTemplateControls`(핀 공유 화면)와 `PhotoEditScreen`의
+/// "표시" 탭(필터/템플릿/색상은 각자 자기 탭이 따로 있어서 중복하면 안 됨)
+/// 이 공유.
+class ShareStickerToggles extends StatelessWidget {
+  final ShareCardController controller;
+  final VoidCallback? onEditPlace;
+
+  const ShareStickerToggles({super.key, required this.controller, this.onEditPlace});
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final entries = [
       (StickerId.date, l10n.shareToggleDate),

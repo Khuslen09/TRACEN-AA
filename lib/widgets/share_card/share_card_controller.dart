@@ -164,6 +164,20 @@ class ShareCardController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 상단 바의 초기화 아이콘용 — 템플릿/잉크색/스티커 위치·크기/표시 여부를
+  /// 전부 기본값으로. 필터 선택(TRACEN 색 필터)은 이 화면의 별도 상태라
+  /// 여기선 안 건드림.
+  void resetAll() {
+    _template = ShareCardTemplate.minimal;
+    _inkColor = ShareInkColor.white;
+    _overrides.clear();
+    _visibility
+      ..clear()
+      ..addAll({for (final id in StickerId.values) id: true});
+    _selectedSticker = null;
+    notifyListeners();
+  }
+
   bool isVisible(StickerId id) => _visibility[id] ?? true;
 
   void toggleVisibility(StickerId id) {

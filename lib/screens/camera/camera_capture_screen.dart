@@ -16,7 +16,6 @@ import '../../services/tracen_overlay_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../utils/color_matrix_fit.dart';
-import '../../utils/tracen_overlay_painter.dart';
 import 'camera_filter_controller.dart';
 import 'photo_edit_screen.dart';
 
@@ -63,7 +62,6 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    TracenOverlayPainter.ensureAssets();
     // 셰이더 프로그램 + 4개 LUT 이미지를 지금부터 디코드해두면, 촬영 후
     // 결과 화면(PhotoEditScreen)에 들어갈 때 이미 캐시돼 있어 체감 로딩이
     // 크게 줄어듦 — 권한/카메라 초기화와 동시에 진행.

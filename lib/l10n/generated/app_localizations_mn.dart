@@ -1063,6 +1063,24 @@ class AppLocalizationsMn extends AppLocalizations {
   String get shareEditPlaceName => 'Байршлын нэр засах';
 
   @override
+  String get photoEditTitle => 'Зураг засах';
+
+  @override
+  String get photoEditReset => 'Дахин тохируулах';
+
+  @override
+  String get photoEditTabFilter => 'Шүүлтүүр';
+
+  @override
+  String get photoEditTabTemplate => 'Загвар';
+
+  @override
+  String get photoEditTabDisplay => 'Харуулах';
+
+  @override
+  String get photoEditTabColor => 'Өнгө';
+
+  @override
   String get shareInkWhite => 'Цагаан';
 
   @override

@@ -4,8 +4,8 @@ import '../models/country_outline.dart';
 import 'map_projection.dart';
 
 /// 나라 외곽선(선 하나) + 핀 위치(점 하나)를 그리는 [CustomPainter].
-/// [TracenOverlayPainter]의 해상도 독립 스케일 관례(`unit = shortestSide/N`)를
-/// 따르되, 공유 카드의 "지도" 스티커로 재사용 가능한 독립 페인터로 작성.
+/// 해상도 독립 스케일 관례(`unit = shortestSide/N`)를 따르는, 공유 카드의
+/// "지도" 스티커로 재사용 가능한 독립 페인터.
 class CountryOutlinePainter extends CustomPainter {
   final CountryOutline country;
   final double pinLat;

@@ -1060,6 +1060,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shareEditPlaceName => 'Edit place name';
 
   @override
+  String get photoEditTitle => 'Edit photo';
+
+  @override
+  String get photoEditReset => 'Reset';
+
+  @override
+  String get photoEditTabFilter => 'Filter';
+
+  @override
+  String get photoEditTabTemplate => 'Template';
+
+  @override
+  String get photoEditTabDisplay => 'Display';
+
+  @override
+  String get photoEditTabColor => 'Color';
+
+  @override
   String get shareInkWhite => 'White';
 
   @override

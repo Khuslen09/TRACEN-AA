@@ -1030,6 +1030,24 @@ class AppLocalizationsKo extends AppLocalizations {
   String get shareEditPlaceName => '위치명 수정';
 
   @override
+  String get photoEditTitle => '사진 편집';
+
+  @override
+  String get photoEditReset => '초기화';
+
+  @override
+  String get photoEditTabFilter => '필터';
+
+  @override
+  String get photoEditTabTemplate => '템플릿';
+
+  @override
+  String get photoEditTabDisplay => '표시';
+
+  @override
+  String get photoEditTabColor => '색상';
+
+  @override
   String get shareInkWhite => '흰색';
 
   @override

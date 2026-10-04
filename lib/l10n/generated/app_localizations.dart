@@ -2056,6 +2056,42 @@ abstract class AppLocalizations {
   /// **'위치명 수정'**
   String get shareEditPlaceName;
 
+  /// No description provided for @photoEditTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'사진 편집'**
+  String get photoEditTitle;
+
+  /// No description provided for @photoEditReset.
+  ///
+  /// In ko, this message translates to:
+  /// **'초기화'**
+  String get photoEditReset;
+
+  /// No description provided for @photoEditTabFilter.
+  ///
+  /// In ko, this message translates to:
+  /// **'필터'**
+  String get photoEditTabFilter;
+
+  /// No description provided for @photoEditTabTemplate.
+  ///
+  /// In ko, this message translates to:
+  /// **'템플릿'**
+  String get photoEditTabTemplate;
+
+  /// No description provided for @photoEditTabDisplay.
+  ///
+  /// In ko, this message translates to:
+  /// **'표시'**
+  String get photoEditTabDisplay;
+
+  /// No description provided for @photoEditTabColor.
+  ///
+  /// In ko, this message translates to:
+  /// **'색상'**
+  String get photoEditTabColor;
+
   /// No description provided for @shareInkWhite.
   ///
   /// In ko, this message translates to:

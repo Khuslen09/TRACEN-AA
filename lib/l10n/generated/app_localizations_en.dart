@@ -1025,4 +1025,52 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sharePhoto => 'Share';
+
+  @override
+  String get pinShareTooltip => 'Create share card';
+
+  @override
+  String get shareTemplateMinimal => 'Minimal';
+
+  @override
+  String get shareTemplateFilm => 'Film';
+
+  @override
+  String get shareTemplateStamp => 'Stamp';
+
+  @override
+  String get shareToggleDate => 'Date';
+
+  @override
+  String get shareToggleMap => 'Map';
+
+  @override
+  String get shareTogglePlace => 'Place';
+
+  @override
+  String get shareToggleLogo => 'Logo';
+
+  @override
+  String get shareInkWhite => 'White';
+
+  @override
+  String get shareInkBlack => 'Ink black';
+
+  @override
+  String get shareInkSunset => 'Sunset';
+
+  @override
+  String get shareInkMint => 'Mint';
+
+  @override
+  String get shareToInstagramStory => 'Share to Instagram Story';
+
+  @override
+  String get shareToOtherApps => 'Share to other apps';
+
+  @override
+  String get shareSaveToGallery => 'Save to Photos';
+
+  @override
+  String get shareStickerHint => 'Drag stickers to move them, pinch to resize';
 }

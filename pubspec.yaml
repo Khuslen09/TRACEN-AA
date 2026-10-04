@@ -59,6 +59,7 @@ dependencies:
   cached_network_image: ^3.3.1
   gal: ^2.3.0
   http: ^1.2.0
+  google_fonts: ^6.2.1
 
 dev_dependencies:
   flutter_test:
@@ -80,6 +81,7 @@ flutter:
   assets:
     - assets/icon/
     - assets/luts/
+    - assets/countries/
     - .env
   shaders:
     - shaders/lut_filter.frag

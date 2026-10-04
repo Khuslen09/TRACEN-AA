@@ -1028,4 +1028,53 @@ class AppLocalizationsMn extends AppLocalizations {
 
   @override
   String get sharePhoto => 'Хуваалцах';
+
+  @override
+  String get pinShareTooltip => 'Хуваалцах карт үүсгэх';
+
+  @override
+  String get shareTemplateMinimal => 'Минимал';
+
+  @override
+  String get shareTemplateFilm => 'Кино хальс';
+
+  @override
+  String get shareTemplateStamp => 'Тамга';
+
+  @override
+  String get shareToggleDate => 'Огноо';
+
+  @override
+  String get shareToggleMap => 'Газрын зураг';
+
+  @override
+  String get shareTogglePlace => 'Байршлын нэр';
+
+  @override
+  String get shareToggleLogo => 'Лого';
+
+  @override
+  String get shareInkWhite => 'Цагаан';
+
+  @override
+  String get shareInkBlack => 'Бэх хар';
+
+  @override
+  String get shareInkSunset => 'Нар жаргах';
+
+  @override
+  String get shareInkMint => 'Мент';
+
+  @override
+  String get shareToInstagramStory => 'Instagram Story-д хуваалцах';
+
+  @override
+  String get shareToOtherApps => 'Бусад аппаар хуваалцах';
+
+  @override
+  String get shareSaveToGallery => 'Зурагт хадгалах';
+
+  @override
+  String get shareStickerHint =>
+      'Наалтыг чирж зөөж, хоёр хуруугаар хэмжээг нь өөрчилнө үү';
 }

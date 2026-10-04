@@ -459,5 +459,21 @@
   "cameraPermissionNeeded": "촬영하려면 카메라 권한이 필요해요",
   "cameraUnavailable": "카메라를 사용할 수 없어요",
   "photoProcessing": "필터 적용 중…",
-  "sharePhoto": "공유"
+  "sharePhoto": "공유",
+  "pinShareTooltip": "공유 카드 만들기",
+  "shareTemplateMinimal": "미니멀",
+  "shareTemplateFilm": "필름",
+  "shareTemplateStamp": "스탬프",
+  "shareToggleDate": "날짜",
+  "shareToggleMap": "지도",
+  "shareTogglePlace": "위치명",
+  "shareToggleLogo": "로고",
+  "shareInkWhite": "흰색",
+  "shareInkBlack": "먹색",
+  "shareInkSunset": "노을",
+  "shareInkMint": "민트",
+  "shareToInstagramStory": "인스타 스토리에 공유",
+  "shareToOtherApps": "다른 앱으로 공유",
+  "shareSaveToGallery": "사진에 저장",
+  "shareStickerHint": "스티커를 끌어서 옮기고, 두 손가락으로 크기를 바꿔요"
 }

@@ -1,4 +1,6 @@
-# TRACEN 카메라 필터 — LUT 도구
+# TRACEN 개발 도구
+
+## 카메라 필터 LUT
 
 TRACEN 시그니처 필터 4종(Golden Route / Night Trace / Faded Map / Mono Path)은
 `lib/models/filter_recipe.dart`의 레시피에서 생성한 64³ LUT를 셰이더
@@ -66,3 +68,28 @@ flutter test test/camera_filter/
 테스트가 더는 레시피 기준이 아니게 되므로(의도된 일 — `.cube`로 바꾸는
 목적이 레시피와 달라지는 것이니), 그 특정 비교 테스트는 `.cube` 교체 후
 의미가 없어집니다. 레이아웃/파싱 테스트는 계속 유효합니다.
+
+## 핀 공유 카드 — 나라 외곽선 데이터
+
+`build_countries.py`는 이 저장소의 유일한 Python 스크립트입니다 — 앱이나
+CI가 실행하지 않는 1회성 개발 도구라서 Dart 대신 Python으로 작성했습니다
+(GeoJSON 단순화·정리가 Python stdlib만으로 충분히 간단함). 외부 라이브러리
+의존성 없음 — 표준 라이브러리만 사용.
+
+[Natural Earth](https://github.com/nvkelso/natural-earth-vector)(퍼블릭
+도메인)의 `geojson/ne_50m_admin_0_countries.geojson`을 내려받아 실행하면,
+나라별 외곽선을 `assets/countries/{ISO_A2}.json` + 전체 bbox 인덱스
+`assets/countries/_index.json`으로 구워냅니다. 앱은 이 자산으로 핀 좌표가
+어느 나라에 속하는지 네트워크 없이 판별하고 외곽선을 그립니다
+(`lib/services/country_outline_service.dart`).
+
+```sh
+python3 tools/build_countries.py path/to/ne_50m_admin_0_countries.geojson
+```
+
+Natural Earth 데이터가 갱신되거나 외곽선 디테일/파일 크기를 조정하고 싶으면
+(`--min-area-ratio`로 작은 섬 제거 기준 조정 가능) 같은 명령으로 재생성 후
+`assets/countries/`를 다시 커밋하면 됩니다. 각 파일은 exterior ring만 담고
+(구멍/hole 제거), 가장 큰 폴리곤의 1% 미만인 조각은 제거되며, Douglas-Peucker로
+단순화됩니다(나라 크기에 비례한 epsilon이라 러시아/캐나다 같은 큰 나라도
+터무니없이 커지지 않음).

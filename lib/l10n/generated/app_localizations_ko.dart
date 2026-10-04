@@ -995,4 +995,52 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get sharePhoto => '공유';
+
+  @override
+  String get pinShareTooltip => '공유 카드 만들기';
+
+  @override
+  String get shareTemplateMinimal => '미니멀';
+
+  @override
+  String get shareTemplateFilm => '필름';
+
+  @override
+  String get shareTemplateStamp => '스탬프';
+
+  @override
+  String get shareToggleDate => '날짜';
+
+  @override
+  String get shareToggleMap => '지도';
+
+  @override
+  String get shareTogglePlace => '위치명';
+
+  @override
+  String get shareToggleLogo => '로고';
+
+  @override
+  String get shareInkWhite => '흰색';
+
+  @override
+  String get shareInkBlack => '먹색';
+
+  @override
+  String get shareInkSunset => '노을';
+
+  @override
+  String get shareInkMint => '민트';
+
+  @override
+  String get shareToInstagramStory => '인스타 스토리에 공유';
+
+  @override
+  String get shareToOtherApps => '다른 앱으로 공유';
+
+  @override
+  String get shareSaveToGallery => '사진에 저장';
+
+  @override
+  String get shareStickerHint => '스티커를 끌어서 옮기고, 두 손가락으로 크기를 바꿔요';
 }

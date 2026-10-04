@@ -449,5 +449,21 @@
   "cameraPermissionNeeded": "Camera access is needed to take photos",
   "cameraUnavailable": "Camera unavailable",
   "photoProcessing": "Applying filter…",
-  "sharePhoto": "Share"
+  "sharePhoto": "Share",
+  "pinShareTooltip": "Create share card",
+  "shareTemplateMinimal": "Minimal",
+  "shareTemplateFilm": "Film",
+  "shareTemplateStamp": "Stamp",
+  "shareToggleDate": "Date",
+  "shareToggleMap": "Map",
+  "shareTogglePlace": "Place",
+  "shareToggleLogo": "Logo",
+  "shareInkWhite": "White",
+  "shareInkBlack": "Ink black",
+  "shareInkSunset": "Sunset",
+  "shareInkMint": "Mint",
+  "shareToInstagramStory": "Share to Instagram Story",
+  "shareToOtherApps": "Share to other apps",
+  "shareSaveToGallery": "Save to Photos",
+  "shareStickerHint": "Drag stickers to move them, pinch to resize"
 }

@@ -13,6 +13,7 @@ import '../../../models/pin_category.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_text_styles.dart';
 import '../../../theme/theme_extensions.dart';
+import '../../share/share_editor_screen.dart';
 
 /// 마커 탭 시 화면 하단에서 올라오는 핀 미리보기 시트.
 ///
@@ -106,6 +107,15 @@ class PinPreviewSheet extends StatelessWidget {
                 _CategoryBadge(category: pin.category),
                 SizedBox(width: 8),
                 Expanded(child: Text(time, style: AppTextStyles.smallBold)),
+                IconButton(
+                  icon: const Icon(Icons.ios_share_rounded, size: 20),
+                  color: AppColors.gray500,
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => ShareEditorScreen(pin: pin)),
+                  ),
+                  tooltip: l10n.pinShareTooltip,
+                ),
                 IconButton(
                   icon: const Icon(Icons.delete_outline_rounded, size: 20),
                   color: AppColors.gray500,

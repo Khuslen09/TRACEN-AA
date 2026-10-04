@@ -1989,6 +1989,102 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'공유'**
   String get sharePhoto;
+
+  /// No description provided for @pinShareTooltip.
+  ///
+  /// In ko, this message translates to:
+  /// **'공유 카드 만들기'**
+  String get pinShareTooltip;
+
+  /// No description provided for @shareTemplateMinimal.
+  ///
+  /// In ko, this message translates to:
+  /// **'미니멀'**
+  String get shareTemplateMinimal;
+
+  /// No description provided for @shareTemplateFilm.
+  ///
+  /// In ko, this message translates to:
+  /// **'필름'**
+  String get shareTemplateFilm;
+
+  /// No description provided for @shareTemplateStamp.
+  ///
+  /// In ko, this message translates to:
+  /// **'스탬프'**
+  String get shareTemplateStamp;
+
+  /// No description provided for @shareToggleDate.
+  ///
+  /// In ko, this message translates to:
+  /// **'날짜'**
+  String get shareToggleDate;
+
+  /// No description provided for @shareToggleMap.
+  ///
+  /// In ko, this message translates to:
+  /// **'지도'**
+  String get shareToggleMap;
+
+  /// No description provided for @shareTogglePlace.
+  ///
+  /// In ko, this message translates to:
+  /// **'위치명'**
+  String get shareTogglePlace;
+
+  /// No description provided for @shareToggleLogo.
+  ///
+  /// In ko, this message translates to:
+  /// **'로고'**
+  String get shareToggleLogo;
+
+  /// No description provided for @shareInkWhite.
+  ///
+  /// In ko, this message translates to:
+  /// **'흰색'**
+  String get shareInkWhite;
+
+  /// No description provided for @shareInkBlack.
+  ///
+  /// In ko, this message translates to:
+  /// **'먹색'**
+  String get shareInkBlack;
+
+  /// No description provided for @shareInkSunset.
+  ///
+  /// In ko, this message translates to:
+  /// **'노을'**
+  String get shareInkSunset;
+
+  /// No description provided for @shareInkMint.
+  ///
+  /// In ko, this message translates to:
+  /// **'민트'**
+  String get shareInkMint;
+
+  /// No description provided for @shareToInstagramStory.
+  ///
+  /// In ko, this message translates to:
+  /// **'인스타 스토리에 공유'**
+  String get shareToInstagramStory;
+
+  /// No description provided for @shareToOtherApps.
+  ///
+  /// In ko, this message translates to:
+  /// **'다른 앱으로 공유'**
+  String get shareToOtherApps;
+
+  /// No description provided for @shareSaveToGallery.
+  ///
+  /// In ko, this message translates to:
+  /// **'사진에 저장'**
+  String get shareSaveToGallery;
+
+  /// No description provided for @shareStickerHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'스티커를 끌어서 옮기고, 두 손가락으로 크기를 바꿔요'**
+  String get shareStickerHint;
 }
 
 class _AppLocalizationsDelegate

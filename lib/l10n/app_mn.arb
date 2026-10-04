@@ -449,5 +449,21 @@
   "cameraPermissionNeeded": "Зураг авахын тулд камерын зөвшөөрөл хэрэгтэй",
   "cameraUnavailable": "Камер ашиглах боломжгүй",
   "photoProcessing": "Шүүлтүүр хэрэглэж байна…",
-  "sharePhoto": "Хуваалцах"
+  "sharePhoto": "Хуваалцах",
+  "pinShareTooltip": "Хуваалцах карт үүсгэх",
+  "shareTemplateMinimal": "Минимал",
+  "shareTemplateFilm": "Кино хальс",
+  "shareTemplateStamp": "Тамга",
+  "shareToggleDate": "Огноо",
+  "shareToggleMap": "Газрын зураг",
+  "shareTogglePlace": "Байршлын нэр",
+  "shareToggleLogo": "Лого",
+  "shareInkWhite": "Цагаан",
+  "shareInkBlack": "Бэх хар",
+  "shareInkSunset": "Нар жаргах",
+  "shareInkMint": "Мент",
+  "shareToInstagramStory": "Instagram Story-д хуваалцах",
+  "shareToOtherApps": "Бусад аппаар хуваалцах",
+  "shareSaveToGallery": "Зурагт хадгалах",
+  "shareStickerHint": "Наалтыг чирж зөөж, хоёр хуруугаар хэмжээг нь өөрчилнө үү"
 }

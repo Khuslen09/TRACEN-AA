@@ -2,6 +2,7 @@ import 'package:geocoding/geocoding.dart';
 
 import '../l10n/strings.dart';
 import '../models/tracen_overlay_data.dart';
+import '../utils/geocoding_locale.dart';
 import 'auth_service.dart';
 import 'location_service.dart';
 import 'route_db_service.dart';
@@ -51,14 +52,6 @@ class TracenOverlayService {
     return parts.join(' · ');
   }
 
-  /// 앱 언어(ko/en/mn)를 geocoding 결과 언어로 매핑. 기기 언어가 아니라
-  /// **앱 설정 언어**를 따라가게 하는 게 사용자 결정 사항.
-  static String _localeIdentifierFor(String appLocale) => switch (appLocale) {
-    'ko' => 'ko_KR',
-    'mn' => 'mn_MN',
-    _ => 'en_US',
-  };
-
   static Future<TracenOverlayData> loadToday() async {
     final now = DateTime.now();
     final userId = AuthService.currentUser?.uid;
@@ -78,7 +71,7 @@ class TracenOverlayService {
       final pos = await LocationService.currentPosition().timeout(
         const Duration(seconds: 4),
       );
-      await setLocaleIdentifier(_localeIdentifierFor(Strings.current.localeName));
+      await setLocaleIdentifier(geocodingLocaleFor(Strings.current.localeName));
       final placemarks = await placemarkFromCoordinates(
         pos.latitude,
         pos.longitude,

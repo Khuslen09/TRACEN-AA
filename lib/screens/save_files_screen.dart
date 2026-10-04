@@ -496,6 +496,8 @@ class _CategorySelector extends StatelessWidget {
           final c = PinCategory.values[i];
           final isSelected = c == selected;
           final color = colorNotifier?.colorOf(c) ?? c.defaultColor;
+          final icon = colorNotifier?.iconOf(c) ?? c.icon;
+          final label = colorNotifier?.labelOf(c) ?? c.label;
           return GestureDetector(
             onTap: () => onChanged(c),
             child: AnimatedContainer(
@@ -512,13 +514,13 @@ class _CategorySelector extends StatelessWidget {
               child: Row(
                 children: [
                   Icon(
-                    c.icon,
+                    icon,
                     size: 18,
                     color: isSelected ? Colors.white : color,
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    c.label,
+                    label,
                     style: AppTextStyles.smallBold.copyWith(
                       color: isSelected ? Colors.white : context.textPrimary,
                     ),

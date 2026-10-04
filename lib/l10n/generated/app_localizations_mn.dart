@@ -757,27 +757,37 @@ class AppLocalizationsMn extends AppLocalizations {
   String get today => 'Өнөөдөр';
 
   @override
-  String get resetColorsTitle => 'Өнгийг анхны байдалд оруулах';
+  String get resetColorsTitle => 'Өөрчлөлтийг анхны байдалд оруулах';
 
   @override
-  String get resetColorsBody => 'Бүх ангиллын өнгийг анхны утгад буцаах уу?';
+  String get resetColorsBody =>
+      'Бүх ангиллын өнгө/дүрс тэмдэг/нэрийг анхны утгад буцаах уу?';
 
   @override
   String get reset => 'Буцаах';
 
   @override
-  String get categoryColors => 'Ангиллын өнгө';
+  String get categoryColors => 'Ангилал өөрчлөх';
 
   @override
   String get colorDefault => 'Үндсэн';
 
   @override
   String categoryColorTitle(String category) {
-    return '$category өнгө';
+    return '$category өөрчлөх';
   }
 
   @override
   String get presetColors => 'Бэлэн өнгө';
+
+  @override
+  String get categoryNameLabel => 'Нэр';
+
+  @override
+  String get categoryNameHint => 'Ангиллын нэр';
+
+  @override
+  String get categoryIconLabel => 'Дүрс тэмдэг';
 
   @override
   String get apply => 'Хэрэглэх';

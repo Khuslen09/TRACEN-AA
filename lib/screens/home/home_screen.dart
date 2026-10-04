@@ -380,8 +380,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _addPinMarker(Pin pin) async {
     final color = _colorNotifier.colorOf(pin.category);
-    // 사이즈 28 — 이전 44는 dpr 3.0 곱해서 132px 이미지로 너무 컸음.
-    final icon = await MarkerBitmapUtil.dotMarker(color, size: 12);
+    final categoryIcon = _colorNotifier.iconOf(pin.category);
+    // 카테고리 아이콘이 들어가므로 순수 dot(12)보다 조금 키움 — 28이면
+    // 아이콘 글리프가 읽힐 정도면서 지도 위에서 너무 크지 않음.
+    final icon = await MarkerBitmapUtil.categoryMarker(
+      categoryIcon,
+      color,
+      size: 28,
+    );
     final markerId = MarkerId('pin_${pin.id}');
     _pinByMarkerId[markerId.value] = pin;
     _pinMarkers.add(

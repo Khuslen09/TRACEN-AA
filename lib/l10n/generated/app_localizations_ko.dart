@@ -734,27 +734,36 @@ class AppLocalizationsKo extends AppLocalizations {
   String get today => '오늘';
 
   @override
-  String get resetColorsTitle => '색상 초기화';
+  String get resetColorsTitle => '커스터마이즈 초기화';
 
   @override
-  String get resetColorsBody => '모든 카테고리 색상을 기본값으로 되돌릴까요?';
+  String get resetColorsBody => '모든 카테고리의 색상/아이콘/이름을 기본값으로 되돌릴까요?';
 
   @override
   String get reset => '초기화';
 
   @override
-  String get categoryColors => '카테고리 색상';
+  String get categoryColors => '카테고리 커스터마이즈';
 
   @override
   String get colorDefault => '기본';
 
   @override
   String categoryColorTitle(String category) {
-    return '$category 색상';
+    return '$category 커스터마이즈';
   }
 
   @override
   String get presetColors => '프리셋 색상';
+
+  @override
+  String get categoryNameLabel => '이름';
+
+  @override
+  String get categoryNameHint => '카테고리 이름';
+
+  @override
+  String get categoryIconLabel => '아이콘';
 
   @override
   String get apply => '적용';

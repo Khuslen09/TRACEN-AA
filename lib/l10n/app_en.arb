@@ -316,12 +316,12 @@
   "addPin": "Add a pin",
   "pickerTapMapHint": "Tap the map to move the location",
   "today": "Today",
-  "resetColorsTitle": "Reset colors",
-  "resetColorsBody": "Reset all category colors to their defaults?",
+  "resetColorsTitle": "Reset customization",
+  "resetColorsBody": "Reset all category colors, icons, and names to their defaults?",
   "reset": "Reset",
-  "categoryColors": "Category colors",
+  "categoryColors": "Customize categories",
   "colorDefault": "Default",
-  "categoryColorTitle": "{category} color",
+  "categoryColorTitle": "Customize {category}",
   "@categoryColorTitle": {
     "placeholders": {
       "category": {
@@ -330,6 +330,9 @@
     }
   },
   "presetColors": "Preset colors",
+  "categoryNameLabel": "Name",
+  "categoryNameHint": "Category name",
+  "categoryIconLabel": "Icon",
   "apply": "Apply",
   "addMemoOrPhoto": "Add at least one memo or photo",
   "categoryLabel": "Category",

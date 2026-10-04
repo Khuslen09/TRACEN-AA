@@ -756,27 +756,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get today => 'Today';
 
   @override
-  String get resetColorsTitle => 'Reset colors';
+  String get resetColorsTitle => 'Reset customization';
 
   @override
-  String get resetColorsBody => 'Reset all category colors to their defaults?';
+  String get resetColorsBody =>
+      'Reset all category colors, icons, and names to their defaults?';
 
   @override
   String get reset => 'Reset';
 
   @override
-  String get categoryColors => 'Category colors';
+  String get categoryColors => 'Customize categories';
 
   @override
   String get colorDefault => 'Default';
 
   @override
   String categoryColorTitle(String category) {
-    return '$category color';
+    return 'Customize $category';
   }
 
   @override
   String get presetColors => 'Preset colors';
+
+  @override
+  String get categoryNameLabel => 'Name';
+
+  @override
+  String get categoryNameHint => 'Category name';
+
+  @override
+  String get categoryIconLabel => 'Icon';
 
   @override
   String get apply => 'Apply';

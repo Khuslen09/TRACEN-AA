@@ -326,12 +326,12 @@
   "addPin": "핀 추가",
   "pickerTapMapHint": "지도를 탭해서 위치를 옮길 수 있어요",
   "today": "오늘",
-  "resetColorsTitle": "색상 초기화",
-  "resetColorsBody": "모든 카테고리 색상을 기본값으로 되돌릴까요?",
+  "resetColorsTitle": "커스터마이즈 초기화",
+  "resetColorsBody": "모든 카테고리의 색상/아이콘/이름을 기본값으로 되돌릴까요?",
   "reset": "초기화",
-  "categoryColors": "카테고리 색상",
+  "categoryColors": "카테고리 커스터마이즈",
   "colorDefault": "기본",
-  "categoryColorTitle": "{category} 색상",
+  "categoryColorTitle": "{category} 커스터마이즈",
   "@categoryColorTitle": {
     "placeholders": {
       "category": {
@@ -340,6 +340,9 @@
     }
   },
   "presetColors": "프리셋 색상",
+  "categoryNameLabel": "이름",
+  "categoryNameHint": "카테고리 이름",
+  "categoryIconLabel": "아이콘",
   "apply": "적용",
   "addMemoOrPhoto": "메모나 사진을 하나 이상 추가해주세요",
   "categoryLabel": "카테고리",

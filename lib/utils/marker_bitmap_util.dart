@@ -122,6 +122,69 @@ class MarkerBitmapUtil {
     return BitmapDescriptor.bytes(bytes!.buffer.asUint8List());
   }
 
-  /// 캐시 비우기 — 색상 변경 시 호출.
+  /// 카테고리 아이콘 + 색상을 합친 핀 마커. [dotMarker]와 같은 베이스
+  /// (그림자 + 흰 테두리 + 색 원) 위에 흰색 아이콘 글리프를 얹는다.
+  static Future<BitmapDescriptor> categoryMarker(
+    IconData icon,
+    Color color, {
+    double size = 44,
+  }) async {
+    final key =
+        'cat_${icon.codePoint}_${icon.fontFamily}_${color.toARGB32()}_$size';
+    if (_cache.containsKey(key)) return _cache[key]!;
+
+    final descriptor = await _buildCategoryMarker(icon, color, size);
+    _cache[key] = descriptor;
+    return descriptor;
+  }
+
+  static Future<BitmapDescriptor> _buildCategoryMarker(
+    IconData icon,
+    Color color,
+    double size,
+  ) async {
+    final dpr = 3.0;
+    final px = (size * dpr).toInt();
+
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    final center = Offset(px / 2, px / 2);
+    final radius = px / 2;
+
+    canvas.drawCircle(
+      center + const Offset(0, 2),
+      radius * 0.72,
+      Paint()
+        ..color = Colors.black.withValues(alpha: 0.18)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
+    );
+    canvas.drawCircle(center, radius * 0.78, Paint()..color = Colors.white);
+    canvas.drawCircle(center, radius * 0.62, Paint()..color = color);
+
+    // 아이콘 글리프 (흰색, 색 원 안에 중앙 정렬).
+    final textPainter = TextPainter(textDirection: TextDirection.ltr)
+      ..text = TextSpan(
+        text: String.fromCharCode(icon.codePoint),
+        style: TextStyle(
+          fontSize: radius * 0.62 * 0.9,
+          fontFamily: icon.fontFamily,
+          package: icon.fontPackage,
+          color: Colors.white,
+        ),
+      )
+      ..layout();
+    textPainter.paint(
+      canvas,
+      center - Offset(textPainter.width / 2, textPainter.height / 2),
+    );
+
+    final picture = recorder.endRecording();
+    final img = await picture.toImage(px, px);
+    final bytes = await img.toByteData(format: ui.ImageByteFormat.png);
+
+    return BitmapDescriptor.bytes(bytes!.buffer.asUint8List());
+  }
+
+  /// 캐시 비우기 — 색상/아이콘 변경 시 호출.
   static void clearCache() => _cache.clear();
 }

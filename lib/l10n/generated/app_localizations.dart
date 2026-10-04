@@ -1501,13 +1501,13 @@ abstract class AppLocalizations {
   /// No description provided for @resetColorsTitle.
   ///
   /// In ko, this message translates to:
-  /// **'색상 초기화'**
+  /// **'커스터마이즈 초기화'**
   String get resetColorsTitle;
 
   /// No description provided for @resetColorsBody.
   ///
   /// In ko, this message translates to:
-  /// **'모든 카테고리 색상을 기본값으로 되돌릴까요?'**
+  /// **'모든 카테고리의 색상/아이콘/이름을 기본값으로 되돌릴까요?'**
   String get resetColorsBody;
 
   /// No description provided for @reset.
@@ -1519,7 +1519,7 @@ abstract class AppLocalizations {
   /// No description provided for @categoryColors.
   ///
   /// In ko, this message translates to:
-  /// **'카테고리 색상'**
+  /// **'카테고리 커스터마이즈'**
   String get categoryColors;
 
   /// No description provided for @colorDefault.
@@ -1531,7 +1531,7 @@ abstract class AppLocalizations {
   /// No description provided for @categoryColorTitle.
   ///
   /// In ko, this message translates to:
-  /// **'{category} 색상'**
+  /// **'{category} 커스터마이즈'**
   String categoryColorTitle(String category);
 
   /// No description provided for @presetColors.
@@ -1539,6 +1539,24 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'프리셋 색상'**
   String get presetColors;
+
+  /// No description provided for @categoryNameLabel.
+  ///
+  /// In ko, this message translates to:
+  /// **'이름'**
+  String get categoryNameLabel;
+
+  /// No description provided for @categoryNameHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'카테고리 이름'**
+  String get categoryNameHint;
+
+  /// No description provided for @categoryIconLabel.
+  ///
+  /// In ko, this message translates to:
+  /// **'아이콘'**
+  String get categoryIconLabel;
 
   /// No description provided for @apply.
   ///

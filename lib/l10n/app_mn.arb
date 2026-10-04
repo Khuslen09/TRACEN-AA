@@ -316,12 +316,12 @@
   "addPin": "Тэмдэг нэмэх",
   "pickerTapMapHint": "Байршлыг өөрчлөхийн тулд газрын зураг дээр дарна уу",
   "today": "Өнөөдөр",
-  "resetColorsTitle": "Өнгийг анхны байдалд оруулах",
-  "resetColorsBody": "Бүх ангиллын өнгийг анхны утгад буцаах уу?",
+  "resetColorsTitle": "Өөрчлөлтийг анхны байдалд оруулах",
+  "resetColorsBody": "Бүх ангиллын өнгө/дүрс тэмдэг/нэрийг анхны утгад буцаах уу?",
   "reset": "Буцаах",
-  "categoryColors": "Ангиллын өнгө",
+  "categoryColors": "Ангилал өөрчлөх",
   "colorDefault": "Үндсэн",
-  "categoryColorTitle": "{category} өнгө",
+  "categoryColorTitle": "{category} өөрчлөх",
   "@categoryColorTitle": {
     "placeholders": {
       "category": {
@@ -330,6 +330,9 @@
     }
   },
   "presetColors": "Бэлэн өнгө",
+  "categoryNameLabel": "Нэр",
+  "categoryNameHint": "Ангиллын нэр",
+  "categoryIconLabel": "Дүрс тэмдэг",
   "apply": "Хэрэглэх",
   "addMemoOrPhoto": "Хамгийн багадаа нэг тэмдэглэл эсвэл зураг нэмнэ үү",
   "categoryLabel": "Ангилал",

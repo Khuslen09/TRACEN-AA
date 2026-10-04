@@ -26,6 +26,10 @@
 <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
                  android:maxSdkVersion="32" />
 <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+
+<!-- Android 9 이하: 갤러리 저장(gal 패키지)에 필요 -->
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+                 android:maxSdkVersion="29" />
     <application
         android:label="Tracen"
         android:name="${applicationName}"

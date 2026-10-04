@@ -39,6 +39,11 @@ dependencies:
 
   # 사진
   image_picker: ^1.1.2
+  camera: ^0.11.2
+  image: ^4.5.0
+
+  # 공유
+  share_plus: ^11.0.0
 
   # 유틸
   uuid: ^4.4.0
@@ -74,4 +79,7 @@ flutter:
   generate: true
   assets:
     - assets/icon/
+    - assets/luts/
     - .env
+  shaders:
+    - shaders/lut_filter.frag

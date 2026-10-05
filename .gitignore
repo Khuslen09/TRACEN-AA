@@ -82,6 +82,7 @@ lib/generated_plugin_registrant.dart
 # Secrets & keys
 .env
 *.env
+dart_defines*.json
 google-services.json
 ios/Flutter/Secrets.xcconfig
 GoogleService-Info.plist

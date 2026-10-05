@@ -553,7 +553,10 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get searchComingSoon => '검색 기능은 곧 추가됩니다';
+  String get timelineSearchHint => '장소·메모·여정 이름으로 검색';
+
+  @override
+  String get timelineSearchNoResults => '검색 결과가 없어요';
 
   @override
   String get modePhoto => '사진';

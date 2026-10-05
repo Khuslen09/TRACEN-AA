@@ -802,6 +802,7 @@ class RouteDBService {
     String? userId,
     bool photoOnly = false,
     bool memoOnly = false,
+    String? query,
   }) async {
     final database = await db;
     final whereClauses = <String>[];
@@ -818,6 +819,11 @@ class RouteDBService {
     }
     if (memoOnly) {
       whereClauses.add("p.memo IS NOT NULL AND p.memo != ''");
+    }
+    if (query != null && query.trim().isNotEmpty) {
+      whereClauses.add('(p.memo LIKE ? OR p.place_name LIKE ? OR r.title LIKE ?)');
+      final like = '%${query.trim()}%';
+      args.addAll([like, like, like]);
     }
 
     final whereSQL = whereClauses.isEmpty

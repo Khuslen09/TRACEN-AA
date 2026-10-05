@@ -221,7 +221,8 @@
       }
     }
   },
-  "searchComingSoon": "Хайлтын боломж удахгүй нэмэгдэнэ",
+  "timelineSearchHint": "Газар, тэмдэглэл, аяллын нэрээр хайх",
+  "timelineSearchNoResults": "Хайлтын илэрц олдсонгүй",
   "modePhoto": "Зураг",
   "modeMemo": "Тэмдэглэл",
   "noMemosYet": "Хадгалсан тэмдэглэл хараахан алга",

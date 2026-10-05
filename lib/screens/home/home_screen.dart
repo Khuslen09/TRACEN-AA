@@ -25,7 +25,6 @@ import '../run/running_live_screen.dart'; // ignore: unused_import — 다음 �
 import '../run/tracking/activity_tracking_screen.dart';
 import '../save_files_screen.dart';
 import 'place_input_screen.dart';
-import 'route_list_screen.dart';
 import 'timeline_screen.dart';
 import 'widgets/pin_preview_sheet.dart';
 
@@ -581,19 +580,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                _CircleIconButton(
-                  icon: Icons.list_alt_rounded,
-                  iconColor: context.textPrimary,
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const RouteListScreen(),
-                      ),
-                    );
-                  },
                 ),
                 const SizedBox(height: 12),
                 // AI 장소 추천

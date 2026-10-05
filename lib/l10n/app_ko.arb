@@ -231,7 +231,8 @@
       }
     }
   },
-  "searchComingSoon": "검색 기능은 곧 추가됩니다",
+  "timelineSearchHint": "장소·메모·여정 이름으로 검색",
+  "timelineSearchNoResults": "검색 결과가 없어요",
   "modePhoto": "사진",
   "modeMemo": "메모",
   "noMemosYet": "아직 저장된 메모가 없어요",

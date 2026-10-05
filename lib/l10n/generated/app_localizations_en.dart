@@ -569,7 +569,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get searchComingSoon => 'Search is coming soon';
+  String get timelineSearchHint => 'Search by place, memo, or journey name';
+
+  @override
+  String get timelineSearchNoResults => 'No results found';
 
   @override
   String get modePhoto => 'Photos';

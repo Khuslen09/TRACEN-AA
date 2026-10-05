@@ -571,7 +571,10 @@ class AppLocalizationsMn extends AppLocalizations {
   }
 
   @override
-  String get searchComingSoon => 'Хайлтын боломж удахгүй нэмэгдэнэ';
+  String get timelineSearchHint => 'Газар, тэмдэглэл, аяллын нэрээр хайх';
+
+  @override
+  String get timelineSearchNoResults => 'Хайлтын илэрц олдсонгүй';
 
   @override
   String get modePhoto => 'Зураг';

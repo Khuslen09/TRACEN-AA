@@ -11,10 +11,13 @@ import '../services/auth_service.dart';
 import '../services/category_color_service.dart';
 import '../services/photo_storage.dart';
 import '../services/route_db_service.dart';
+import '../services/tracen_overlay_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/theme_extensions.dart';
 import 'camera/camera_capture_screen.dart';
+import 'camera/camera_filter_controller.dart';
+import 'camera/photo_edit_screen.dart';
 import 'home/category_color_screen.dart';
 
 /// 새 핀(메모 + 사진)을 추가하는 화면.
@@ -79,7 +82,25 @@ class _SaveFilesScreenState extends State<SaveFilesScreen> {
       source: ImageSource.gallery,
       imageQuality: 85,
     );
-    if (file != null) setState(() => _photoPath = file.path);
+    if (file == null) return;
+    // 카메라 촬영 사진과 동일하게 필터/템플릿 적용 화면을 거치게 한다.
+    // 갤러리 원본을 바이트 그대로 복사만 하면 디코드 실패 시 썸네일이 빈
+    // 화면으로 뜨는 버그가 있었고, 공유 기능도 못 썼음 — PhotoEditScreen을
+    // 통과시키면 항상 디코드 가능한 PNG로 다시 구워주므로 둘 다 해결된다.
+    final filterController = await CameraFilterController.load();
+    final overlayFuture = TracenOverlayService.loadToday();
+    if (!mounted) return;
+    final path = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PhotoEditScreen(
+          sourcePath: file.path,
+          filterController: filterController,
+          overlayFuture: overlayFuture,
+        ),
+      ),
+    );
+    if (path != null) setState(() => _photoPath = path);
   }
 
   /// TRACEN 시그니처 카메라로 촬영 — 필터/오버레이까지 적용한 최종 사진

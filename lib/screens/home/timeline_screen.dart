@@ -1,5 +1,6 @@
 import '../../l10n/strings.dart';
 import '../../l10n/generated/app_localizations.dart';
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -40,10 +41,22 @@ class _TimelineScreenState extends State<TimelineScreen> {
   late TimelineMode _mode = widget.initialMode;
   late Future<List<TimelineEntry>> _entriesFuture;
 
+  bool _searching = false;
+  final _searchController = TextEditingController();
+  String _query = '';
+  Timer? _searchDebounce;
+
   @override
   void initState() {
     super.initState();
     _load();
+  }
+
+  @override
+  void dispose() {
+    _searchDebounce?.cancel();
+    _searchController.dispose();
+    super.dispose();
   }
 
   void _load() {
@@ -56,6 +69,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
       userId: uid, // 사용자 격리. null이면 전체 (테스트 모드)
       photoOnly: _mode == TimelineMode.picture,
       memoOnly: _mode == TimelineMode.memo,
+      query: _query,
     );
     return rows.map(TimelineEntry.fromMap).toList();
   }
@@ -69,6 +83,30 @@ class _TimelineScreenState extends State<TimelineScreen> {
     if (_mode == next) return;
     setState(() {
       _mode = next;
+      _load();
+    });
+  }
+
+  void _onSearchChanged(String text) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 300), () {
+      setState(() {
+        _query = text;
+        _load();
+      });
+    });
+  }
+
+  void _openSearch() {
+    setState(() => _searching = true);
+  }
+
+  void _closeSearch() {
+    _searchDebounce?.cancel();
+    _searchController.clear();
+    setState(() {
+      _searching = false;
+      _query = '';
       _load();
     });
   }
@@ -94,21 +132,31 @@ class _TimelineScreenState extends State<TimelineScreen> {
     return Scaffold(
       backgroundColor: context.bgColor,
       appBar: AppBar(
-        title: Text(l10n.navTimeline),
+        title: _searching
+            ? TextField(
+                controller: _searchController,
+                autofocus: true,
+                onChanged: _onSearchChanged,
+                style: AppTextStyles.body.copyWith(color: context.textPrimary),
+                decoration: InputDecoration(
+                  hintText: l10n.timelineSearchHint,
+                  border: InputBorder.none,
+                ),
+              )
+            : Text(l10n.navTimeline),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: () => Navigator.pop(context),
+          icon: Icon(
+            _searching ? Icons.close_rounded : Icons.arrow_back_ios_new_rounded,
+            size: 20,
+          ),
+          onPressed: _searching ? _closeSearch : () => Navigator.pop(context),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.search_rounded),
-            onPressed: () {
-              // TODO(Week 4+): 검색 기능
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text(l10n.searchComingSoon)));
-            },
-          ),
+          if (!_searching)
+            IconButton(
+              icon: const Icon(Icons.search_rounded),
+              onPressed: _openSearch,
+            ),
         ],
       ),
       // **v5 신규**: 과거 날짜에도 핀 추가 가능
@@ -147,7 +195,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                 }
                 final entries = snapshot.data ?? [];
                 if (entries.isEmpty) {
-                  return _EmptyState(mode: _mode);
+                  return _EmptyState(mode: _mode, searching: _query.isNotEmpty);
                 }
                 return RefreshIndicator(
                   color: AppColors.primary,
@@ -546,12 +594,46 @@ class _ModeToggle extends StatelessWidget {
 
 class _EmptyState extends StatelessWidget {
   final TimelineMode mode;
-  const _EmptyState({required this.mode});
+  final bool searching;
+  const _EmptyState({required this.mode, this.searching = false});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final isPicture = mode == TimelineMode.picture;
+
+    if (searching) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(40),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 96,
+                height: 96,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLight,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.search_off_rounded,
+                  size: 44,
+                  color: AppColors.primary,
+                ),
+              ),
+              SizedBox(height: 24),
+              Text(
+                l10n.timelineSearchNoResults,
+                style: AppTextStyles.h3,
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(40),

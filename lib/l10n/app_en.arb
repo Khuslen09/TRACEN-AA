@@ -221,7 +221,8 @@
       }
     }
   },
-  "searchComingSoon": "Search is coming soon",
+  "timelineSearchHint": "Search by place, memo, or journey name",
+  "timelineSearchNoResults": "No results found",
   "modePhoto": "Photos",
   "modeMemo": "Memos",
   "noMemosYet": "No memos saved yet",

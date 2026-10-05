@@ -10,6 +10,7 @@ import '../../services/route_db_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/theme_extensions.dart';
+import '../home/route_list_screen.dart';
 import '../home/timeline_screen.dart';
 import '../home/widgets/pin_preview_sheet.dart';
 import 'profile_edit_screen.dart';
@@ -307,6 +308,10 @@ class _StatsCard extends StatelessWidget {
             label: l10n.statRuns,
             value: '${stats.routeCount}',
             icon: Icons.near_me_rounded,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const RouteListScreen()),
+            ),
           ),
           _StatDivider(),
           _StatItem(
@@ -330,25 +335,34 @@ class _StatItem extends StatelessWidget {
   final String label;
   final String value;
   final IconData icon;
+  final VoidCallback? onTap;
 
   const _StatItem({
     required this.label,
     required this.value,
     required this.icon,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final content = Column(
+      children: [
+        Icon(icon, color: AppColors.primary, size: 20),
+        const SizedBox(height: 8),
+        Text(value, style: AppTextStyles.h3),
+        const SizedBox(height: 2),
+        Text(label, style: AppTextStyles.caption),
+      ],
+    );
     return Expanded(
-      child: Column(
-        children: [
-          Icon(icon, color: AppColors.primary, size: 20),
-          const SizedBox(height: 8),
-          Text(value, style: AppTextStyles.h3),
-          const SizedBox(height: 2),
-          Text(label, style: AppTextStyles.caption),
-        ],
-      ),
+      child: onTap == null
+          ? content
+          : InkWell(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              onTap: onTap,
+              child: content,
+            ),
     );
   }
 }

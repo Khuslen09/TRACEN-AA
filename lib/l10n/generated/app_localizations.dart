@@ -1156,11 +1156,17 @@ abstract class AppLocalizations {
   /// **'{count}개'**
   String pinCountValue(int count);
 
-  /// No description provided for @searchComingSoon.
+  /// No description provided for @timelineSearchHint.
   ///
   /// In ko, this message translates to:
-  /// **'검색 기능은 곧 추가됩니다'**
-  String get searchComingSoon;
+  /// **'장소·메모·여정 이름으로 검색'**
+  String get timelineSearchHint;
+
+  /// No description provided for @timelineSearchNoResults.
+  ///
+  /// In ko, this message translates to:
+  /// **'검색 결과가 없어요'**
+  String get timelineSearchNoResults;
 
   /// No description provided for @modePhoto.
   ///

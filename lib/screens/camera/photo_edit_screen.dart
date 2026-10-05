@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/camera_filter.dart';
 import '../../models/camera_filter_l10n.dart';
+import '../../models/place_candidate.dart';
 import '../../models/share_card_template.dart';
 import '../../models/share_ink_color.dart';
 import '../../models/sticker_id.dart';
@@ -16,6 +17,7 @@ import '../../models/sticker_transform.dart';
 import '../../models/tracen_overlay_data.dart';
 import '../../services/location_service.dart';
 import '../../services/lut_shader_service.dart';
+import '../../services/place_name_service.dart';
 import '../../services/share_card_exporter.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
@@ -23,6 +25,7 @@ import '../../utils/color_matrix_fit.dart';
 import '../../widgets/share_card/share_card.dart';
 import '../../widgets/share_card/share_card_controller.dart';
 import '../../widgets/share_card/share_card_view_model.dart';
+import '../share/poi_picker_sheet.dart';
 import '../share/share_template_section.dart';
 import 'camera_filter_controller.dart';
 
@@ -60,6 +63,7 @@ class _PhotoEditScreenState extends State<PhotoEditScreen> {
   bool _busy = false;
 
   ShareCardController? _shareCardController;
+  List<PlaceCandidate> _placeCandidates = const [];
   _PhotoEditTab _activeTab = _PhotoEditTab.filter;
 
   @override
@@ -125,6 +129,24 @@ class _PhotoEditScreenState extends State<PhotoEditScreen> {
     }
     setState(() => _shareCardController = controller);
     _applyPreviewColorMatrix();
+
+    // 위치명 수정 바텀시트를 열 때마다 네트워크를 기다리게 하지 않도록,
+    // 화면 진입 시 한 번만 미리 조회해둔다(실패해도 수동 입력은 늘 가능).
+    unawaited(_loadPlaceCandidates(lat, lng));
+  }
+
+  Future<void> _loadPlaceCandidates(double lat, double lng) async {
+    if (!mounted) return;
+    try {
+      final candidates = await PlaceNameService.poiCandidatesFor(
+        lat,
+        lng,
+        languageCode: AppLocalizations.of(context).localeName,
+      );
+      if (mounted) setState(() => _placeCandidates = candidates);
+    } catch (_) {
+      // 조용히 빈 리스트 유지 — 수동 입력은 항상 가능.
+    }
   }
 
   void _onFilterControllerChanged() {
@@ -417,7 +439,7 @@ class _PhotoEditScreenState extends State<PhotoEditScreen> {
                       : RawImage(image: thumb, fit: BoxFit.cover),
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 7),
               Text(
                 filter.label(l10n),
                 style: AppTextStyles.caption.copyWith(
@@ -490,7 +512,7 @@ class _PhotoEditScreenState extends State<PhotoEditScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 7),
               Text(
                 template.label,
                 style: AppTextStyles.caption.copyWith(
@@ -508,8 +530,24 @@ class _PhotoEditScreenState extends State<PhotoEditScreen> {
   Widget _buildDisplayTab(ShareCardController shareCtrl) {
     return Center(
       key: const ValueKey('display'),
-      child: ShareStickerToggles(controller: shareCtrl),
+      child: ShareStickerToggles(
+        controller: shareCtrl,
+        onEditPlace: () => _onEditPlace(shareCtrl),
+      ),
     );
+  }
+
+  /// 아직 DB에 저장된 Pin이 없는 단계라, 선택한 이름은 메모리(뷰모델)에만
+  /// 반영한다 — 실제 저장은 이 화면을 닫고 핀이 생성될 때 자연히 반영됨.
+  Future<void> _onEditPlace(ShareCardController shareCtrl) async {
+    final model = shareCtrl.viewModel;
+    final chosen = await showPlaceNamePickerSheet(
+      context,
+      lat: model.pinLat,
+      lng: model.pinLng,
+      candidates: _placeCandidates,
+    );
+    if (chosen != null) shareCtrl.setPlaceName(chosen);
   }
 
   Widget _buildColorTab(ShareCardController shareCtrl) {

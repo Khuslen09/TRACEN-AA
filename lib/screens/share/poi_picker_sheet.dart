@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/pin.dart';
+import '../../models/place_candidate.dart';
 import '../../services/place_name_service.dart';
 import '../../services/route_db_service.dart';
 import '../../theme/app_colors.dart';
@@ -11,9 +12,30 @@ import '../../theme/theme_extensions.dart';
 /// 공유 카드 위치명 스티커(또는 "표시" 탭의 위치명 칩 옆 편집 아이콘)를
 /// 탭하면 뜨는 바텀시트 — [Pin.placeCandidates] 목록 + 동네 이름 폴백 +
 /// 직접 입력. 선택한 값을 그 핀의 `placeName`으로 즉시 저장하고 반환한다.
+Future<String?> showPoiPickerSheet(BuildContext context, Pin pin) async {
+  final chosen = await showPlaceNamePickerSheet(
+    context,
+    lat: pin.lat,
+    lng: pin.lng,
+    candidates: pin.placeCandidates,
+  );
+  if (chosen != null) {
+    await RouteDBService.updatePin(pin.copyWith(placeName: chosen));
+  }
+  return chosen;
+}
+
+/// DB에 저장된 [Pin]이 아직 없는 상황(예: 촬영/선택 직후 편집 화면)에서도
+/// 쓸 수 있는, 영속화를 하지 않는 순수 UI 버전. 호출 측이 선택 결과를
+/// 직접 처리한다(메모리에만 반영하거나, 필요하면 직접 저장).
 /// `PinPreviewSheet`와 같은 `showModalBottomSheet`+`DraggableScrollableSheet`
 /// 패턴.
-Future<String?> showPoiPickerSheet(BuildContext context, Pin pin) {
+Future<String?> showPlaceNamePickerSheet(
+  BuildContext context, {
+  required double lat,
+  required double lng,
+  required List<PlaceCandidate> candidates,
+}) {
   return showModalBottomSheet<String>(
     context: context,
     backgroundColor: Colors.transparent,
@@ -23,17 +45,28 @@ Future<String?> showPoiPickerSheet(BuildContext context, Pin pin) {
       minChildSize: 0.35,
       maxChildSize: 0.95,
       expand: false,
-      builder: (ctx, scrollController) =>
-          _PoiPickerSheet(pin: pin, scrollController: scrollController),
+      builder: (ctx, scrollController) => _PoiPickerSheet(
+        lat: lat,
+        lng: lng,
+        candidates: candidates,
+        scrollController: scrollController,
+      ),
     ),
   );
 }
 
 class _PoiPickerSheet extends StatefulWidget {
-  final Pin pin;
+  final double lat;
+  final double lng;
+  final List<PlaceCandidate> candidates;
   final ScrollController scrollController;
 
-  const _PoiPickerSheet({required this.pin, required this.scrollController});
+  const _PoiPickerSheet({
+    required this.lat,
+    required this.lng,
+    required this.candidates,
+    required this.scrollController,
+  });
 
   @override
   State<_PoiPickerSheet> createState() => _PoiPickerSheetState();
@@ -47,7 +80,7 @@ class _PoiPickerSheetState extends State<_PoiPickerSheet> {
   @override
   void initState() {
     super.initState();
-    PlaceNameService.placeNameFor(widget.pin.lat, widget.pin.lng).then((name) {
+    PlaceNameService.placeNameFor(widget.lat, widget.lng).then((name) {
       if (mounted) {
         setState(() {
           _neighborhoodFallback = name;
@@ -63,15 +96,12 @@ class _PoiPickerSheetState extends State<_PoiPickerSheet> {
     super.dispose();
   }
 
-  Future<void> _choose(String name) async {
-    await RouteDBService.updatePin(widget.pin.copyWith(placeName: name));
-    if (mounted) Navigator.pop(context, name);
-  }
+  void _choose(String name) => Navigator.pop(context, name);
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final candidates = widget.pin.placeCandidates;
+    final candidates = widget.candidates;
 
     return Container(
       decoration: BoxDecoration(

@@ -1073,6 +1073,7 @@ class RouteDBService {
     await database.delete('route_points');
     await database.delete('route_pauses');
     await database.delete('routes');
+    await database.delete('day_tracks');
     await database.delete('sync_queue');
   }
 

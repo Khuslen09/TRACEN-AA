@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../models/user.dart';
+import 'route_db_service.dart';
+import 'sync_queue_service.dart';
 
 /// AA 인증 서비스.
 ///
@@ -220,61 +222,122 @@ class AuthService {
     }
   }
 
+  /// 재인증 유효 기간 — 이보다 오래 전에 로그인했으면 탈퇴 전에 선제 재인증.
+  static const _reauthWindow = Duration(minutes: 5);
+
+  /// 탈퇴처럼 민감한 작업 전, 로그인이 오래됐으면 선제적으로 재인증.
+  ///
+  /// 데이터 삭제를 시작하기 "전"에 끝내야 한다 — 재인증 실패를 삭제 후에
+  /// 알게 되면 데이터는 이미 사라졌는데 Auth 계정만 남는 상황이 생긴다.
+  /// 이메일 사용자는 비밀번호 없이는 재인증할 수 없으므로, 호출 측이
+  /// [password]를 받아 `deleteAccount(password: ...)`로 재시도해야 한다.
+  static Future<void> _ensureRecentLogin(User u, {String? password}) async {
+    final lastSignIn = u.metadata.lastSignInTime;
+    final isRecent = lastSignIn != null &&
+        DateTime.now().difference(lastSignIn) < _reauthWindow;
+    if (isRecent) return;
+
+    final providerId =
+        u.providerData.isNotEmpty ? u.providerData.first.providerId : null;
+
+    if (providerId == 'google.com') {
+      final googleUser =
+          await _googleSignIn.signInSilently() ?? await _googleSignIn.signIn();
+      if (googleUser == null) {
+        throw AuthException(Strings.current.authReauthRequired);
+      }
+      final googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      await u.reauthenticateWithCredential(credential);
+    } else if (providerId == 'password') {
+      if (password == null || password.isEmpty) {
+        throw AuthException(Strings.current.authReauthRequired);
+      }
+      final credential = EmailAuthProvider.credential(
+        email: u.email ?? '',
+        password: password,
+      );
+      await u.reauthenticateWithCredential(credential);
+    }
+  }
+
+  /// Storage 폴더를 깊이 제한 없이 재귀적으로 완전히 삭제.
+  static Future<void> _deleteStorageFolderRecursive(Reference ref) async {
+    final list = await ref.listAll();
+    await Future.wait(list.items.map((i) => i.delete()));
+    await Future.wait(list.prefixes.map(_deleteStorageFolderRecursive));
+  }
+
+  /// Firestore 문서 목록을 400개씩 나눠 배치 삭제 (한도 500 writes/commit).
+  static Future<void> _deleteRefsInChunks(
+    List<DocumentReference<Map<String, dynamic>>> refs,
+  ) async {
+    const chunkSize = 400;
+    for (var i = 0; i < refs.length; i += chunkSize) {
+      final end = (i + chunkSize < refs.length) ? i + chunkSize : refs.length;
+      final batch = _firestore.batch();
+      for (final ref in refs.sublist(i, end)) {
+        batch.delete(ref);
+      }
+      await batch.commit();
+    }
+  }
+
   /// 회원 탈퇴.
   ///
   /// Firebase Auth 정책상 민감한 작업은 "최근 로그인" 필요.
   /// 너무 오래 전에 로그인한 사용자는 [AuthException('재로그인이 필요해요')] 발생.
   /// 화면 단에서 이 에러 잡아서 "다시 로그인해주세요" 흐름으로 안내.
+  /// (이메일 사용자는 비밀번호를 받아 [password]로 재시도해야 함.)
   ///
   /// Firestore의 users/{uid} 문서는 함께 지우지만,
   /// users/{uid}/routes 서브컬렉션은 클라이언트에서 cascade 삭제할 수 없으므로
   /// (Firebase 정책상 그렇게 해서는 안 됨) 서버 Cloud Function이 처리.
   /// 회원 탈퇴 — Firestore + Storage 데이터 완전 삭제 후 Auth 계정 제거.
   /// 개인정보보호법상 탈퇴 시 모든 개인정보 즉시 삭제 의무.
-  static Future<void> deleteAccount() async {
+  static Future<void> deleteAccount({String? password}) async {
     final u = _auth.currentUser;
     if (u == null) throw AuthException(Strings.current.authLoginRequired);
 
     try {
+      // 0. 재인증 선행 — 데이터 삭제 전에 끝내야 삭제-후-실패를 피할 수 있다.
+      await _ensureRecentLogin(u, password: password);
+
       final uid = u.uid;
 
-      // 1. Storage 사진 모두 삭제 (routes 폴더 + standalone 폴더)
-      try {
-        final storage = FirebaseStorage.instance;
-        final photosRef = storage.ref().child('users/$uid/photos');
-        final profileRef = storage.ref().child('users/$uid/profile');
-        for (final ref in [photosRef, profileRef]) {
-          try {
-            final list = await ref.listAll();
-            // 하위 폴더(routeUuid 폴더)까지 재귀 삭제
-            for (final prefix in list.prefixes) {
-              final sub = await prefix.listAll();
-              await Future.wait(sub.items.map((i) => i.delete()));
-            }
-            await Future.wait(list.items.map((i) => i.delete()));
-          } catch (_) {}
-        }
-      } catch (_) {}
+      // 1. Storage 사진 모두 삭제 (routes 폴더 + standalone 폴더, 깊이 제한 없이 재귀)
+      final storage = FirebaseStorage.instance;
+      final photosRef = storage.ref().child('users/$uid/photos');
+      final profileRef = storage.ref().child('users/$uid/profile');
+      for (final ref in [photosRef, profileRef]) {
+        try {
+          await _deleteStorageFolderRecursive(ref);
+        } catch (_) {}
+      }
 
-      // 2. Firestore 서브컬렉션 삭제 (routes → pins → route 문서 순)
+      // 2. routes → pins → route 문서 삭제 (청크 단위 배치)
       final routesSnap = await _usersCol.doc(uid).collection('routes').get();
+      final routeRefs = <DocumentReference<Map<String, dynamic>>>[];
       for (final routeDoc in routesSnap.docs) {
         final pinsSnap = await routeDoc.reference.collection('pins').get();
-        final batch = _firestore.batch();
-        for (final pinDoc in pinsSnap.docs) {
-          batch.delete(pinDoc.reference);
-        }
-        batch.delete(routeDoc.reference);
-        await batch.commit();
+        routeRefs.addAll(pinsSnap.docs.map((d) => d.reference));
+        routeRefs.add(routeDoc.reference);
       }
+      await _deleteRefsInChunks(routeRefs);
 
       // 3. standalone pins 삭제
       final pinsSnap = await _usersCol.doc(uid).collection('pins').get();
-      final pinsBatch = _firestore.batch();
-      for (final pinDoc in pinsSnap.docs) {
-        pinsBatch.delete(pinDoc.reference);
-      }
-      await pinsBatch.commit();
+      await _deleteRefsInChunks(pinsSnap.docs.map((d) => d.reference).toList());
+
+      // 3b. dayTracks 삭제 — 기존엔 빠져 있던 부분
+      final dayTracksSnap =
+          await _usersCol.doc(uid).collection('dayTracks').get();
+      await _deleteRefsInChunks(
+        dayTracksSnap.docs.map((d) => d.reference).toList(),
+      );
 
       // 4. users/{uid} 문서 삭제
       await _usersCol.doc(uid).delete();
@@ -286,6 +349,14 @@ class AuthService {
       try {
         await _googleSignIn.signOut();
       } catch (_) {}
+
+      // 7. 로컬 SQLite/큐 정리 — Auth 계정은 이미 삭제됐으니 실패해도 계속 진행.
+      try {
+        await RouteDBService.clearAll();
+        await SyncQueueService.clearAll();
+      } catch (e) {
+        if (kDebugMode) debugPrint('[AuthService] 로컬 데이터 정리 실패: $e');
+      }
     } on FirebaseAuthException catch (e) {
       if (e.code == 'requires-recent-login') {
         throw AuthException(Strings.current.authReauthRequired);

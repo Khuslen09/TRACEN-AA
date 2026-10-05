@@ -39,6 +39,13 @@ class _TrackingTaskHandler extends TaskHandler {
       );
     }
 
+    // B-2: autoRunOnBoot로 재부팅 시 이 핸들러가 자동 시작될 수 있음 —
+    // GPS 스트림을 구독하기 전에 사용자 동의와 로그인 상태를 반드시 확인.
+    final enabled = await TrackingService.isEnabled();
+    if (!enabled || !AuthService.isLoggedIn) {
+      await FlutterForegroundTask.stopService();
+      return;
+    }
 
     _sub = Geolocator.getPositionStream(
       locationSettings: AndroidSettings(
@@ -46,6 +53,7 @@ class _TrackingTaskHandler extends TaskHandler {
         distanceFilter: 5,
       ),
     ).listen((p) async {
+      if (!TrackingService.isAccurateEnough(p.accuracy)) return;
       final uid = AuthService.currentUser?.uid;
       // B-2: uid 가 없으면 (미로그인) 기록하지 않음.
       if (uid == null) return;
@@ -132,10 +140,21 @@ class TrackingService {
   // 설정
   // ─────────────────────────────────────────────
 
+  /// GPS 정확도(미터) 허용 한계 — 이보다 부정확한 포인트는 버린다.
+  static const double _maxAccuracyM = 30.0;
+
+  /// [accuracy](미터)가 허용 범위 안인지. 순수 함수로 분리해 Position
+  /// 객체 생성 없이 단위 테스트할 수 있게 함.
+  static bool isAccurateEnough(double accuracy) => accuracy <= _maxAccuracyM;
+
   static Future<bool> isEnabled() async {
     final prefs = await SharedPreferences.getInstance();
     // B-2: 기본값을 false 로 — 첫 설치 시 사용자 동의 없이 추적 시작 방지.
-    return prefs.getBool(_prefKey) ?? true;
+    // 마이그레이션 메모: 기존 설치 중 _prefKey 값이 한 번도 저장되지 않은
+    // 사용자는 과거 '?? true' 버그로 사실상 켜져 있었음. 다음 앱 실행부터는
+    // '?? false'가 적용되어 자동으로 꺼짐 — 별도 마이그레이션 로직은 넣지
+    // 않음(주석으로만 기록).
+    return prefs.getBool(_prefKey) ?? false;
   }
 
   static Future<void> setEnabled(bool value) async {
@@ -167,17 +186,9 @@ class TrackingService {
   }
 
   static Future<void> _startAndroid() async {
-    // 새 구독을 먼저 걸고 이전 것을 나중에 취소 — cancel을 await하는 사이에
-    // start()가 동시에 또 불려도 리스너가 겹쳐서 새지 않게 한다.
-    final previous = _fgSub;
-    _fgSub = LocationService.positionStream().listen(
-      _onPosition,
-      onError: (e) {
-        if (kDebugMode) debugPrint('[Tracking] Android GPS 오류: $e');
-      },
-    );
-    await previous?.cancel();
-
+    // Android: day_tracks 쓰기는 포그라운드 서비스 isolate
+    // (_TrackingTaskHandler)가 전담. 메인 isolate에서 따로 GPS를 구독하면
+    // 같은 GPS fix가 두 isolate에서 중복으로 insertDayTrackPoint 된다.
     final result = await FlutterForegroundTask.startService(
       serviceId: 1000,
       notificationTitle: Strings.current.trackingNotifTitle,
@@ -250,6 +261,7 @@ class TrackingService {
   // ─────────────────────────────────────────────
 
   static Future<void> _onPosition(Position p) async {
+    if (!isAccurateEnough(p.accuracy)) return;
     final uid = AuthService.currentUser?.uid;
     // B-2: 로그인 상태가 아니면 저장하지 않음.
     if (uid == null) return;

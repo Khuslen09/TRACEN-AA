@@ -178,11 +178,17 @@ class CloudSyncService {
     try {
       await SyncQueueService.reapDeadJobs();
 
+      // 이번 flush 안에서 이미 실패한 작업 id — peek()은 markFailed 후에도
+      // 큐에 그대로 남은 job을 계속 돌려주므로, 기록해두지 않으면 같은
+      // 작업만 영원히 재시도하며 while(true)가 멈추지 않는다.
+      final failedThisRun = <int>{};
+
       while (true) {
         final jobs = await SyncQueueService.peek(limit: 10);
-        if (jobs.isEmpty) break;
+        final pending = jobs.where((j) => !failedThisRun.contains(j.id)).toList();
+        if (pending.isEmpty) break;
 
-        for (final job in jobs) {
+        for (final job in pending) {
           try {
             await _processJob(job);
             await SyncQueueService.markDone(job.id);
@@ -192,9 +198,11 @@ class CloudSyncService {
               debugPrint(st.toString());
             }
             await SyncQueueService.markFailed(job.id, e.toString());
-
-            // 같은 작업으로 무한 루프 돌지 않도록 다음 배치로 넘어감
-            return;
+            failedThisRun.add(job.id);
+            // 이 작업만 건너뛰고 배치의 나머지 + 다음 배치는 계속 처리.
+            // 다음 flushQueue 호출에서 다시 시도된다(reapDeadJobs가 생명주기
+            // 전체 재시도 횟수를 캡핑).
+            continue;
           }
         }
       }

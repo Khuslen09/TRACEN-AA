@@ -21,6 +21,10 @@ class PinPlaceLookupService {
     required String languageCode,
   }) async {
     if (pin.id == null) return null; // 아직 로컬 DB에 없는 핀 — 저장할 곳이 없음
+    // 이미 placeName이 있으면(사진 편집 화면에서 사용자가 직접 골랐거나,
+    // 전에 이미 이 함수로 채워졌으면) 건너뜀 — 자동 조회가 사용자의 선택을
+    // 조용히 덮어쓰면 안 된다.
+    if (pin.placeName != null) return null;
 
     final candidates = await PlaceNameService.poiCandidatesFor(
       pin.lat,

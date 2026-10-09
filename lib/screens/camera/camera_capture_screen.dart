@@ -414,7 +414,7 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
       final file = await cam.takePicture();
       final overlayFuture = TracenOverlayService.loadToday();
       if (!mounted) return;
-      final resultPath = await Navigator.push<String>(
+      final result = await Navigator.push<({String path, String? placeName})>(
         context,
         MaterialPageRoute(
           builder: (_) => PhotoEditScreen(
@@ -425,9 +425,9 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
         ),
       );
       // 핀 저장 화면 등 결과를 기다리는 호출자가 있으면(이 화면이
-      // Navigator.push<String>로 열렸으면) 그 경로를 그대로 위로 전달.
-      if (resultPath != null && mounted) {
-        Navigator.pop(context, resultPath);
+      // Navigator.push로 열렸으면) 경로/위치명을 그대로 위로 전달.
+      if (result != null && mounted) {
+        Navigator.pop(context, result);
       }
     } catch (_) {
       // 촬영 실패 — 다시 시도할 수 있게 그냥 화면에 머무름.

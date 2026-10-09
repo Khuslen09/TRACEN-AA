@@ -64,6 +64,7 @@ class _SaveFilesScreenState extends State<SaveFilesScreen> {
   final _picker = ImagePicker();
 
   String? _photoPath;
+  String? _pickedPlaceName;
   PinCategory _selectedCategory = PinCategory.general;
   bool _saving = false;
 
@@ -90,7 +91,7 @@ class _SaveFilesScreenState extends State<SaveFilesScreen> {
     final filterController = await CameraFilterController.load();
     final overlayFuture = TracenOverlayService.loadToday();
     if (!mounted) return;
-    final path = await Navigator.push<String>(
+    final result = await Navigator.push<({String path, String? placeName})>(
       context,
       MaterialPageRoute(
         builder: (_) => PhotoEditScreen(
@@ -100,20 +101,33 @@ class _SaveFilesScreenState extends State<SaveFilesScreen> {
         ),
       ),
     );
-    if (path != null) setState(() => _photoPath = path);
+    if (result != null) {
+      setState(() {
+        _photoPath = result.path;
+        _pickedPlaceName = result.placeName;
+      });
+    }
   }
 
   /// TRACEN 시그니처 카메라로 촬영 — 필터/오버레이까지 적용한 최종 사진
   /// 경로를 돌려받음. image_picker의 OS 기본 카메라 대신 이 플로우로 교체.
   Future<void> _pickFromCamera() async {
-    final path = await Navigator.push<String>(
+    final result = await Navigator.push<({String path, String? placeName})>(
       context,
       MaterialPageRoute(builder: (_) => const CameraCaptureScreen()),
     );
-    if (path != null) setState(() => _photoPath = path);
+    if (result != null) {
+      setState(() {
+        _photoPath = result.path;
+        _pickedPlaceName = result.placeName;
+      });
+    }
   }
 
-  void _removePhoto() => setState(() => _photoPath = null);
+  void _removePhoto() => setState(() {
+    _photoPath = null;
+    _pickedPlaceName = null;
+  });
 
   // ─────────────────────────────────────────────
   // Save
@@ -146,6 +160,7 @@ class _SaveFilesScreenState extends State<SaveFilesScreen> {
         lng: widget.lng,
         category: _selectedCategory,
         photoPath: persistedPath,
+        placeName: _pickedPlaceName,
         memo: memo.isEmpty ? null : memo,
         createdAt: DateTime.now(),
       );

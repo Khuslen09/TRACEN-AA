@@ -64,6 +64,12 @@ class _PhotoEditScreenState extends State<PhotoEditScreen> {
 
   ShareCardController? _shareCardController;
   List<PlaceCandidate> _placeCandidates = const [];
+  // ShareCardController.placeName은 생성 시 역지오코딩으로 항상 미리
+  // 채워져 있어서(동/시 단위 폴백), 이것만으로는 "사용자가 직접 골랐는지"를
+  // 구분할 수 없음 — 연필 아이콘으로 실제로 고른 경우에만 true가 되어,
+  // 핀 저장 시 이 값이 있을 때만 placeName을 같이 넘긴다(아니면 핀 저장
+  // 직후의 자동 POI 조회가 알아서 채우게 null로 둠).
+  bool _placeNameManuallyEdited = false;
   _PhotoEditTab _activeTab = _PhotoEditTab.filter;
 
   @override
@@ -278,7 +284,18 @@ class _PhotoEditScreenState extends State<PhotoEditScreen> {
     try {
       final path = await _renderFinal();
       await ShareCardExporter.saveToGallery(path);
-      if (mounted) Navigator.pop(context, path);
+      if (mounted) {
+        // 표시 탭에서 사용자가 직접 고른 위치명이 있으면 핀에 반영되도록
+        // 사진 경로와 함께 돌려준다(없으면 null — 호출부의 핀 저장 직후
+        // 자동 POI 조회가 알아서 채움).
+        Navigator.pop(
+          context,
+          (
+            path: path,
+            placeName: _placeNameManuallyEdited ? _shareCardController?.placeName : null,
+          ),
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -547,7 +564,10 @@ class _PhotoEditScreenState extends State<PhotoEditScreen> {
       lng: model.pinLng,
       candidates: _placeCandidates,
     );
-    if (chosen != null) shareCtrl.setPlaceName(chosen);
+    if (chosen != null) {
+      shareCtrl.setPlaceName(chosen);
+      _placeNameManuallyEdited = true;
+    }
   }
 
   Widget _buildColorTab(ShareCardController shareCtrl) {

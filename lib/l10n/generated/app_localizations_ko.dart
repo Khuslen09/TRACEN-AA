@@ -1093,4 +1093,149 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get poiPickerNoCandidates => '근처 장소를 찾지 못했어요';
+
+  @override
+  String get trackingIdleTitle => '어떤 여정을 기록할까요?';
+
+  @override
+  String get trackingIdleHintRunning => '페이스 기록';
+
+  @override
+  String get trackingIdleHintWalking => '페이스·걸음';
+
+  @override
+  String get trackingIdleHintCycling => '속도 기록';
+
+  @override
+  String get trackingGpsSearching => 'GPS 신호 찾는 중…';
+
+  @override
+  String get trackingGpsReady => '준비 완료';
+
+  @override
+  String trackingStartActivity(String activity) {
+    return '$activity 시작';
+  }
+
+  @override
+  String get trackingWeakGpsTitle => 'GPS 신호가 약해요';
+
+  @override
+  String get trackingWeakGpsBody => '지금 시작하면 처음 몇십 미터가 부정확할 수 있어요. 그래도 시작할까요?';
+
+  @override
+  String get trackingWait => '기다리기';
+
+  @override
+  String get trackingStartAnyway => '시작';
+
+  @override
+  String get trackingCountdownSkip => '탭하면 바로 시작';
+
+  @override
+  String get trackingPermTitle => '위치 권한이 필요해요';
+
+  @override
+  String get trackingPermBody =>
+      '여정을 지도에 그리려면 위치 접근을 허용해 주세요. 화면을 꺼도 기록하려면 \'항상 허용\'이 필요해요.';
+
+  @override
+  String get trackingPermWhileUsing => '앱 사용 중 허용';
+
+  @override
+  String get trackingPermAlways => '항상 허용 (백그라운드 기록)';
+
+  @override
+  String get trackingPermSettings => '설정에서 허용하기';
+
+  @override
+  String get trackingShortTitle => '짧은 기록이에요';
+
+  @override
+  String trackingShortBody(String summary) {
+    return '$summary 기록이에요. 저장할까요?';
+  }
+
+  @override
+  String get resultDone => '오늘의 여정 완료';
+
+  @override
+  String get resultMovingTime => '이동 시간';
+
+  @override
+  String get resultElevationGain => '고도 상승';
+
+  @override
+  String get resultSplitsKm => 'km별 구간';
+
+  @override
+  String get resultSplits5Km => '5km 구간';
+
+  @override
+  String get resultFastestHint => '가장 빠른 구간 강조';
+
+  @override
+  String get resultPhotos => '여정 속 사진';
+
+  @override
+  String get resultMemo => '한 줄 메모';
+
+  @override
+  String get resultMemoHint => '오늘 여정은 어땠나요?';
+
+  @override
+  String get resultSave => '여정 저장';
+
+  @override
+  String get resultSaveShort => '저장';
+
+  @override
+  String get resultSaved => '여정을 저장했어요';
+
+  @override
+  String get resultDiscardTitle => '기록을 버릴까요?';
+
+  @override
+  String get resultDiscardBody => '저장하지 않으면 이 여정은 삭제돼요.';
+
+  @override
+  String get resultDiscard => '버리기';
+
+  @override
+  String get resultCancel => '취소';
+
+  @override
+  String get resultTimeMorning => '아침';
+
+  @override
+  String get resultTimeAfternoon => '오후';
+
+  @override
+  String get resultTimeEvening => '저녁';
+
+  @override
+  String get resultTimeNight => '밤';
+
+  @override
+  String resultAutoTitle(String date, String timeOfDay, String activity) {
+    return '$date $timeOfDay $activity';
+  }
+
+  @override
+  String get activityShareTitle => '여정 공유';
+
+  @override
+  String get activityShareTemplateRoute => '경로';
+
+  @override
+  String get activityShareTemplateStats => '기록';
+
+  @override
+  String get activityShareTemplatePhoto => '사진';
+
+  @override
+  String get activityShareTemplateSticker => '투명 스티커';
+
+  @override
+  String get activityShareStickerHint => '투명 배경 PNG — 스토리에서 사진 위에 올려 쓰세요';
 }

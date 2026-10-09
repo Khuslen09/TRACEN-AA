@@ -1127,4 +1127,151 @@ class AppLocalizationsMn extends AppLocalizations {
 
   @override
   String get poiPickerNoCandidates => 'Ойролцоо байршил олдсонгүй';
+
+  @override
+  String get trackingIdleTitle => 'Ямар аялал тэмдэглэх вэ?';
+
+  @override
+  String get trackingIdleHintRunning => 'Хурдац';
+
+  @override
+  String get trackingIdleHintWalking => 'Хурдац · алхам';
+
+  @override
+  String get trackingIdleHintCycling => 'Хурд';
+
+  @override
+  String get trackingGpsSearching => 'GPS дохио хайж байна…';
+
+  @override
+  String get trackingGpsReady => 'Бэлэн';
+
+  @override
+  String trackingStartActivity(String activity) {
+    return '$activity эхлүүлэх';
+  }
+
+  @override
+  String get trackingWeakGpsTitle => 'GPS дохио сул байна';
+
+  @override
+  String get trackingWeakGpsBody =>
+      'Эхний хэдэн арван метр буруу бичигдэж магадгүй. Эхлүүлэх үү?';
+
+  @override
+  String get trackingWait => 'Хүлээх';
+
+  @override
+  String get trackingStartAnyway => 'Эхлүүлэх';
+
+  @override
+  String get trackingCountdownSkip => 'Шууд эхлүүлэхийн тулд дарна уу';
+
+  @override
+  String get trackingPermTitle => 'Байршлын зөвшөөрөл хэрэгтэй';
+
+  @override
+  String get trackingPermBody =>
+      'Аяллаа газрын зураг дээр зурахын тулд байршлын хандалтыг зөвшөөрнө үү. Дэлгэц унтарсан үед ч бичихийн тулд \"Үргэлж\" сонгоно уу.';
+
+  @override
+  String get trackingPermWhileUsing => 'Ашиглах үед зөвшөөрөх';
+
+  @override
+  String get trackingPermAlways => 'Үргэлж зөвшөөрөх (арын горим)';
+
+  @override
+  String get trackingPermSettings => 'Тохиргоо нээх';
+
+  @override
+  String get trackingShortTitle => 'Богино бичлэг';
+
+  @override
+  String trackingShortBody(String summary) {
+    return 'Зөвхөн $summary. Хадгалах уу?';
+  }
+
+  @override
+  String get resultDone => 'Аялал дууслаа';
+
+  @override
+  String get resultMovingTime => 'Хөдөлсөн хугацаа';
+
+  @override
+  String get resultElevationGain => 'Өндрийн өсөлт';
+
+  @override
+  String get resultSplitsKm => 'Км тутмын хэсэг';
+
+  @override
+  String get resultSplits5Km => '5 км хэсэг';
+
+  @override
+  String get resultFastestHint => 'Хамгийн хурдан хэсэг тодорсон';
+
+  @override
+  String get resultPhotos => 'Аяллын зургууд';
+
+  @override
+  String get resultMemo => 'Товч тэмдэглэл';
+
+  @override
+  String get resultMemoHint => 'Өнөөдрийн аялал ямар байв?';
+
+  @override
+  String get resultSave => 'Аялал хадгалах';
+
+  @override
+  String get resultSaveShort => 'Хадгалах';
+
+  @override
+  String get resultSaved => 'Аялал хадгалагдлаа';
+
+  @override
+  String get resultDiscardTitle => 'Энэ бичлэгийг устгах уу?';
+
+  @override
+  String get resultDiscardBody => 'Хадгалахгүй бол энэ аялал устана.';
+
+  @override
+  String get resultDiscard => 'Устгах';
+
+  @override
+  String get resultCancel => 'Болих';
+
+  @override
+  String get resultTimeMorning => 'Өглөөний';
+
+  @override
+  String get resultTimeAfternoon => 'Өдрийн';
+
+  @override
+  String get resultTimeEvening => 'Оройн';
+
+  @override
+  String get resultTimeNight => 'Шөнийн';
+
+  @override
+  String resultAutoTitle(String date, String timeOfDay, String activity) {
+    return '$date · $timeOfDay $activity';
+  }
+
+  @override
+  String get activityShareTitle => 'Аялал хуваалцах';
+
+  @override
+  String get activityShareTemplateRoute => 'Маршрут';
+
+  @override
+  String get activityShareTemplateStats => 'Үзүүлэлт';
+
+  @override
+  String get activityShareTemplatePhoto => 'Зураг';
+
+  @override
+  String get activityShareTemplateSticker => 'Тунгалаг наалт';
+
+  @override
+  String get activityShareStickerHint =>
+      'Тунгалаг PNG — сторидоо зураг дээр байрлуулна уу';
 }

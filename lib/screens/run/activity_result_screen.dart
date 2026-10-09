@@ -383,7 +383,7 @@ class ActivityResultData {
   final List<RoutePoint> points;
   final Duration movingTime;
   final double elevationGain;
-  final List<Split> splits;
+  final List<ActivitySplit> splits;
   final List<Pin> photoPins;
 
   const ActivityResultData({
@@ -808,14 +808,14 @@ class _SplitsCard extends StatelessWidget {
     final full = data.splits.where((s) => !s.isPartial).toList();
 
     // 페이스는 작을수록, 속도는 클수록 빠름.
-    double score(Split s) => usesPace ? s.paceSecondsPerKm : -s.speedKmh;
-    Split? fastest;
+    double score(ActivitySplit s) => usesPace ? s.paceSecondsPerKm : -s.speedKmh;
+    ActivitySplit? fastest;
     for (final s in full) {
       if (s.duration <= Duration.zero) continue;
       if (fastest == null || score(s) < score(fastest)) fastest = s;
     }
 
-    double ratio(Split s) {
+    double ratio(ActivitySplit s) {
       final f = fastest;
       if (f == null || s.duration <= Duration.zero) return 0.05;
       final r = usesPace

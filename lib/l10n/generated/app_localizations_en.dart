@@ -1123,4 +1123,152 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get poiPickerNoCandidates => 'Couldn\'t find nearby places';
+
+  @override
+  String get trackingIdleTitle => 'What will you track?';
+
+  @override
+  String get trackingIdleHintRunning => 'Pace';
+
+  @override
+  String get trackingIdleHintWalking => 'Pace · steps';
+
+  @override
+  String get trackingIdleHintCycling => 'Speed';
+
+  @override
+  String get trackingGpsSearching => 'Searching for GPS…';
+
+  @override
+  String get trackingGpsReady => 'Ready';
+
+  @override
+  String trackingStartActivity(String activity) {
+    return 'Start $activity';
+  }
+
+  @override
+  String get trackingWeakGpsTitle => 'Weak GPS signal';
+
+  @override
+  String get trackingWeakGpsBody =>
+      'The first few dozen meters may be inaccurate. Start anyway?';
+
+  @override
+  String get trackingWait => 'Wait';
+
+  @override
+  String get trackingStartAnyway => 'Start';
+
+  @override
+  String get trackingCountdownSkip => 'Tap to start now';
+
+  @override
+  String get trackingPermTitle => 'Location access needed';
+
+  @override
+  String get trackingPermBody =>
+      'Allow location access to draw your journey on the map. To keep recording with the screen off, choose \"Always\".';
+
+  @override
+  String get trackingPermWhileUsing => 'Allow while using';
+
+  @override
+  String get trackingPermAlways => 'Always allow (background)';
+
+  @override
+  String get trackingPermSettings => 'Open Settings';
+
+  @override
+  String get trackingShortTitle => 'Short activity';
+
+  @override
+  String trackingShortBody(String summary) {
+    return 'Only $summary. Save it anyway?';
+  }
+
+  @override
+  String get resultDone => 'Journey complete';
+
+  @override
+  String get resultMovingTime => 'Moving time';
+
+  @override
+  String get resultElevationGain => 'Elevation gain';
+
+  @override
+  String get resultSplitsKm => 'Splits per km';
+
+  @override
+  String get resultSplits5Km => '5 km splits';
+
+  @override
+  String get resultFastestHint => 'Fastest split highlighted';
+
+  @override
+  String get resultPhotos => 'Photos from the journey';
+
+  @override
+  String get resultMemo => 'One-line memo';
+
+  @override
+  String get resultMemoHint => 'How was today\'s journey?';
+
+  @override
+  String get resultSave => 'Save journey';
+
+  @override
+  String get resultSaveShort => 'Save';
+
+  @override
+  String get resultSaved => 'Journey saved';
+
+  @override
+  String get resultDiscardTitle => 'Discard this activity?';
+
+  @override
+  String get resultDiscardBody =>
+      'If you don\'t save it, this journey will be deleted.';
+
+  @override
+  String get resultDiscard => 'Discard';
+
+  @override
+  String get resultCancel => 'Cancel';
+
+  @override
+  String get resultTimeMorning => 'Morning';
+
+  @override
+  String get resultTimeAfternoon => 'Afternoon';
+
+  @override
+  String get resultTimeEvening => 'Evening';
+
+  @override
+  String get resultTimeNight => 'Night';
+
+  @override
+  String resultAutoTitle(String date, String timeOfDay, String activity) {
+    return '$timeOfDay $activity · $date';
+  }
+
+  @override
+  String get activityShareTitle => 'Share journey';
+
+  @override
+  String get activityShareTemplateRoute => 'Route';
+
+  @override
+  String get activityShareTemplateStats => 'Stats';
+
+  @override
+  String get activityShareTemplatePhoto => 'Photo';
+
+  @override
+  String get activityShareTemplateSticker => 'Clear sticker';
+
+  @override
+  String get activityShareStickerHint =>
+      'Transparent PNG — place it over a photo in your story';
 }

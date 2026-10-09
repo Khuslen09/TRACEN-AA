@@ -147,14 +147,8 @@ class _Header extends StatelessWidget {
   final ActivityShareData data;
   final Color color;
   final List<Shadow>? shadows;
-  final bool showTitle;
 
-  const _Header({
-    required this.data,
-    required this.color,
-    this.shadows,
-    this.showTitle = true,
-  });
+  const _Header({required this.data, required this.color, this.shadows});
 
   @override
   Widget build(BuildContext context) {
@@ -187,19 +181,17 @@ class _Header extends StatelessWidget {
             ),
           ],
         ),
-        if (showTitle) ...[
-          const SizedBox(height: 10),
-          Text(
-            data.title,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: ShareCardFonts.placeName(
-              text: data.title,
-              size: 20,
-              color: color,
-            ).copyWith(height: 1.25, shadows: shadows),
-          ),
-        ],
+        const SizedBox(height: 10),
+        Text(
+          data.title,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: ShareCardFonts.placeName(
+            text: data.title,
+            size: 20,
+            color: color,
+          ).copyWith(height: 1.25, shadows: shadows),
+        ),
       ],
     );
   }
@@ -212,7 +204,6 @@ class _Stat extends StatelessWidget {
   final Color color;
   final double size;
   final List<Shadow>? shadows;
-  final CrossAxisAlignment align;
 
   const _Stat({
     required this.label,
@@ -221,13 +212,12 @@ class _Stat extends StatelessWidget {
     required this.color,
     this.size = 20,
     this.shadows,
-    this.align = CrossAxisAlignment.start,
   });
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: align,
+      crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(

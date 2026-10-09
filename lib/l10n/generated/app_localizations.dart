@@ -2181,6 +2181,282 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'근처 장소를 찾지 못했어요'**
   String get poiPickerNoCandidates;
+
+  /// No description provided for @trackingIdleTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'어떤 여정을 기록할까요?'**
+  String get trackingIdleTitle;
+
+  /// No description provided for @trackingIdleHintRunning.
+  ///
+  /// In ko, this message translates to:
+  /// **'페이스 기록'**
+  String get trackingIdleHintRunning;
+
+  /// No description provided for @trackingIdleHintWalking.
+  ///
+  /// In ko, this message translates to:
+  /// **'페이스·걸음'**
+  String get trackingIdleHintWalking;
+
+  /// No description provided for @trackingIdleHintCycling.
+  ///
+  /// In ko, this message translates to:
+  /// **'속도 기록'**
+  String get trackingIdleHintCycling;
+
+  /// No description provided for @trackingGpsSearching.
+  ///
+  /// In ko, this message translates to:
+  /// **'GPS 신호 찾는 중…'**
+  String get trackingGpsSearching;
+
+  /// No description provided for @trackingGpsReady.
+  ///
+  /// In ko, this message translates to:
+  /// **'준비 완료'**
+  String get trackingGpsReady;
+
+  /// No description provided for @trackingStartActivity.
+  ///
+  /// In ko, this message translates to:
+  /// **'{activity} 시작'**
+  String trackingStartActivity(String activity);
+
+  /// No description provided for @trackingWeakGpsTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'GPS 신호가 약해요'**
+  String get trackingWeakGpsTitle;
+
+  /// No description provided for @trackingWeakGpsBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'지금 시작하면 처음 몇십 미터가 부정확할 수 있어요. 그래도 시작할까요?'**
+  String get trackingWeakGpsBody;
+
+  /// No description provided for @trackingWait.
+  ///
+  /// In ko, this message translates to:
+  /// **'기다리기'**
+  String get trackingWait;
+
+  /// No description provided for @trackingStartAnyway.
+  ///
+  /// In ko, this message translates to:
+  /// **'시작'**
+  String get trackingStartAnyway;
+
+  /// No description provided for @trackingCountdownSkip.
+  ///
+  /// In ko, this message translates to:
+  /// **'탭하면 바로 시작'**
+  String get trackingCountdownSkip;
+
+  /// No description provided for @trackingPermTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'위치 권한이 필요해요'**
+  String get trackingPermTitle;
+
+  /// No description provided for @trackingPermBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'여정을 지도에 그리려면 위치 접근을 허용해 주세요. 화면을 꺼도 기록하려면 \'항상 허용\'이 필요해요.'**
+  String get trackingPermBody;
+
+  /// No description provided for @trackingPermWhileUsing.
+  ///
+  /// In ko, this message translates to:
+  /// **'앱 사용 중 허용'**
+  String get trackingPermWhileUsing;
+
+  /// No description provided for @trackingPermAlways.
+  ///
+  /// In ko, this message translates to:
+  /// **'항상 허용 (백그라운드 기록)'**
+  String get trackingPermAlways;
+
+  /// No description provided for @trackingPermSettings.
+  ///
+  /// In ko, this message translates to:
+  /// **'설정에서 허용하기'**
+  String get trackingPermSettings;
+
+  /// No description provided for @trackingShortTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'짧은 기록이에요'**
+  String get trackingShortTitle;
+
+  /// No description provided for @trackingShortBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'{summary} 기록이에요. 저장할까요?'**
+  String trackingShortBody(String summary);
+
+  /// No description provided for @resultDone.
+  ///
+  /// In ko, this message translates to:
+  /// **'오늘의 여정 완료'**
+  String get resultDone;
+
+  /// No description provided for @resultMovingTime.
+  ///
+  /// In ko, this message translates to:
+  /// **'이동 시간'**
+  String get resultMovingTime;
+
+  /// No description provided for @resultElevationGain.
+  ///
+  /// In ko, this message translates to:
+  /// **'고도 상승'**
+  String get resultElevationGain;
+
+  /// No description provided for @resultSplitsKm.
+  ///
+  /// In ko, this message translates to:
+  /// **'km별 구간'**
+  String get resultSplitsKm;
+
+  /// No description provided for @resultSplits5Km.
+  ///
+  /// In ko, this message translates to:
+  /// **'5km 구간'**
+  String get resultSplits5Km;
+
+  /// No description provided for @resultFastestHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'가장 빠른 구간 강조'**
+  String get resultFastestHint;
+
+  /// No description provided for @resultPhotos.
+  ///
+  /// In ko, this message translates to:
+  /// **'여정 속 사진'**
+  String get resultPhotos;
+
+  /// No description provided for @resultMemo.
+  ///
+  /// In ko, this message translates to:
+  /// **'한 줄 메모'**
+  String get resultMemo;
+
+  /// No description provided for @resultMemoHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'오늘 여정은 어땠나요?'**
+  String get resultMemoHint;
+
+  /// No description provided for @resultSave.
+  ///
+  /// In ko, this message translates to:
+  /// **'여정 저장'**
+  String get resultSave;
+
+  /// No description provided for @resultSaveShort.
+  ///
+  /// In ko, this message translates to:
+  /// **'저장'**
+  String get resultSaveShort;
+
+  /// No description provided for @resultSaved.
+  ///
+  /// In ko, this message translates to:
+  /// **'여정을 저장했어요'**
+  String get resultSaved;
+
+  /// No description provided for @resultDiscardTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'기록을 버릴까요?'**
+  String get resultDiscardTitle;
+
+  /// No description provided for @resultDiscardBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'저장하지 않으면 이 여정은 삭제돼요.'**
+  String get resultDiscardBody;
+
+  /// No description provided for @resultDiscard.
+  ///
+  /// In ko, this message translates to:
+  /// **'버리기'**
+  String get resultDiscard;
+
+  /// No description provided for @resultCancel.
+  ///
+  /// In ko, this message translates to:
+  /// **'취소'**
+  String get resultCancel;
+
+  /// No description provided for @resultTimeMorning.
+  ///
+  /// In ko, this message translates to:
+  /// **'아침'**
+  String get resultTimeMorning;
+
+  /// No description provided for @resultTimeAfternoon.
+  ///
+  /// In ko, this message translates to:
+  /// **'오후'**
+  String get resultTimeAfternoon;
+
+  /// No description provided for @resultTimeEvening.
+  ///
+  /// In ko, this message translates to:
+  /// **'저녁'**
+  String get resultTimeEvening;
+
+  /// No description provided for @resultTimeNight.
+  ///
+  /// In ko, this message translates to:
+  /// **'밤'**
+  String get resultTimeNight;
+
+  /// No description provided for @resultAutoTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'{date} {timeOfDay} {activity}'**
+  String resultAutoTitle(String date, String timeOfDay, String activity);
+
+  /// No description provided for @activityShareTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'여정 공유'**
+  String get activityShareTitle;
+
+  /// No description provided for @activityShareTemplateRoute.
+  ///
+  /// In ko, this message translates to:
+  /// **'경로'**
+  String get activityShareTemplateRoute;
+
+  /// No description provided for @activityShareTemplateStats.
+  ///
+  /// In ko, this message translates to:
+  /// **'기록'**
+  String get activityShareTemplateStats;
+
+  /// No description provided for @activityShareTemplatePhoto.
+  ///
+  /// In ko, this message translates to:
+  /// **'사진'**
+  String get activityShareTemplatePhoto;
+
+  /// No description provided for @activityShareTemplateSticker.
+  ///
+  /// In ko, this message translates to:
+  /// **'투명 스티커'**
+  String get activityShareTemplateSticker;
+
+  /// No description provided for @activityShareStickerHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'투명 배경 PNG — 스토리에서 사진 위에 올려 쓰세요'**
+  String get activityShareStickerHint;
 }
 
 class _AppLocalizationsDelegate

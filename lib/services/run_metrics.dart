@@ -206,8 +206,8 @@ class RunMetrics {
   ///
   /// 경계를 넘는 두 점 사이를 선형 보간해 정확한 경계 시각을 구하고,
   /// 구간 시간은 일시정지를 뺀 이동 시간 기준. 마지막 남은 거리가
-  /// 50m 이상이면 [Split.isPartial] 구간으로 덧붙인다.
-  static List<Split> computeSplits({
+  /// 50m 이상이면 [ActivitySplit.isPartial] 구간으로 덧붙인다.
+  static List<ActivitySplit> computeSplits({
     required List<RoutePoint> points,
     required List<RoutePause> pauses,
     required DateTime startedAt,
@@ -218,7 +218,7 @@ class RunMetrics {
     Duration movingAt(DateTime t) =>
         movingDurationAt(startedAt: startedAt, at: t, pauses: pauses);
 
-    final splits = <Split>[];
+    final splits = <ActivitySplit>[];
     var cumulative = 0.0;
     var nextBoundary = splitMeters;
     var lastBoundaryMoving = movingAt(points.first.time);
@@ -233,7 +233,7 @@ class RunMetrics {
         final crossAt = a.time.add(Duration(milliseconds: ms.round()));
         final moving = movingAt(crossAt);
         splits.add(
-          Split(
+          ActivitySplit(
             index: splits.length + 1,
             distanceMeters: splitMeters,
             duration: moving - lastBoundaryMoving,
@@ -248,7 +248,7 @@ class RunMetrics {
     final remaining = cumulative - (nextBoundary - splitMeters);
     if (remaining >= 50) {
       splits.add(
-        Split(
+        ActivitySplit(
           index: splits.length + 1,
           distanceMeters: remaining,
           duration: movingAt(points.last.time) - lastBoundaryMoving,
@@ -261,7 +261,7 @@ class RunMetrics {
 }
 
 /// 한 구간(1km 또는 5km) 기록.
-class Split {
+class ActivitySplit {
   final int index;
   final double distanceMeters;
   final Duration duration;
@@ -269,7 +269,7 @@ class Split {
   /// 마지막 자투리 구간(정해진 거리보다 짧음).
   final bool isPartial;
 
-  const Split({
+  const ActivitySplit({
     required this.index,
     required this.distanceMeters,
     required this.duration,

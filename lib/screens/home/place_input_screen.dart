@@ -32,17 +32,19 @@ class _PlaceInputScreenState extends State<PlaceInputScreen> {
   LatLng? _origin;
   bool _locating = false;
   bool _loading = false;
+  PlaceRecommendStage? _stage;
 
   // 카테고리 칩 정의
+  // 카테고리 칩 정의 — 색은 TRACEN 보라 하나로 통일 (무지개색은 산만함)
   static const _categories = [
-    _Chip('restaurant', Icons.restaurant_rounded, Color(0xFFEF4444)),
-    _Chip('cafe', Icons.coffee_rounded, Color(0xFF8B5CF6)),
-    _Chip('popup', Icons.store_rounded, Color(0xFFF59E0B)),
-    _Chip('bar', Icons.local_bar_rounded, Color(0xFF3B82F6)),
-    _Chip('park', Icons.park_rounded, Color(0xFF10B981)),
-    _Chip('shopping', Icons.shopping_bag_rounded, Color(0xFFEC4899)),
-    _Chip('culture', Icons.museum_rounded, Color(0xFF6366F1)),
-    _Chip('convenience', Icons.store_mall_directory_rounded, Color(0xFF14B8A6)),
+    _Chip('restaurant', Icons.restaurant_rounded),
+    _Chip('cafe', Icons.coffee_rounded),
+    _Chip('popup', Icons.store_rounded),
+    _Chip('bar', Icons.local_bar_rounded),
+    _Chip('park', Icons.park_rounded),
+    _Chip('shopping', Icons.shopping_bag_rounded),
+    _Chip('culture', Icons.museum_rounded),
+    _Chip('convenience', Icons.store_mall_directory_rounded),
   ];
 
   // 빠른 입력 예시
@@ -61,10 +63,17 @@ class _PlaceInputScreenState extends State<PlaceInputScreen> {
   void initState() {
     super.initState();
     _getLocation();
+    // 입력할 때마다 하단 버튼 문구("2명 · 카페 추천 받기")가 갱신되도록
+    _textController.addListener(_onTextChanged);
+  }
+
+  void _onTextChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
+    _textController.removeListener(_onTextChanged);
     _textController.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -77,7 +86,9 @@ class _PlaceInputScreenState extends State<PlaceInputScreen> {
       final pos = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
-      setState(() => _origin = LatLng(pos.latitude, pos.longitude));
+      if (mounted) {
+        setState(() => _origin = LatLng(pos.latitude, pos.longitude));
+      }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -104,7 +115,10 @@ class _PlaceInputScreenState extends State<PlaceInputScreen> {
     }
 
     _focusNode.unfocus();
-    setState(() => _loading = true);
+    setState(() {
+      _loading = true;
+      _stage = PlaceRecommendStage.searching;
+    });
 
     try {
       final result = await PlaceRecommendService.recommend(
@@ -112,22 +126,65 @@ class _PlaceInputScreenState extends State<PlaceInputScreen> {
         userInput: _textController.text.trim(),
         chips: _selectedChips.toList(),
         people: _people,
+        onStage: (stage) {
+          if (mounted) setState(() => _stage = stage);
+        },
       );
 
       if (!mounted) return;
-      Navigator.push(
+      setState(() {
+        _loading = false;
+        _stage = null;
+      });
+      final retry = await Navigator.push<bool>(
         context,
-        MaterialPageRoute(builder: (_) => PlaceResultScreen(recommendation: result, origin: _origin!)),
+        MaterialPageRoute(
+          builder: (_) =>
+              PlaceResultScreen(recommendation: result, origin: _origin!),
+        ),
       );
+      // 결과 화면에서 "다시 추천받기"를 누르면 같은 조건으로 바로 재검색
+      if (retry == true && mounted) _onSearch();
+    } on PlaceRecommendException catch (e) {
+      debugPrint('[PlaceInput] 추천 실패: $e');
+      _showError(_messageFor(e.kind));
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$e'), backgroundColor: AppColors.danger),
-        );
-      }
+      debugPrint('[PlaceInput] 추천 실패(알 수 없음): $e');
+      _showError(l10n.placeErrAi);
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) {
+        setState(() {
+          _loading = false;
+          _stage = null;
+        });
+      }
     }
+  }
+
+  String _messageFor(PlaceRecommendErrorKind kind) => switch (kind) {
+    PlaceRecommendErrorKind.unavailable => l10n.placeErrUnavailable,
+    PlaceRecommendErrorKind.busy => l10n.placeErrBusy,
+    PlaceRecommendErrorKind.network => l10n.placeErrNetwork,
+    PlaceRecommendErrorKind.notEnough => l10n.placeErrFewPlaces,
+    PlaceRecommendErrorKind.aiFailed => l10n.placeErrAi,
+  };
+
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 5),
+          action: SnackBarAction(
+            label: l10n.commonRetry,
+            textColor: AppColors.primaryLight,
+            onPressed: _onSearch,
+          ),
+        ),
+      );
   }
 
   @override
@@ -144,7 +201,9 @@ class _PlaceInputScreenState extends State<PlaceInputScreen> {
         title: Text(l10n.placeTitle, style: AppTextStyles.h3),
         centerTitle: true,
       ),
-      body: GestureDetector(
+      body: Stack(
+        children: [
+      GestureDetector(
         onTap: () => _focusNode.unfocus(),
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
@@ -222,7 +281,7 @@ class _PlaceInputScreenState extends State<PlaceInputScreen> {
                 children: _categories.map((cat) {
                   final selected = _selectedChips.contains(cat.key);
                   return GestureDetector(
-                    onTap: () => setState(() {
+                    onTap: _loading ? null : () => setState(() {
                       if (selected) {
                         _selectedChips.remove(cat.key);
                       } else {
@@ -233,19 +292,17 @@ class _PlaceInputScreenState extends State<PlaceInputScreen> {
                       duration: const Duration(milliseconds: 180),
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
                       decoration: BoxDecoration(
-                        color: selected ? cat.color : context.cardColor,
+                        color: selected ? AppColors.primary : context.cardColor,
                         borderRadius: BorderRadius.circular(AppRadius.full),
                         border: Border.all(
-                          color: selected ? cat.color : context.borderColor,
+                          color: selected ? AppColors.primary : context.borderColor,
                         ),
-                        boxShadow: selected
-                            ? [BoxShadow(color: cat.color.withValues(alpha: 0.25), blurRadius: 8, offset: const Offset(0, 3))]
-                            : null,
+                        boxShadow: selected ? AppShadows.primary : null,
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(cat.icon, size: 15, color: selected ? Colors.white : cat.color),
+                          Icon(cat.icon, size: 15, color: selected ? Colors.white : AppColors.primary),
                           const SizedBox(width: 6),
                           Text(
                             PlaceRecommendService.chipLabel(l10n, cat.key),
@@ -397,6 +454,10 @@ class _PlaceInputScreenState extends State<PlaceInputScreen> {
           ),
         ),
       ),
+          // ── AI 진행 단계 오버레이 ──
+          if (_loading) _RecommendProgressOverlay(stage: _stage),
+        ],
+      ),
     );
   }
 }
@@ -404,6 +465,157 @@ class _PlaceInputScreenState extends State<PlaceInputScreen> {
 // ─────────────────────────────────────────────────────────────
 // 서브 위젯
 // ─────────────────────────────────────────────────────────────
+
+/// 추천을 기다리는 동안 보여주는 단계 표시 — "주변 검색 → AI 선별".
+/// Gemini 응답까지 수 초가 걸리므로 지금 무엇을 하는지 보여줘서 덜 지루하게.
+class _RecommendProgressOverlay extends StatelessWidget {
+  final PlaceRecommendStage? stage;
+  const _RecommendProgressOverlay({required this.stage});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final current = stage ?? PlaceRecommendStage.searching;
+    final steps = [
+      (PlaceRecommendStage.searching, Icons.travel_explore_rounded, l10n.placeStageSearching),
+      (PlaceRecommendStage.choosing, Icons.auto_awesome, l10n.placeStageChoosing),
+    ];
+
+    return Positioned.fill(
+      child: AbsorbPointer(
+        child: ColoredBox(
+          color: context.bgColor.withValues(alpha: 0.86),
+          child: Center(
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 32),
+              padding: const EdgeInsets.fromLTRB(22, 26, 22, 22),
+              decoration: BoxDecoration(
+                color: context.cardColor,
+                borderRadius: BorderRadius.circular(AppRadius.xxl),
+                boxShadow: AppShadows.lg,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const _PulsingSparkle(),
+                  const SizedBox(height: 22),
+                  for (final (s, icon, label) in steps)
+                    _StepRow(
+                      icon: icon,
+                      label: label,
+                      done: s.index < current.index,
+                      active: s == current,
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StepRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool done;
+  final bool active;
+  const _StepRow({
+    required this.icon,
+    required this.label,
+    required this.done,
+    required this.active,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = (done || active) ? AppColors.primary : context.textTertiary;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 22,
+            height: 22,
+            child: done
+                ? const Icon(Icons.check_circle_rounded,
+                    size: 22, color: AppColors.primary)
+                : active
+                    ? const Padding(
+                        padding: EdgeInsets.all(3),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.2,
+                          color: AppColors.primary,
+                        ),
+                      )
+                    : Icon(icon, size: 20, color: color),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 200),
+              style: AppTextStyles.body.copyWith(
+                color: active ? context.textPrimary : color,
+                fontWeight: active ? FontWeight.w600 : FontWeight.w400,
+              ),
+              child: Text(label),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 은은하게 숨 쉬는 보라 스파클 아이콘.
+class _PulsingSparkle extends StatefulWidget {
+  const _PulsingSparkle();
+
+  @override
+  State<_PulsingSparkle> createState() => _PulsingSparkleState();
+}
+
+class _PulsingSparkleState extends State<_PulsingSparkle>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1100),
+  )..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _c,
+      builder: (context, child) {
+        final t = Curves.easeInOut.transform(_c.value);
+        return Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(
+            color: AppColors.primary,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withValues(alpha: 0.18 + 0.22 * t),
+                blurRadius: 12 + 14 * t,
+                spreadRadius: 2 * t,
+              ),
+            ],
+          ),
+          child: Transform.scale(scale: 0.9 + 0.15 * t, child: child),
+        );
+      },
+      child: const Icon(Icons.auto_awesome, color: Colors.white, size: 28),
+    );
+  }
+}
 
 class _PeopleSelector extends StatelessWidget {
   final int value;
@@ -446,6 +658,5 @@ class _PeopleSelector extends StatelessWidget {
 class _Chip {
   final String key;
   final IconData icon;
-  final Color color;
-  const _Chip(this.key, this.icon, this.color);
+  const _Chip(this.key, this.icon);
 }

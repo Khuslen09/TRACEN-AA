@@ -18,24 +18,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingStart => 'Get Started';
 
   @override
-  String get onboarding1Title => 'Trace your own path\non the map';
+  String get onboarding1Title => 'A map that opens up\nas you go';
 
   @override
   String get onboarding1Desc =>
-      'Walks, runs, travel — go anywhere\nwith Tracen by your side.';
+      'The purple peels away only where you\'ve been.\nThe more you explore, the more your map fills in.';
 
   @override
-  String get onboarding2Title => 'Capture special\nmoments';
+  String get onboarding2Title => 'Run, walk, ride —\nall in one place';
 
   @override
-  String get onboarding2Desc => 'Leave a photo and a note\nwherever you go.';
+  String get onboarding2Desc =>
+      'Distance, pace and time in real time.\nYour route keeps recording even with the screen off.';
 
   @override
-  String get onboarding3Title => 'Pick up right where\nyou left off';
+  String get onboarding3Title => 'Pin the moment,\nshare the memory';
 
   @override
   String get onboarding3Desc =>
-      'Safely stored in the cloud,\nready whenever you are.';
+      'Leave photos and notes on the map,\nthen turn them into cards to share.';
 
   @override
   String get settingsTitle => 'Settings';
@@ -192,7 +193,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get continueWithGoogle => 'Continue with Google';
 
   @override
-  String get continueWithAppleSoon => 'Continue with Apple (coming soon)';
+  String get continueWithApple => 'Continue with Apple';
+
+  @override
+  String get appleLoginFailed => 'Apple sign-in failed';
+
+  @override
+  String get deleteAccountPasswordTitle => 'Confirm password';
+
+  @override
+  String get deleteAccountPasswordMessage =>
+      'Enter your password again to delete your account.';
 
   @override
   String get noAccountYet => 'Don\'t have an account yet?';
@@ -354,7 +365,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Attach saved photos to pins\nfor richer memories';
 
   @override
-  String get permAllowAll => 'Allow all';
+  String get permAllowAll => 'Continue';
 
   @override
   String get permStatusGranted => 'Allowed';
@@ -401,12 +412,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileNoName => 'No name';
-
-  @override
-  String get statRuns => 'Runs';
-
-  @override
-  String get statDistance => 'Total distance';
 
   @override
   String get statPins => 'Pins';
@@ -527,7 +532,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runDeleted => 'Run deleted';
 
   @override
-  String get myRuns => 'My runs';
+  String get myRuns => 'My activities';
 
   @override
   String get loadFailed => 'Failed to load';
@@ -1285,6 +1290,83 @@ class AppLocalizationsEn extends AppLocalizations {
   String get activityShareTakePhoto => 'Take a photo';
 
   @override
-  String get shareInstagramUnavailable =>
-      'Couldn\'t open Instagram — opening the share sheet instead';
+  String get onboarding4Title => 'Where to,\nright now?';
+
+  @override
+  String get onboarding4Desc =>
+      'Describe the vibe you want and\nAI picks the right spots nearby.';
+
+  @override
+  String get placeStageSearching => 'Looking for places nearby';
+
+  @override
+  String get placeStageChoosing => 'AI is picking the best matches';
+
+  @override
+  String get placeErrUnavailable =>
+      'AI recommendations aren\'t available right now.\nPlease try again later.';
+
+  @override
+  String get placeErrBusy =>
+      'Lots of requests right now.\nPlease try again in a moment.';
+
+  @override
+  String get placeErrNetwork =>
+      'Check your internet connection\nand try again.';
+
+  @override
+  String get placeErrFewPlaces =>
+      'Couldn\'t find enough places nearby.\nTry different or more categories.';
+
+  @override
+  String get placeErrAi =>
+      'Couldn\'t put together recommendations.\nPlease try again.';
+
+  @override
+  String get placeDirections => 'Directions';
+
+  @override
+  String get placeSaveAsPin => 'Save as pin';
+
+  @override
+  String get placeSavedAsPin => 'Saved to your map as a pin';
+
+  @override
+  String get placeRetryRecs => 'Get new picks';
+
+  @override
+  String get placeAiPick => 'Why AI picked it';
+
+  @override
+  String get placeSavedShort => 'Saved';
+
+  @override
+  String get statAll => 'All';
+
+  @override
+  String statTypeCount(String type, int count) {
+    return '$type · $count';
+  }
+
+  @override
+  String statPinCount(int count) {
+    return '$count pins';
+  }
+
+  @override
+  String routeListEmptyForType(String type) {
+    return 'No $type activities yet';
+  }
+
+  @override
+  String get pinEditTitle => 'Edit pin';
+
+  @override
+  String get pinEditTooltip => 'Edit';
+
+  @override
+  String get pinUpdated => 'Pin updated';
+
+  @override
+  String get photoFilterOriginal => 'Original';
 }

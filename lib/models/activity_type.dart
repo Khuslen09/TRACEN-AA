@@ -38,6 +38,14 @@ enum ActivityType {
     ActivityType.cycling => 1.5,
   };
 
+  /// 이보다 빠른 이동은 GPS 튐으로 본다(m/s) — [ActivityRecorder]가 GPS
+  /// 끊김 뒤의 큰 이동을 실제 이동인지 판단할 때 사용.
+  double get maxPlausibleSpeedMps => switch (this) {
+    ActivityType.walking => 4, // 14.4 km/h
+    ActivityType.running => 8, // 28.8 km/h
+    ActivityType.cycling => 25, // 90 km/h
+  };
+
   /// DB에서 읽은 문자열을 enum으로 변환. 알 수 없으면 running.
   static ActivityType fromKey(String? key) {
     for (final t in ActivityType.values) {

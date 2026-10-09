@@ -40,7 +40,8 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen>
+    with WidgetsBindingObserver {
   AppLocalizations get l10n => AppLocalizations.of(context);
 
   // ─── 지도 / 위치 ───
@@ -94,6 +95,11 @@ class _HomeScreenState extends State<HomeScreen> {
     _restoreActiveRouteIfAny();
     _loadAllSavedRoutes();
     _loadDayTracks();
+    _dayTrackRefresh = Timer.periodic(
+      _dayTrackRefreshInterval,
+      (_) => _loadDayTracks(),
+    );
+    WidgetsBinding.instance.addObserver(this);
     _loadStandalonePins();
     _moveCameraToMyLocation();
     _startEraseStream();
@@ -195,6 +201,18 @@ class _HomeScreenState extends State<HomeScreen> {
   // 발자취 (day_tracks)
   // ─────────────────────────────────────────────
 
+  /// 백그라운드 추적이 day_tracks에 계속 점을 쌓으므로, 앱을 켜둔 채로도
+  /// 오늘 간 길이 지도에 나타나도록 주기적으로 다시 읽는다 — 예전엔
+  /// initState에서 한 번만 읽어 다음 날 앱을 다시 열어야 보였다.
+  static const _dayTrackRefreshInterval = Duration(minutes: 5);
+  Timer? _dayTrackRefresh;
+
+  /// 백그라운드에선 타이머가 멈추므로(iOS) 돌아오는 즉시 한 번 갱신.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _loadDayTracks();
+  }
+
   /// day_tracks 데이터를 로드해서 _dayTrackPoints에 저장.
   /// 기간 제한 없이 기기에 설치된 이후 기록된 전체 발자취를 표시.
   ///
@@ -256,6 +274,8 @@ class _HomeScreenState extends State<HomeScreen> {
     _colorNotifier.removeListener(_onColorChanged);
     _colorNotifier.dispose();
     _eraseSub?.cancel();
+    _dayTrackRefresh?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
@@ -405,7 +425,21 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showPinPreview(Pin pin) {
-    PinPreviewSheet.show(context, pin: pin, onDelete: () => _deletePin(pin));
+    PinPreviewSheet.show(
+      context,
+      pin: pin,
+      onDelete: () => _deletePin(pin),
+      onEdited: _onPinEdited,
+    );
+  }
+
+  /// 핀 수정 후 — 마커를 새 카테고리 색/내용으로 교체.
+  Future<void> _onPinEdited(Pin updated) async {
+    final markerId = 'pin_${updated.id}';
+    _pinMarkers.removeWhere((m) => m.markerId.value == markerId);
+    _pinByMarkerId.remove(markerId);
+    await _addPinMarker(updated);
+    if (mounted) setState(() {});
   }
 
   Future<void> _deletePin(Pin pin) async {
@@ -579,13 +613,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 _CircleIconButton(
                   icon: Icons.auto_awesome_rounded,
                   iconColor: AppColors.primary,
-                  onPressed: () {
-                    Navigator.push(
+                  onPressed: () async {
+                    await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (_) => const PlaceInputScreen(),
                       ),
                     );
+                    // AI 추천 결과에서 "핀으로 저장"한 장소를 지도에 반영
+                    if (mounted) _rebuildAllMarkers();
                   },
                 ),
               ],

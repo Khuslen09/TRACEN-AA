@@ -143,6 +143,50 @@ class AuthService {
   }
 
   // ─────────────────────────────────────────────
+  // Sign in with Apple
+  // ─────────────────────────────────────────────
+
+  /// Apple 계정으로 로그인 (App Store 심사 가이드라인 4.8).
+  ///
+  /// iOS에서는 firebase_auth가 네이티브 ASAuthorization 시트를 띄운다 —
+  /// 별도 패키지 불필요. Apple은 이름을 "최초 1회"만 넘겨주므로
+  /// 받았을 때 displayName으로 저장해 둔다.
+  static Future<AppUser> signInWithApple() async {
+    try {
+      final provider = AppleAuthProvider()
+        ..addScope('email')
+        ..addScope('name');
+      final cred = await _auth.signInWithProvider(provider);
+      final user = cred.user!;
+
+      final profile = cred.additionalUserInfo?.profile;
+      final givenName = profile?['given_name'] ?? profile?['firstName'];
+      final familyName = profile?['family_name'] ?? profile?['lastName'];
+      if ((user.displayName == null || user.displayName!.isEmpty) &&
+          (givenName != null || familyName != null)) {
+        final name = [givenName, familyName]
+            .whereType<String>()
+            .where((e) => e.isNotEmpty)
+            .join(' ');
+        if (name.isNotEmpty) await user.updateDisplayName(name);
+      }
+
+      return await _getOrCreateUserDoc(_auth.currentUser ?? user);
+    } on FirebaseAuthException catch (e) {
+      // 사용자가 시트를 닫은 경우 — 조용히 처리
+      if (e.code == 'canceled' ||
+          e.code == 'web-context-canceled' ||
+          (e.message ?? '').contains('1001')) {
+        throw AuthException(Strings.current.appleLoginFailed, cancelled: true);
+      }
+      throw AuthException(_mapAuthError(e));
+    } catch (e) {
+      if (e is AuthException) rethrow;
+      throw AuthException(Strings.current.appleLoginFailed);
+    }
+  }
+
+  // ─────────────────────────────────────────────
   // 로그아웃
   // ─────────────────────────────────────────────
 
@@ -231,14 +275,22 @@ class AuthService {
   /// 알게 되면 데이터는 이미 사라졌는데 Auth 계정만 남는 상황이 생긴다.
   /// 이메일 사용자는 비밀번호 없이는 재인증할 수 없으므로, 호출 측이
   /// [password]를 받아 `deleteAccount(password: ...)`로 재시도해야 한다.
-  static Future<void> _ensureRecentLogin(User u, {String? password}) async {
+  static Future<String?> _ensureRecentLogin(User u, {String? password}) async {
     final lastSignIn = u.metadata.lastSignInTime;
     final isRecent = lastSignIn != null &&
         DateTime.now().difference(lastSignIn) < _reauthWindow;
-    if (isRecent) return;
 
     final providerId =
         u.providerData.isNotEmpty ? u.providerData.first.providerId : null;
+
+    // Apple 사용자는 탈퇴 시 Apple 토큰 철회(revoke)가 필요하고, 그러려면
+    // 방금 받은 authorization code가 있어야 한다 → 항상 Apple 재인증.
+    if (providerId == 'apple.com') {
+      final cred = await u.reauthenticateWithProvider(AppleAuthProvider());
+      return cred.additionalUserInfo?.authorizationCode;
+    }
+
+    if (isRecent) return null;
 
     if (providerId == 'google.com') {
       final googleUser =
@@ -262,6 +314,14 @@ class AuthService {
       );
       await u.reauthenticateWithCredential(credential);
     }
+    return null;
+  }
+
+  /// 현재 사용자가 이메일/비밀번호 가입자인지 — 탈퇴 시 비밀번호 입력 필요 여부.
+  static bool get isPasswordUser {
+    final u = _auth.currentUser;
+    if (u == null || u.providerData.isEmpty) return false;
+    return u.providerData.first.providerId == 'password';
   }
 
   /// Storage 폴더를 깊이 제한 없이 재귀적으로 완전히 삭제.
@@ -304,7 +364,7 @@ class AuthService {
 
     try {
       // 0. 재인증 선행 — 데이터 삭제 전에 끝내야 삭제-후-실패를 피할 수 있다.
-      await _ensureRecentLogin(u, password: password);
+      final appleAuthCode = await _ensureRecentLogin(u, password: password);
 
       final uid = u.uid;
 
@@ -341,6 +401,15 @@ class AuthService {
 
       // 4. users/{uid} 문서 삭제
       await _usersCol.doc(uid).delete();
+
+      // 4b. Apple 토큰 철회 — Sign in with Apple 사용자 탈퇴 시 Apple 요구사항.
+      if (appleAuthCode != null && appleAuthCode.isNotEmpty) {
+        try {
+          await _auth.revokeTokenWithAuthorizationCode(appleAuthCode);
+        } catch (e) {
+          if (kDebugMode) debugPrint('[AuthService] Apple 토큰 철회 실패: $e');
+        }
+      }
 
       // 5. Auth 계정 삭제
       await u.delete();

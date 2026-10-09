@@ -6,12 +6,12 @@
   },
   "onboardingNext": "다음",
   "onboardingStart": "시작하기",
-  "onboarding1Title": "당신만의 길을\n지도에 남겨보세요",
-  "onboarding1Desc": "산책, 러닝, 여행 — 어디든 Tracen과 \n함께 걸어요.",
-  "onboarding2Title": "특별한 순간을\n기록해보세요",
-  "onboarding2Desc": "도착한 곳에서 사진과 메모를\n남겨보세요.",
-  "onboarding3Title": "어디서든\n다시 꺼내보세요",
-  "onboarding3Desc": "안전하게 저장되어\n언제든 다시 꺼내볼 수 있어요.",
+  "onboarding1Title": "걸은 만큼\n열리는 지도",
+  "onboarding1Desc": "지나간 길만 보랏빛이 벗겨져요.\n많이 다닐수록 나만의 지도가 완성돼요.",
+  "onboarding2Title": "러닝·워킹·사이클링\n한 곳에서",
+  "onboarding2Desc": "거리·페이스·시간을 실시간으로.\n화면이 꺼져도 경로는 계속 기록돼요.",
+  "onboarding3Title": "순간은 핀으로,\n추억은 카드로",
+  "onboarding3Desc": "사진과 메모를 지도에 남기고\n감성 카드로 만들어 바로 공유해요.",
   "settingsTitle": "설정",
   "sectionAppearance": "외관",
   "darkModeTitle": "다크 모드",
@@ -68,7 +68,10 @@
   "passwordHint": "비밀번호를 입력하세요",
   "forgotPasswordLink": "비밀번호를 잊으셨나요?",
   "continueWithGoogle": "Google로 계속하기",
-  "continueWithAppleSoon": "Apple로 계속하기 (준비 중)",
+  "continueWithApple": "Apple로 계속하기",
+  "appleLoginFailed": "Apple 로그인에 실패했어요",
+  "deleteAccountPasswordTitle": "비밀번호 확인",
+  "deleteAccountPasswordMessage": "계정을 삭제하려면 비밀번호를 다시 입력해 주세요.",
   "noAccountYet": "아직 계정이 없으신가요?",
   "signUpAction": "가입하기",
   "nameRequired": "이름을 입력해주세요",
@@ -126,7 +129,7 @@
   "permCameraReason": "특별한 순간에 인증샷을\n바로 남길 수 있어요",
   "permPhotosTitle": "사진 라이브러리",
   "permPhotosReason": "저장된 사진을 핀에 첨부해서\n추억을 더 풍성하게 기록해요",
-  "permAllowAll": "모두 허용하기",
+  "permAllowAll": "계속하기",
   "permStatusGranted": "허용됨",
   "permStatusNeeded": "필요함",
   "permStatusSettings": "설정 필요",
@@ -142,8 +145,6 @@
   "navProfile": "프로필",
   "profileEdit": "프로필 편집",
   "profileNoName": "이름 없음",
-  "statRuns": "러닝",
-  "statDistance": "총 거리",
   "statPins": "핀",
   "recentPhotos": "최근 사진",
   "seeAll": "전체 보기",
@@ -189,7 +190,7 @@
   "deleteRunTitle": "이 러닝을 삭제할까요?",
   "deleteRunBody": "경로와 핀도 함께 삭제되며, 되돌릴 수 없어요.",
   "runDeleted": "러닝을 삭제했어요",
-  "myRuns": "나의 러닝",
+  "myRuns": "나의 여정",
   "loadFailed": "불러오기에 실패했어요",
   "runInProgress": "진행 중",
   "durationHM": "{h}시간 {m}분",
@@ -576,5 +577,51 @@
   "activityShareChangePhoto": "사진 변경",
   "activityShareRemovePhoto": "사진 빼기",
   "activityShareTakePhoto": "카메라로 촬영",
-  "shareInstagramUnavailable": "인스타그램을 열 수 없어 공유 시트로 열어요"
+  "onboarding4Title": "지금 여기서\n어디 갈까?",
+  "onboarding4Desc": "원하는 분위기를 말하면\nAI가 주변에서 딱 맞는 곳을 골라줘요.",
+  "placeStageSearching": "주변 장소를 찾고 있어요",
+  "placeStageChoosing": "AI가 딱 맞는 곳을 고르고 있어요",
+  "placeErrUnavailable": "지금은 AI 추천을 사용할 수 없어요.\n잠시 후 다시 시도해 주세요.",
+  "placeErrBusy": "요청이 몰려 있어요.\n잠시 후 다시 시도해 주세요.",
+  "placeErrNetwork": "인터넷 연결을 확인하고\n다시 시도해 주세요.",
+  "placeErrFewPlaces": "주변에서 추천할 곳을 충분히 찾지 못했어요.\n카테고리를 바꾸거나 더 골라 보세요.",
+  "placeErrAi": "추천을 만들지 못했어요.\n다시 시도해 주세요.",
+  "placeDirections": "길찾기",
+  "placeSaveAsPin": "핀으로 저장",
+  "placeSavedAsPin": "내 지도에 핀으로 저장했어요",
+  "placeRetryRecs": "다시 추천받기",
+  "placeAiPick": "AI 추천 이유",
+  "placeSavedShort": "저장됨",
+  "statAll": "전체",
+  "statTypeCount": "{type} · {count}회",
+  "@statTypeCount": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statPinCount": "핀 {count}개",
+  "@statPinCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "routeListEmptyForType": "{type} 기록이 아직 없어요",
+  "@routeListEmptyForType": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "pinEditTitle": "핀 수정",
+  "pinEditTooltip": "수정",
+  "pinUpdated": "핀을 수정했어요",
+  "photoFilterOriginal": "원본"
 }

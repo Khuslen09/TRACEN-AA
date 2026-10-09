@@ -10,6 +10,8 @@ import '../../models/pin.dart';
 import '../../models/timeline_entry.dart';
 import '../../services/auth_service.dart';
 import '../../services/route_db_service.dart';
+import '../../services/pin_service.dart';
+import '../../services/photo_storage.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/theme_extensions.dart';
@@ -116,10 +118,11 @@ class _TimelineScreenState extends State<TimelineScreen> {
       context,
       pin: pin,
       onDelete: () async {
-        if (pin.id == null) return;
-        await RouteDBService.deletePin(pin.id!);
+        // 사진 파일·클라우드까지 함께 삭제
+        await PinService.delete(pin);
         await _refresh();
       },
+      onEdited: (_) => _refresh(),
     );
   }
 
@@ -380,9 +383,11 @@ class _PhotoThumbnail extends StatelessWidget {
     final pin = entry.pin;
 
     // 로컬 우선, 없으면 네트워크
-    if (pin.photoPath != null && pin.photoPath!.isNotEmpty) {
+    // 로컬 파일이 없으면(다른 기기에서 만든 핀 등) 클라우드 사진으로
+    final localPath = PhotoStorage.existingPath(pin.photoPath);
+    if (localPath != null) {
       return Image.file(
-        File(pin.photoPath!),
+        File(localPath),
         fit: BoxFit.cover,
         errorBuilder: (_, __, ___) => _fallback(context),
       );

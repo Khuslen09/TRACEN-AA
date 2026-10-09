@@ -18,22 +18,22 @@ class AppLocalizationsKo extends AppLocalizations {
   String get onboardingStart => '시작하기';
 
   @override
-  String get onboarding1Title => '당신만의 길을\n지도에 남겨보세요';
+  String get onboarding1Title => '걸은 만큼\n열리는 지도';
 
   @override
-  String get onboarding1Desc => '산책, 러닝, 여행 — 어디든 Tracen과 \n함께 걸어요.';
+  String get onboarding1Desc => '지나간 길만 보랏빛이 벗겨져요.\n많이 다닐수록 나만의 지도가 완성돼요.';
 
   @override
-  String get onboarding2Title => '특별한 순간을\n기록해보세요';
+  String get onboarding2Title => '러닝·워킹·사이클링\n한 곳에서';
 
   @override
-  String get onboarding2Desc => '도착한 곳에서 사진과 메모를\n남겨보세요.';
+  String get onboarding2Desc => '거리·페이스·시간을 실시간으로.\n화면이 꺼져도 경로는 계속 기록돼요.';
 
   @override
-  String get onboarding3Title => '어디서든\n다시 꺼내보세요';
+  String get onboarding3Title => '순간은 핀으로,\n추억은 카드로';
 
   @override
-  String get onboarding3Desc => '안전하게 저장되어\n언제든 다시 꺼내볼 수 있어요.';
+  String get onboarding3Desc => '사진과 메모를 지도에 남기고\n감성 카드로 만들어 바로 공유해요.';
 
   @override
   String get settingsTitle => '설정';
@@ -185,7 +185,16 @@ class AppLocalizationsKo extends AppLocalizations {
   String get continueWithGoogle => 'Google로 계속하기';
 
   @override
-  String get continueWithAppleSoon => 'Apple로 계속하기 (준비 중)';
+  String get continueWithApple => 'Apple로 계속하기';
+
+  @override
+  String get appleLoginFailed => 'Apple 로그인에 실패했어요';
+
+  @override
+  String get deleteAccountPasswordTitle => '비밀번호 확인';
+
+  @override
+  String get deleteAccountPasswordMessage => '계정을 삭제하려면 비밀번호를 다시 입력해 주세요.';
 
   @override
   String get noAccountYet => '아직 계정이 없으신가요?';
@@ -342,7 +351,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get permPhotosReason => '저장된 사진을 핀에 첨부해서\n추억을 더 풍성하게 기록해요';
 
   @override
-  String get permAllowAll => '모두 허용하기';
+  String get permAllowAll => '계속하기';
 
   @override
   String get permStatusGranted => '허용됨';
@@ -388,12 +397,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get profileNoName => '이름 없음';
-
-  @override
-  String get statRuns => '러닝';
-
-  @override
-  String get statDistance => '총 거리';
 
   @override
   String get statPins => '핀';
@@ -512,7 +515,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runDeleted => '러닝을 삭제했어요';
 
   @override
-  String get myRuns => '나의 러닝';
+  String get myRuns => '나의 여정';
 
   @override
   String get loadFailed => '불러오기에 실패했어요';
@@ -1252,5 +1255,78 @@ class AppLocalizationsKo extends AppLocalizations {
   String get activityShareTakePhoto => '카메라로 촬영';
 
   @override
-  String get shareInstagramUnavailable => '인스타그램을 열 수 없어 공유 시트로 열어요';
+  String get onboarding4Title => '지금 여기서\n어디 갈까?';
+
+  @override
+  String get onboarding4Desc => '원하는 분위기를 말하면\nAI가 주변에서 딱 맞는 곳을 골라줘요.';
+
+  @override
+  String get placeStageSearching => '주변 장소를 찾고 있어요';
+
+  @override
+  String get placeStageChoosing => 'AI가 딱 맞는 곳을 고르고 있어요';
+
+  @override
+  String get placeErrUnavailable => '지금은 AI 추천을 사용할 수 없어요.\n잠시 후 다시 시도해 주세요.';
+
+  @override
+  String get placeErrBusy => '요청이 몰려 있어요.\n잠시 후 다시 시도해 주세요.';
+
+  @override
+  String get placeErrNetwork => '인터넷 연결을 확인하고\n다시 시도해 주세요.';
+
+  @override
+  String get placeErrFewPlaces =>
+      '주변에서 추천할 곳을 충분히 찾지 못했어요.\n카테고리를 바꾸거나 더 골라 보세요.';
+
+  @override
+  String get placeErrAi => '추천을 만들지 못했어요.\n다시 시도해 주세요.';
+
+  @override
+  String get placeDirections => '길찾기';
+
+  @override
+  String get placeSaveAsPin => '핀으로 저장';
+
+  @override
+  String get placeSavedAsPin => '내 지도에 핀으로 저장했어요';
+
+  @override
+  String get placeRetryRecs => '다시 추천받기';
+
+  @override
+  String get placeAiPick => 'AI 추천 이유';
+
+  @override
+  String get placeSavedShort => '저장됨';
+
+  @override
+  String get statAll => '전체';
+
+  @override
+  String statTypeCount(String type, int count) {
+    return '$type · $count회';
+  }
+
+  @override
+  String statPinCount(int count) {
+    return '핀 $count개';
+  }
+
+  @override
+  String routeListEmptyForType(String type) {
+    return '$type 기록이 아직 없어요';
+  }
+
+  @override
+  String get pinEditTitle => '핀 수정';
+
+  @override
+  String get pinEditTooltip => '수정';
+
+  @override
+  String get pinUpdated => '핀을 수정했어요';
+
+  @override
+  String get photoFilterOriginal => '원본';
 }

@@ -421,6 +421,8 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
             sourcePath: file.path,
             filterController: filterController,
             overlayFuture: overlayFuture,
+            // 저장 시 촬영 미리보기와 같은 비율로 자르기
+            cropAspect: filterController.ratio.aspect,
           ),
         ),
       );

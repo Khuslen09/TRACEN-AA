@@ -111,9 +111,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
     if (confirmed != true) return;
 
+    // 이메일 가입자는 재인증용 비밀번호가 필요하다 (Firebase 정책).
+    String? password;
+    if (AuthService.isPasswordUser) {
+      password = await _askPassword();
+      if (password == null || password.isEmpty) return;
+    }
+
     setState(() => _processing = true);
     try {
-      await AuthService.deleteAccount();
+      await AuthService.deleteAccount(password: password);
       if (!mounted) return;
       Navigator.pushAndRemoveUntil(
         context,
@@ -141,6 +148,50 @@ class _SettingsScreenState extends State<SettingsScreen> {
         );
       }
     }
+  }
+
+  /// 탈퇴 전 비밀번호 재확인 다이얼로그. 취소하면 null.
+  Future<String?> _askPassword() async {
+    final l10n = AppLocalizations.of(context);
+    final controller = TextEditingController();
+    final result = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.xl),
+        ),
+        title: Text(l10n.deleteAccountPasswordTitle, style: AppTextStyles.h3),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l10n.deleteAccountPasswordMessage,
+                style: AppTextStyles.bodyMuted),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              obscureText: true,
+              autofocus: true,
+              autofillHints: const [AutofillHints.password],
+              decoration: InputDecoration(hintText: l10n.passwordHint),
+              onSubmitted: (v) => Navigator.pop(ctx, v),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, controller.text),
+            style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+            child: Text(l10n.confirmDeleteAccount),
+          ),
+        ],
+      ),
+    );
+    return result;
   }
 
   Future<bool?> _confirmDialog({
@@ -329,13 +380,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _SectionHeader(l10n.sectionAccount),
           _SettingsCard(
             children: [
-              _NavTile(
-                icon: Icons.lock_outline_rounded,
-                title: l10n.resetPasswordTitle,
-                subtitle: l10n.resetPasswordSubtitle,
-                onTap: _sendPasswordReset,
-              ),
-              const _Divider(),
+              // 비밀번호는 이메일 가입자만 — Google/Apple 계정엔 의미 없음
+              if (AuthService.isPasswordUser) ...[
+                _NavTile(
+                  icon: Icons.lock_outline_rounded,
+                  title: l10n.resetPasswordTitle,
+                  subtitle: l10n.resetPasswordSubtitle,
+                  onTap: _sendPasswordReset,
+                ),
+                const _Divider(),
+              ],
               _NavTile(
                 icon: Icons.email_outlined,
                 title: AuthService.currentUser?.email ?? l10n.noEmail,
@@ -354,7 +408,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: Icons.privacy_tip_outlined,
                 title: l10n.privacyPolicy,
                 onTap: () => _openExternalUrl(
-                  'https://khuslen09.github.io/TRACEN/#privacy',
+                  'https://khuslen09.github.io/TRACEN-AA/#privacy',
                   l10n.privacyPolicy,
                 ),
               ),
@@ -363,7 +417,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: Icons.description_outlined,
                 title: l10n.termsOfService,
                 onTap: () => _openExternalUrl(
-                  'https://khuslen09.github.io/TRACEN/#terms',
+                  'https://khuslen09.github.io/TRACEN-AA/#terms',
                   l10n.termsOfService,
                 ),
               ),

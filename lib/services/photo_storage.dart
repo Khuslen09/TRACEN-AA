@@ -15,6 +15,42 @@ class PhotoStorage {
 
   static const _subdir = 'photos';
 
+  /// 현재 앱의 Documents 경로 — [init]에서 한 번 채운다.
+  static String? _docsPath;
+
+  /// 앱 시작 시 한 번 호출 ([resolve]가 동기로 동작하도록 경로를 캐시).
+  static Future<void> init() async {
+    try {
+      _docsPath = (await getApplicationDocumentsDirectory()).path;
+    } catch (_) {
+      // 실패해도 resolve는 저장된 경로를 그대로 돌려준다.
+    }
+  }
+
+  /// DB에 저장된 사진 경로를 **현재** 앱 컨테이너 기준으로 바꿔준다.
+  ///
+  /// iOS는 앱을 업데이트/재설치할 때마다(Xcode 실행, TestFlight 업데이트 포함)
+  /// 앱 컨테이너 경로(`.../Application/<UUID>/Documents`)의 UUID가 바뀐다.
+  /// 그래서 예전에 저장한 절대 경로는 파일이 그대로 있어도 "없는 파일"이
+  /// 되어 사진이 안 보였다 — `/Documents/` 뒤의 상대 경로만 살려서 현재
+  /// Documents 경로에 다시 붙인다. (Android는 경로가 안 바뀌어 그대로 통과)
+  static String? resolve(String? stored) {
+    final docs = _docsPath;
+    if (stored == null || stored.isEmpty || docs == null) return stored;
+    if (stored.startsWith(docs)) return stored;
+    const marker = '/Documents/';
+    final i = stored.indexOf(marker);
+    if (i < 0) return stored;
+    return p.join(docs, stored.substring(i + marker.length));
+  }
+
+  /// [resolve]한 경로에 파일이 실제로 있으면 그 경로, 없으면 null.
+  static String? existingPath(String? stored) {
+    final path = resolve(stored);
+    if (path == null || path.isEmpty) return null;
+    return File(path).existsSync() ? path : null;
+  }
+
   /// [sourcePath]의 파일을 영구 저장소로 복사하고, 새 경로 반환.
   ///
   /// 원본 확장자 유지. 파일명은 timestamp + 짧은 랜덤 — uuid 패키지 없이

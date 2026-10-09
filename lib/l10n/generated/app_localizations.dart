@@ -121,37 +121,37 @@ abstract class AppLocalizations {
   /// No description provided for @onboarding1Title.
   ///
   /// In ko, this message translates to:
-  /// **'당신만의 길을\n지도에 남겨보세요'**
+  /// **'걸은 만큼\n열리는 지도'**
   String get onboarding1Title;
 
   /// No description provided for @onboarding1Desc.
   ///
   /// In ko, this message translates to:
-  /// **'산책, 러닝, 여행 — 어디든 Tracen과 \n함께 걸어요.'**
+  /// **'지나간 길만 보랏빛이 벗겨져요.\n많이 다닐수록 나만의 지도가 완성돼요.'**
   String get onboarding1Desc;
 
   /// No description provided for @onboarding2Title.
   ///
   /// In ko, this message translates to:
-  /// **'특별한 순간을\n기록해보세요'**
+  /// **'러닝·워킹·사이클링\n한 곳에서'**
   String get onboarding2Title;
 
   /// No description provided for @onboarding2Desc.
   ///
   /// In ko, this message translates to:
-  /// **'도착한 곳에서 사진과 메모를\n남겨보세요.'**
+  /// **'거리·페이스·시간을 실시간으로.\n화면이 꺼져도 경로는 계속 기록돼요.'**
   String get onboarding2Desc;
 
   /// No description provided for @onboarding3Title.
   ///
   /// In ko, this message translates to:
-  /// **'어디서든\n다시 꺼내보세요'**
+  /// **'순간은 핀으로,\n추억은 카드로'**
   String get onboarding3Title;
 
   /// No description provided for @onboarding3Desc.
   ///
   /// In ko, this message translates to:
-  /// **'안전하게 저장되어\n언제든 다시 꺼내볼 수 있어요.'**
+  /// **'사진과 메모를 지도에 남기고\n감성 카드로 만들어 바로 공유해요.'**
   String get onboarding3Desc;
 
   /// No description provided for @settingsTitle.
@@ -448,11 +448,29 @@ abstract class AppLocalizations {
   /// **'Google로 계속하기'**
   String get continueWithGoogle;
 
-  /// No description provided for @continueWithAppleSoon.
+  /// No description provided for @continueWithApple.
   ///
   /// In ko, this message translates to:
-  /// **'Apple로 계속하기 (준비 중)'**
-  String get continueWithAppleSoon;
+  /// **'Apple로 계속하기'**
+  String get continueWithApple;
+
+  /// No description provided for @appleLoginFailed.
+  ///
+  /// In ko, this message translates to:
+  /// **'Apple 로그인에 실패했어요'**
+  String get appleLoginFailed;
+
+  /// No description provided for @deleteAccountPasswordTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'비밀번호 확인'**
+  String get deleteAccountPasswordTitle;
+
+  /// No description provided for @deleteAccountPasswordMessage.
+  ///
+  /// In ko, this message translates to:
+  /// **'계정을 삭제하려면 비밀번호를 다시 입력해 주세요.'**
+  String get deleteAccountPasswordMessage;
 
   /// No description provided for @noAccountYet.
   ///
@@ -757,7 +775,7 @@ abstract class AppLocalizations {
   /// No description provided for @permAllowAll.
   ///
   /// In ko, this message translates to:
-  /// **'모두 허용하기'**
+  /// **'계속하기'**
   String get permAllowAll;
 
   /// No description provided for @permStatusGranted.
@@ -849,18 +867,6 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'이름 없음'**
   String get profileNoName;
-
-  /// No description provided for @statRuns.
-  ///
-  /// In ko, this message translates to:
-  /// **'러닝'**
-  String get statRuns;
-
-  /// No description provided for @statDistance.
-  ///
-  /// In ko, this message translates to:
-  /// **'총 거리'**
-  String get statDistance;
 
   /// No description provided for @statPins.
   ///
@@ -1093,7 +1099,7 @@ abstract class AppLocalizations {
   /// No description provided for @myRuns.
   ///
   /// In ko, this message translates to:
-  /// **'나의 러닝'**
+  /// **'나의 여정'**
   String get myRuns;
 
   /// No description provided for @loadFailed.
@@ -2482,11 +2488,143 @@ abstract class AppLocalizations {
   /// **'카메라로 촬영'**
   String get activityShareTakePhoto;
 
-  /// No description provided for @shareInstagramUnavailable.
+  /// No description provided for @onboarding4Title.
   ///
   /// In ko, this message translates to:
-  /// **'인스타그램을 열 수 없어 공유 시트로 열어요'**
-  String get shareInstagramUnavailable;
+  /// **'지금 여기서\n어디 갈까?'**
+  String get onboarding4Title;
+
+  /// No description provided for @onboarding4Desc.
+  ///
+  /// In ko, this message translates to:
+  /// **'원하는 분위기를 말하면\nAI가 주변에서 딱 맞는 곳을 골라줘요.'**
+  String get onboarding4Desc;
+
+  /// No description provided for @placeStageSearching.
+  ///
+  /// In ko, this message translates to:
+  /// **'주변 장소를 찾고 있어요'**
+  String get placeStageSearching;
+
+  /// No description provided for @placeStageChoosing.
+  ///
+  /// In ko, this message translates to:
+  /// **'AI가 딱 맞는 곳을 고르고 있어요'**
+  String get placeStageChoosing;
+
+  /// No description provided for @placeErrUnavailable.
+  ///
+  /// In ko, this message translates to:
+  /// **'지금은 AI 추천을 사용할 수 없어요.\n잠시 후 다시 시도해 주세요.'**
+  String get placeErrUnavailable;
+
+  /// No description provided for @placeErrBusy.
+  ///
+  /// In ko, this message translates to:
+  /// **'요청이 몰려 있어요.\n잠시 후 다시 시도해 주세요.'**
+  String get placeErrBusy;
+
+  /// No description provided for @placeErrNetwork.
+  ///
+  /// In ko, this message translates to:
+  /// **'인터넷 연결을 확인하고\n다시 시도해 주세요.'**
+  String get placeErrNetwork;
+
+  /// No description provided for @placeErrFewPlaces.
+  ///
+  /// In ko, this message translates to:
+  /// **'주변에서 추천할 곳을 충분히 찾지 못했어요.\n카테고리를 바꾸거나 더 골라 보세요.'**
+  String get placeErrFewPlaces;
+
+  /// No description provided for @placeErrAi.
+  ///
+  /// In ko, this message translates to:
+  /// **'추천을 만들지 못했어요.\n다시 시도해 주세요.'**
+  String get placeErrAi;
+
+  /// No description provided for @placeDirections.
+  ///
+  /// In ko, this message translates to:
+  /// **'길찾기'**
+  String get placeDirections;
+
+  /// No description provided for @placeSaveAsPin.
+  ///
+  /// In ko, this message translates to:
+  /// **'핀으로 저장'**
+  String get placeSaveAsPin;
+
+  /// No description provided for @placeSavedAsPin.
+  ///
+  /// In ko, this message translates to:
+  /// **'내 지도에 핀으로 저장했어요'**
+  String get placeSavedAsPin;
+
+  /// No description provided for @placeRetryRecs.
+  ///
+  /// In ko, this message translates to:
+  /// **'다시 추천받기'**
+  String get placeRetryRecs;
+
+  /// No description provided for @placeAiPick.
+  ///
+  /// In ko, this message translates to:
+  /// **'AI 추천 이유'**
+  String get placeAiPick;
+
+  /// No description provided for @placeSavedShort.
+  ///
+  /// In ko, this message translates to:
+  /// **'저장됨'**
+  String get placeSavedShort;
+
+  /// No description provided for @statAll.
+  ///
+  /// In ko, this message translates to:
+  /// **'전체'**
+  String get statAll;
+
+  /// No description provided for @statTypeCount.
+  ///
+  /// In ko, this message translates to:
+  /// **'{type} · {count}회'**
+  String statTypeCount(String type, int count);
+
+  /// No description provided for @statPinCount.
+  ///
+  /// In ko, this message translates to:
+  /// **'핀 {count}개'**
+  String statPinCount(int count);
+
+  /// No description provided for @routeListEmptyForType.
+  ///
+  /// In ko, this message translates to:
+  /// **'{type} 기록이 아직 없어요'**
+  String routeListEmptyForType(String type);
+
+  /// No description provided for @pinEditTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'핀 수정'**
+  String get pinEditTitle;
+
+  /// No description provided for @pinEditTooltip.
+  ///
+  /// In ko, this message translates to:
+  /// **'수정'**
+  String get pinEditTooltip;
+
+  /// No description provided for @pinUpdated.
+  ///
+  /// In ko, this message translates to:
+  /// **'핀을 수정했어요'**
+  String get pinUpdated;
+
+  /// No description provided for @photoFilterOriginal.
+  ///
+  /// In ko, this message translates to:
+  /// **'원본'**
+  String get photoFilterOriginal;
 }
 
 class _AppLocalizationsDelegate

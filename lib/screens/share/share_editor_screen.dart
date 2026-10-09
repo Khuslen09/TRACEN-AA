@@ -85,18 +85,15 @@ class _ShareEditorScreenState extends State<ShareEditorScreen> {
     }
   }
 
-  /// 카드 전체를 인스타 스토리 배경으로 바로 보낸다 — 열 수 없으면 공유 시트.
+  /// 카드 전체를 인스타 스토리 배경으로 바로 보낸다 — 안 되면 인스타 선택
+  /// 화면(Android) → 공유 시트 순.
   Future<void> _shareToInstagram() async {
     if (_busy) return;
-    final l10n = AppLocalizations.of(context);
     setState(() => _busy = true);
     try {
       final path = await ShareCardExporter.exportToTempFile(_exportKey);
       if (await InstagramStoryService.share(backgroundPath: path)) return;
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.shareInstagramUnavailable)),
-      );
+      if (await InstagramStoryService.shareToApp(path)) return;
       final box = _instaButtonKey.currentContext?.findRenderObject() as RenderBox?;
       final origin = box == null ? null : (box.localToGlobal(Offset.zero) & box.size);
       await ShareCardExporter.shareFile(path, origin: origin);

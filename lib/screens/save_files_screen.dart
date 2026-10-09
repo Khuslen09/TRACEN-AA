@@ -1,6 +1,7 @@
 import '../l10n/generated/app_localizations.dart';
 import '../l10n/strings.dart';
 import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -10,6 +11,7 @@ import '../models/pin_category.dart';
 import '../services/auth_service.dart';
 import '../services/category_color_service.dart';
 import '../services/photo_storage.dart';
+import '../services/pin_service.dart';
 import '../services/route_db_service.dart';
 import '../services/tracen_overlay_service.dart';
 import '../theme/app_colors.dart';
@@ -45,13 +47,28 @@ class SaveFilesScreen extends StatefulWidget {
   final double lng;
   final CategoryColorNotifier? colorNotifier;
 
+  /// 미리 채워 둘 값 — AI 추천 결과에서 "핀으로 저장"할 때 사용.
+  final String? initialPlaceName;
+  final PinCategory? initialCategory;
+  final String? initialMemo;
+
+  /// 이미 저장된 핀을 수정할 때 — 카테고리/메모/사진/위치명을 채워서 열고,
+  /// 저장하면 새 핀을 만드는 대신 이 핀을 갱신해 돌려준다.
+  final Pin? editingPin;
+
   const SaveFilesScreen({
     super.key,
     this.runId,
     required this.lat,
     required this.lng,
     this.colorNotifier,
+    this.initialPlaceName,
+    this.initialCategory,
+    this.initialMemo,
+    this.editingPin,
   });
+
+  bool get isEditing => editingPin != null;
 
   @override
   State<SaveFilesScreen> createState() => _SaveFilesScreenState();
@@ -65,8 +82,39 @@ class _SaveFilesScreenState extends State<SaveFilesScreen> {
 
   String? _photoPath;
   String? _pickedPlaceName;
+
+  /// 수정 모드에서 로컬 파일 없이 클라우드에만 있는 기존 사진
+  String? _existingPhotoUrl;
+
+  /// 수정 모드에서 사진을 바꾸거나 지웠는지
+  bool _photoChanged = false;
   PinCategory _selectedCategory = PinCategory.general;
   bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final editing = widget.editingPin;
+    if (editing != null) {
+      _selectedCategory = editing.category;
+      _memoController.text = editing.memo ?? '';
+      _pickedPlaceName = editing.placeName;
+      _photoPath = PhotoStorage.existingPath(editing.photoPath);
+      if (_photoPath == null &&
+          editing.photoUrl != null &&
+          editing.photoUrl!.isNotEmpty) {
+        _existingPhotoUrl = editing.photoUrl;
+      }
+      return;
+    }
+    _pickedPlaceName = widget.initialPlaceName;
+    if (widget.initialCategory != null) {
+      _selectedCategory = widget.initialCategory!;
+    }
+    if (widget.initialMemo != null) {
+      _memoController.text = widget.initialMemo!;
+    }
+  }
 
   @override
   void dispose() {
@@ -79,9 +127,11 @@ class _SaveFilesScreenState extends State<SaveFilesScreen> {
   // ─────────────────────────────────────────────
 
   Future<void> _pickFromGallery() async {
+    // 85로 재압축하면 갤러리 원본보다 화질이 떨어져서 최고 화질로 받는다
+    // (HEIC 등도 JPEG로 받아 항상 디코드 가능하게 품질 값은 지정).
     final file = await _picker.pickImage(
       source: ImageSource.gallery,
-      imageQuality: 85,
+      imageQuality: 100,
     );
     if (file == null) return;
     // 카메라 촬영 사진과 동일하게 필터/템플릿 적용 화면을 거치게 한다.
@@ -98,13 +148,16 @@ class _SaveFilesScreenState extends State<SaveFilesScreen> {
           sourcePath: file.path,
           filterController: filterController,
           overlayFuture: overlayFuture,
+          fromGallery: true, // 기본 "원본" — 갤러리 사진 그대로
         ),
       ),
     );
     if (result != null) {
       setState(() {
         _photoPath = result.path;
-        _pickedPlaceName = result.placeName;
+        _existingPhotoUrl = null;
+        _photoChanged = true;
+        _pickedPlaceName = result.placeName ?? _defaultPlaceName;
       });
     }
   }
@@ -119,14 +172,23 @@ class _SaveFilesScreenState extends State<SaveFilesScreen> {
     if (result != null) {
       setState(() {
         _photoPath = result.path;
-        _pickedPlaceName = result.placeName;
+        _existingPhotoUrl = null;
+        _photoChanged = true;
+        _pickedPlaceName = result.placeName ?? _defaultPlaceName;
       });
     }
   }
 
+  /// 사진 없이도 남길 위치명 — 수정 중이면 원래 핀의 위치명, 새 핀이면
+  /// 처음 받은 장소명(AI 추천 등).
+  String? get _defaultPlaceName =>
+      widget.editingPin?.placeName ?? widget.initialPlaceName;
+
   void _removePhoto() => setState(() {
     _photoPath = null;
-    _pickedPlaceName = null;
+    _existingPhotoUrl = null;
+    _photoChanged = true;
+    _pickedPlaceName = _defaultPlaceName;
   });
 
   // ─────────────────────────────────────────────
@@ -135,7 +197,7 @@ class _SaveFilesScreenState extends State<SaveFilesScreen> {
 
   Future<void> _save() async {
     final memo = _memoController.text.trim();
-    if (memo.isEmpty && _photoPath == null) {
+    if (memo.isEmpty && _photoPath == null && _existingPhotoUrl == null) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(l10n.addMemoOrPhoto)));
@@ -143,6 +205,32 @@ class _SaveFilesScreenState extends State<SaveFilesScreen> {
     }
 
     setState(() => _saving = true);
+
+    final editing = widget.editingPin;
+    if (editing != null) {
+      try {
+        final updated = await PinService.update(
+          editing,
+          category: _selectedCategory,
+          memo: memo,
+          placeName: _pickedPlaceName,
+          newPhotoPath: _photoChanged ? _photoPath : null,
+          removePhoto: _photoChanged && _photoPath == null,
+        );
+        if (mounted) Navigator.pop(context, updated);
+      } catch (e) {
+        if (mounted) {
+          setState(() => _saving = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(l10n.saveFailedWith('$e')),
+              backgroundColor: AppColors.danger,
+            ),
+          );
+        }
+      }
+      return;
+    }
 
     try {
       // image_picker가 준 임시 경로는 OS가 정리할 수 있으니
@@ -204,18 +292,14 @@ class _SaveFilesScreenState extends State<SaveFilesScreen> {
                   ),
                   Expanded(
                     child: Text(
-                      today,
+                      widget.isEditing ? l10n.pinEditTitle : today,
                       textAlign: TextAlign.center,
                       style: AppTextStyles.h3,
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.more_horiz_rounded),
-                    color: context.textPrimary,
-                    onPressed: () {
-                      // TODO: 더보기 메뉴 (위치 변경, 시간 변경 등)
-                    },
-                  ),
+                  // 제목 가운데 정렬용 자리 (왼쪽 닫기 버튼과 같은 폭).
+                  // 동작 없는 "더보기" 버튼은 심사에서 미완성으로 보일 수 있어 제거.
+                  const SizedBox(width: 48),
                 ],
               ),
             ),
@@ -263,7 +347,7 @@ class _SaveFilesScreenState extends State<SaveFilesScreen> {
                     Row(
                       children: [
                         Expanded(child: _SectionLabel(l10n.photoLabel)),
-                        if (_photoPath != null)
+                        if (_photoPath != null || _existingPhotoUrl != null)
                           TextButton(
                             onPressed: _removePhoto,
                             child: Text(l10n.commonDelete),
@@ -273,6 +357,7 @@ class _SaveFilesScreenState extends State<SaveFilesScreen> {
                     const SizedBox(height: 8),
                     _PhotoCard(
                       photoPath: _photoPath,
+                      networkUrl: _existingPhotoUrl,
                       onPickGallery: _pickFromGallery,
                       onPickCamera: _pickFromCamera,
                     ),
@@ -367,11 +452,13 @@ class _MemoCard extends StatelessWidget {
 
 class _PhotoCard extends StatelessWidget {
   final String? photoPath;
+  final String? networkUrl;
   final VoidCallback onPickGallery;
   final VoidCallback onPickCamera;
 
   const _PhotoCard({
     required this.photoPath,
+    this.networkUrl,
     required this.onPickGallery,
     required this.onPickCamera,
   });
@@ -385,7 +472,9 @@ class _PhotoCard extends StatelessWidget {
         boxShadow: AppShadows.sm,
       ),
       padding: const EdgeInsets.all(16),
-      child: photoPath == null ? _buildEmptyState(context) : _buildPreview(context),
+      child: (photoPath == null && networkUrl == null)
+          ? _buildEmptyState(context)
+          : _buildPreview(context),
     );
   }
 
@@ -439,12 +528,21 @@ class _PhotoCard extends StatelessWidget {
       children: [
         ClipRRect(
           borderRadius: BorderRadius.circular(AppRadius.md),
-          child: Image.file(
-            File(photoPath!),
-            height: 200,
-            width: double.infinity,
-            fit: BoxFit.cover,
-          ),
+          child: photoPath != null
+              ? Image.file(
+                  File(photoPath!),
+                  height: 200,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => _brokenPhoto(context),
+                )
+              : CachedNetworkImage(
+                  imageUrl: networkUrl!,
+                  height: 200,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorWidget: (_, __, ___) => _brokenPhoto(context),
+                ),
         ),
         SizedBox(height: 12),
         Row(
@@ -470,6 +568,13 @@ class _PhotoCard extends StatelessWidget {
     );
   }
 }
+
+Widget _brokenPhoto(BuildContext context) => Container(
+  height: 200,
+  color: context.bgColor,
+  alignment: Alignment.center,
+  child: Icon(Icons.broken_image_outlined, color: context.textTertiary),
+);
 
 class _PhotoActionButton extends StatelessWidget {
   final IconData icon;

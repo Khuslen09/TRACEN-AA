@@ -3,6 +3,7 @@ import '../../l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../models/activity_type.dart';
 import '../../models/route.dart';
 import '../../services/auth_service.dart';
 import '../../services/cloud_sync_service.dart';
@@ -21,7 +22,10 @@ import 'route_map_screen.dart';
 ///   - 카드 길게 누르기 → 삭제 확인 다이얼로그 (스와이프보다 모바일에서 안전)
 ///   - Pull-to-refresh — 핀 추가 후 돌아왔을 때 거리 갱신을 보장
 class RouteListScreen extends StatefulWidget {
-  const RouteListScreen({super.key});
+  /// 처음 걸어둘 종류 필터 — null이면 전체. 프로필의 종류별 통계에서 진입할 때 사용.
+  final ActivityType? initialType;
+
+  const RouteListScreen({super.key, this.initialType});
 
   @override
   State<RouteListScreen> createState() => _RouteListScreenState();
@@ -31,6 +35,9 @@ class _RouteListScreenState extends State<RouteListScreen> {
   AppLocalizations get l10n => AppLocalizations.of(context);
 
   late Future<List<TraceRoute>> _routesFuture;
+
+  /// 러닝/걷기/자전거 필터 — null이면 전체.
+  late ActivityType? _type = widget.initialType;
 
   @override
   void initState() {
@@ -61,10 +68,7 @@ class _RouteListScreenState extends State<RouteListScreen> {
           borderRadius: BorderRadius.circular(AppRadius.xl),
         ),
         title: Text(l10n.deleteRunTitle, style: AppTextStyles.h3),
-        content: Text(
-          l10n.deleteRunBody,
-          style: AppTextStyles.bodyMuted,
-        ),
+        content: Text(l10n.deleteRunBody, style: AppTextStyles.bodyMuted),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -131,15 +135,79 @@ class _RouteListScreenState extends State<RouteListScreen> {
             return _ErrorState(message: l10n.loadFailed, onRetry: _refresh);
           }
 
-          final routes = snapshot.data ?? [];
-          if (routes.isEmpty) return const _EmptyState();
+          final all = snapshot.data ?? [];
+          if (all.isEmpty) return const _EmptyState();
+          final routes = _type == null
+              ? all
+              : all.where((r) => r.activityType == _type).toList();
 
-          return RefreshIndicator(
-            color: AppColors.primary,
-            onRefresh: _refresh,
-            child: _buildGroupedList(routes),
+          return Column(
+            children: [
+              _buildTypeFilter(),
+              Expanded(
+                child: RefreshIndicator(
+                  color: AppColors.primary,
+                  onRefresh: _refresh,
+                  child: routes.isEmpty
+                      ? ListView(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(top: 80),
+                              child: Center(
+                                child: Text(
+                                  l10n.routeListEmptyForType(_type!.label),
+                                  style: AppTextStyles.bodyMuted,
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      : _buildGroupedList(routes),
+                ),
+              ),
+            ],
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildTypeFilter() {
+    Widget chip(String label, ActivityType? type, IconData? icon) {
+      final selected = _type == type;
+      return Padding(
+        padding: const EdgeInsets.only(right: 8),
+        child: ChoiceChip(
+          avatar: icon == null
+              ? null
+              : Icon(
+                  icon,
+                  size: 16,
+                  color: selected ? Colors.white : AppColors.gray500,
+                ),
+          label: Text(label),
+          selected: selected,
+          onSelected: (_) => setState(() => _type = type),
+          showCheckmark: false,
+          selectedColor: AppColors.primary,
+          side: BorderSide.none,
+          shape: const StadiumBorder(),
+          labelStyle: AppTextStyles.smallBold.copyWith(
+            color: selected ? Colors.white : AppColors.gray500,
+          ),
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: 52,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+        children: [
+          chip(l10n.statAll, null, null),
+          for (final t in ActivityType.values) chip(t.label, t, t.icon),
+        ],
       ),
     );
   }
@@ -195,7 +263,9 @@ class _RouteListScreenState extends State<RouteListScreen> {
   String _formatMonthHeader(String key) {
     final parts = key.split('-');
     final date = DateTime(int.parse(parts[0]), int.parse(parts[1]));
-    return DateFormat.yMMMM(Strings.current.localeName).format(date).toUpperCase();
+    return DateFormat.yMMMM(
+      Strings.current.localeName,
+    ).format(date).toUpperCase();
   }
 }
 
@@ -218,8 +288,12 @@ class _RouteCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final day = DateFormat('d').format(route.startedAt);
-    final weekday = DateFormat.E(Strings.current.localeName).format(route.startedAt);
-    final time = DateFormat.jm(Strings.current.localeName).format(route.startedAt);
+    final weekday = DateFormat.E(
+      Strings.current.localeName,
+    ).format(route.startedAt);
+    final time = DateFormat.jm(
+      Strings.current.localeName,
+    ).format(route.startedAt);
 
     return Material(
       color: context.cardColor,
@@ -247,6 +321,12 @@ class _RouteCard extends StatelessWidget {
                   children: [
                     Row(
                       children: [
+                        Icon(
+                          route.activityType.icon,
+                          size: 16,
+                          color: AppColors.primary,
+                        ),
+                        const SizedBox(width: 4),
                         Expanded(
                           child: Text(
                             route.title,

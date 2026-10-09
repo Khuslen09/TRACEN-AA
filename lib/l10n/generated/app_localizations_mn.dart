@@ -18,26 +18,25 @@ class AppLocalizationsMn extends AppLocalizations {
   String get onboardingStart => 'Эхлүүлэх';
 
   @override
-  String get onboarding1Title =>
-      'Өөрийн замнасан замаа\nгазрын зураг дээр үлдээ';
+  String get onboarding1Title => 'Алхах тусам\nнээгдэх газрын зураг';
 
   @override
   String get onboarding1Desc =>
-      'Алхалт, гүйлт, аялал — хаана ч байсан\nTracen-тэй хамт алхаарай.';
+      'Зөвхөн туулсан замаас чинь нил ягаан өнгө арилна.\nИх явах тусам өөрийн газрын зураг бүрдэнэ.';
 
   @override
-  String get onboarding2Title => 'Онцгой мөчүүдээ\nтэмдэглэ';
+  String get onboarding2Title => 'Гүйлт, алхалт, дугуй —\nбүгд нэг дор';
 
   @override
   String get onboarding2Desc =>
-      'Хүрсэн газартаа зураг, тэмдэглэл\nхадгалаарай.';
+      'Зай, хурд, хугацааг бодит цагт.\nДэлгэц унтарсан ч зам тасралтгүй бүртгэгдэнэ.';
 
   @override
-  String get onboarding3Title => 'Хаанаас ч дахин\nнээж үзээрэй';
+  String get onboarding3Title => 'Мөчөө пин болго,\nдурсамжаа хуваалц';
 
   @override
   String get onboarding3Desc =>
-      'Аюулгүй хадгалагдсан тул\nхэдийд ч дахин үзэх боломжтой.';
+      'Зураг, тэмдэглэлээ газрын зураг дээр үлдээж,\nгоё карт болгон шууд хуваалц.';
 
   @override
   String get settingsTitle => 'Тохиргоо';
@@ -192,7 +191,17 @@ class AppLocalizationsMn extends AppLocalizations {
   String get continueWithGoogle => 'Google-ээр үргэлжлүүлэх';
 
   @override
-  String get continueWithAppleSoon => 'Apple-ээр үргэлжлүүлэх (тун удахгүй)';
+  String get continueWithApple => 'Apple-ээр үргэлжлүүлэх';
+
+  @override
+  String get appleLoginFailed => 'Apple-ээр нэвтэрч чадсангүй';
+
+  @override
+  String get deleteAccountPasswordTitle => 'Нууц үг баталгаажуулах';
+
+  @override
+  String get deleteAccountPasswordMessage =>
+      'Бүртгэлээ устгахын тулд нууц үгээ дахин оруулна уу.';
 
   @override
   String get noAccountYet => 'Бүртгэл байхгүй юу?';
@@ -355,7 +364,7 @@ class AppLocalizationsMn extends AppLocalizations {
       'Хадгалсан зургаа тэмдэгтэй холбож\nсанамжаа баяжуулаарай';
 
   @override
-  String get permAllowAll => 'Бүгдийг зөвшөөрөх';
+  String get permAllowAll => 'Үргэлжлүүлэх';
 
   @override
   String get permStatusGranted => 'Зөвшөөрсөн';
@@ -402,12 +411,6 @@ class AppLocalizationsMn extends AppLocalizations {
 
   @override
   String get profileNoName => 'Нэргүй';
-
-  @override
-  String get statRuns => 'Гүйлт';
-
-  @override
-  String get statDistance => 'Нийт зай';
 
   @override
   String get statPins => 'Тэмдэг';
@@ -529,7 +532,7 @@ class AppLocalizationsMn extends AppLocalizations {
   String get runDeleted => 'Гүйлтийг устгалаа';
 
   @override
-  String get myRuns => 'Миний гүйлтүүд';
+  String get myRuns => 'Миний аяллууд';
 
   @override
   String get loadFailed => 'Ачаалж чадсангүй';
@@ -1288,6 +1291,82 @@ class AppLocalizationsMn extends AppLocalizations {
   String get activityShareTakePhoto => 'Зураг авах';
 
   @override
-  String get shareInstagramUnavailable =>
-      'Instagram нээгдсэнгүй — хуваалцах цонхоор нээж байна';
+  String get onboarding4Title => 'Одоо эндээс\nхаашаа явах вэ?';
+
+  @override
+  String get onboarding4Desc =>
+      'Хүссэн уур амьсгалаа хэлэхэд\nAI ойролцоох тохирох газрыг сонгоно.';
+
+  @override
+  String get placeStageSearching => 'Ойролцоох газруудыг хайж байна';
+
+  @override
+  String get placeStageChoosing => 'AI хамгийн тохирохыг сонгож байна';
+
+  @override
+  String get placeErrUnavailable =>
+      'Одоогоор AI санал ашиглах боломжгүй байна.\nТүр хүлээгээд дахин оролдоно уу.';
+
+  @override
+  String get placeErrBusy =>
+      'Хүсэлт их байна.\nХэсэг хүлээгээд дахин оролдоно уу.';
+
+  @override
+  String get placeErrNetwork =>
+      'Интернэт холболтоо шалгаад\nдахин оролдоно уу.';
+
+  @override
+  String get placeErrFewPlaces =>
+      'Ойролцоо хангалттай газар олдсонгүй.\nӨөр эсвэл илүү олон ангилал сонгоод үзээрэй.';
+
+  @override
+  String get placeErrAi => 'Санал гаргаж чадсангүй.\nДахин оролдоно уу.';
+
+  @override
+  String get placeDirections => 'Чиглэл';
+
+  @override
+  String get placeSaveAsPin => 'Пин болгох';
+
+  @override
+  String get placeSavedAsPin => 'Газрын зурагт пин болгон хадгаллаа';
+
+  @override
+  String get placeRetryRecs => 'Дахин санал авах';
+
+  @override
+  String get placeAiPick => 'AI сонгосон шалтгаан';
+
+  @override
+  String get placeSavedShort => 'Хадгалсан';
+
+  @override
+  String get statAll => 'Бүгд';
+
+  @override
+  String statTypeCount(String type, int count) {
+    return '$type · $count удаа';
+  }
+
+  @override
+  String statPinCount(int count) {
+    return '$count пин';
+  }
+
+  @override
+  String routeListEmptyForType(String type) {
+    return '$type бичлэг одоогоор алга';
+  }
+
+  @override
+  String get pinEditTitle => 'Пин засах';
+
+  @override
+  String get pinEditTooltip => 'Засах';
+
+  @override
+  String get pinUpdated => 'Пин шинэчлэгдлээ';
+
+  @override
+  String get photoFilterOriginal => 'Эх хувь';
 }

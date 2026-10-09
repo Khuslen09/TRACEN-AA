@@ -71,19 +71,20 @@ class ShareCardPreviewBox extends StatelessWidget {
                     ),
                   ),
                 ),
-                // 화면엔 안 보이지만(opacity 0, 크기 0×0이라 레이아웃엔 기여
-                // 안 함) 실제로는 풀사이즈로 페인트되는 캡처용 인스턴스.
-                SizedBox(
-                  width: 0,
-                  height: 0,
-                  child: OverflowBox(
-                    minWidth: cardSize.width,
-                    maxWidth: cardSize.width,
-                    minHeight: cardSize.height,
-                    maxHeight: cardSize.height,
-                    child: IgnorePointer(
-                      child: Opacity(
-                        opacity: 0,
+                // 화면엔 안 보이지만(0×0 ClipRect로 잘려 레이아웃·화면에
+                // 기여 안 함) 실제로는 풀사이즈로 페인트되는 캡처용 인스턴스.
+                // Opacity(0)으로 숨기면 Flutter가 자식 페인트를 아예 건너뛰어
+                // toImage가 실패한다(사진 저장/공유 실패의 원인이었음).
+                ClipRect(
+                  child: SizedBox(
+                    width: 0,
+                    height: 0,
+                    child: OverflowBox(
+                      minWidth: cardSize.width,
+                      maxWidth: cardSize.width,
+                      minHeight: cardSize.height,
+                      maxHeight: cardSize.height,
+                      child: IgnorePointer(
                         child: RepaintBoundary(
                           key: exportKey,
                           child: ShareCard(model: model, interactive: false),

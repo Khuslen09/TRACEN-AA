@@ -405,10 +405,23 @@ class ActivityRecorder {
         p.latitude,
         p.longitude,
       );
-      if (deltaM < _jumpMinMeters || deltaM > _jumpMaxMeters) return;
+      // 3m 미만은 GPS 떨림 — 기준점을 그대로 두어 작은 이동이 누적되게 한다.
+      if (deltaM < _jumpMinMeters) return;
 
       final deltaT = now.difference(_lastPointTime!).inMilliseconds / 1000.0;
-      final speedMps = deltaT > 0 ? deltaM / deltaT : 0.0;
+      final speedMps = deltaT > 0 ? deltaM / deltaT : double.infinity;
+
+      // 50m 초과 이동: 시간 간격으로 설명되면(터널·건물 아래에서 GPS가
+      // 잠깐 끊긴 경우) 정상 이동으로 더하고, 이 활동으로 불가능한 속도면
+      // GPS 튐으로 보고 거리는 버리되 기준점만 옮긴다. 예전엔 둘 다 그냥
+      // 버리고 기준점도 안 옮겨서, 한 번 끊기면 이후 모든 점이 옛 기준점과
+      // 50m 넘게 벌어져 그 여정 끝까지 거리가 멈췄다.
+      if (deltaM > _jumpMaxMeters &&
+          speedMps > activityType.maxPlausibleSpeedMps) {
+        _lastLatLng = rawLatLng;
+        _lastPointTime = now;
+        return;
+      }
       _distanceMeters += deltaM;
       _currentSpeedMps = speedMps;
       final speedKmh = speedMps * 3.6;

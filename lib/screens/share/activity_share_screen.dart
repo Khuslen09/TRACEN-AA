@@ -95,11 +95,10 @@ class _ActivityShareScreenState extends State<ActivityShareScreen> {
 
   /// 인스타 스토리 편집 화면으로 바로 보낸다. 스티커 템플릿은 카드를
   /// 스티커로(사진이 있으면 사진을 배경으로, 없으면 잉크에 맞는 단색
-  /// 그라데이션), 나머지 템플릿은 카드 전체를 배경으로 넘긴다. 인스타를 열
-  /// 수 없으면 공유 시트로 폴백.
+  /// 그라데이션), 나머지 템플릿은 카드 전체를 배경으로 넘긴다. 스토리로
+  /// 바로 못 보내면(앱 ID 없음 등) 인스타 선택 화면(Android) → 공유 시트 순.
   Future<void> _shareToInstagram() async {
     if (_busy) return;
-    final l10n = AppLocalizations.of(context);
     setState(() => _busy = true);
     try {
       final bool opened;
@@ -120,11 +119,11 @@ class _ActivityShareScreenState extends State<ActivityShareScreen> {
           backgroundPath: await ShareCardExporter.exportToTempFile(_exportKey),
         );
       }
-      if (!opened && mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(l10n.shareInstagramUnavailable)));
-        await _shareViaSheet(_shareButtonKey);
+      if (!opened) {
+        final path = await ShareCardExporter.exportToTempFile(_exportKey);
+        if (!await InstagramStoryService.shareToApp(path)) {
+          await _shareViaSheet(_shareButtonKey);
+        }
       }
     } catch (_) {
       // 공유 실패/취소는 조용히 무시 — 핀 공유 화면과 같은 정책.

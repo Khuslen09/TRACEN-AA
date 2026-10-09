@@ -3,10 +3,13 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
+import '../../models/activity_type.dart';
 import '../../models/timeline_entry.dart';
 import '../../models/user.dart';
 import '../../services/auth_service.dart';
 import '../../services/route_db_service.dart';
+import '../../services/pin_service.dart';
+import '../../services/photo_storage.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/theme_extensions.dart';
@@ -132,10 +135,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             context,
                             pin: entry.pin,
                             onDelete: () async {
-                              if (entry.pin.id == null) return;
-                              await RouteDBService.deletePin(entry.pin.id!);
+                              // 사진 파일·클라우드까지 함께 삭제
+                              await PinService.delete(entry.pin);
                               await _refresh();
                             },
+                            onEdited: (_) => _refresh(),
                           );
                         },
                       ),
@@ -288,6 +292,8 @@ class _NetworkOrFile extends StatelessWidget {
   }
 }
 
+/// 러닝/걷기/자전거 종류별 누적(거리 + 횟수) — 누르면 그 종류만 걸러진
+/// 여정 목록으로 간다. 핀 수는 종류와 무관해 아래 줄에 따로.
 class _StatsCard extends StatelessWidget {
   final UserStats stats;
   const _StatsCard({required this.stats});
@@ -295,6 +301,10 @@ class _StatsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    void openList(ActivityType? type) => Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => RouteListScreen(initialType: type)),
+    );
     return Container(
       padding: EdgeInsets.symmetric(vertical: 22, horizontal: 16),
       decoration: BoxDecoration(
@@ -302,28 +312,45 @@ class _StatsCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.xl),
         boxShadow: AppShadows.sm,
       ),
-      child: Row(
+      child: Column(
         children: [
-          _StatItem(
-            label: l10n.statRuns,
-            value: '${stats.routeCount}',
-            icon: Icons.near_me_rounded,
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const RouteListScreen()),
-            ),
+          Row(
+            children: [
+              for (final type in ActivityType.values) ...[
+                if (type != ActivityType.values.first) _StatDivider(),
+                _StatItem(
+                  label: l10n.statTypeCount(type.label, stats[type].count),
+                  value: stats[type].formattedDistance,
+                  icon: type.icon,
+                  onTap: () => openList(type),
+                ),
+              ],
+            ],
           ),
-          _StatDivider(),
-          _StatItem(
-            label: l10n.statDistance,
-            value: stats.formattedDistance,
-            icon: Icons.straighten_rounded,
-          ),
-          _StatDivider(),
-          _StatItem(
-            label: l10n.statPins,
-            value: '${stats.pinCount}',
-            icon: Icons.place_rounded,
+          const SizedBox(height: 16),
+          Divider(height: 1, color: AppColors.border),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: TextButton.icon(
+                  onPressed: () => openList(null),
+                  icon: const Icon(Icons.near_me_rounded, size: 18),
+                  label: Text(l10n.myRuns),
+                ),
+              ),
+              const Icon(
+                Icons.place_rounded,
+                color: AppColors.primary,
+                size: 18,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                l10n.statPinCount(stats.pinCount),
+                style: AppTextStyles.caption,
+              ),
+              const SizedBox(width: 12),
+            ],
           ),
         ],
       ),
@@ -433,9 +460,11 @@ class _PhotoTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pin = entry.pin;
-    if (pin.photoPath != null && pin.photoPath!.isNotEmpty) {
+    // 로컬 파일이 없으면(다른 기기에서 만든 핀 등) 클라우드 사진으로
+    final localPath = PhotoStorage.existingPath(pin.photoPath);
+    if (localPath != null) {
       return Image.file(
-        File(pin.photoPath!),
+        File(localPath),
         fit: BoxFit.cover,
         errorBuilder: (_, __, ___) => _fallback(context),
       );

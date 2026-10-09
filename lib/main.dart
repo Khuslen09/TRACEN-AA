@@ -13,6 +13,7 @@ import 'l10n/generated/app_localizations.dart';
 import 'l10n/strings.dart';
 import 'screens/splash_screen.dart';
 import 'services/env_service.dart';
+import 'services/photo_storage.dart';
 import 'services/tracking_service.dart';
 import 'services/route_db_service.dart';
 import 'theme/app_theme.dart';
@@ -47,6 +48,9 @@ Future<void> main() async {
   } catch (e) {
     debugPrint('[main] Firebase 예외: $e');
   }
+
+  // 사진 경로 보정용 Documents 경로 캐시 — 핀을 DB에서 읽기 전에 필요
+  await PhotoStorage.init();
 
   // SQLite warm-up
   try {

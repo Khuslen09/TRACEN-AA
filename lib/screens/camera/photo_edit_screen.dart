@@ -1,9 +1,13 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image/image.dart' as img;
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../../l10n/generated/app_localizations.dart';
@@ -41,11 +45,21 @@ class PhotoEditScreen extends StatefulWidget {
   final CameraFilterController filterController;
   final Future<TracenOverlayData> overlayFuture;
 
+  /// 갤러리에서 고른 사진이면 true — 기본 필터가 "원본"이고, 원본 그대로
+  /// 저장할 땐 갤러리에 같은 사진을 또 저장하지 않는다.
+  final bool fromGallery;
+
+  /// 촬영 화면에서 고른 비율(가로/세로) — "저장" 시 촬영 미리보기와 같은
+  /// 비율로 가운데를 잘라 저장한다. null이면 자르지 않음(갤러리 사진).
+  final double? cropAspect;
+
   const PhotoEditScreen({
     super.key,
     required this.sourcePath,
     required this.filterController,
     required this.overlayFuture,
+    this.fromGallery = false,
+    this.cropAspect,
   });
 
   @override
@@ -71,6 +85,9 @@ class _PhotoEditScreenState extends State<PhotoEditScreen> {
   // 직후의 자동 POI 조회가 알아서 채우게 null로 둠).
   bool _placeNameManuallyEdited = false;
   _PhotoEditTab _activeTab = _PhotoEditTab.filter;
+
+  /// "원본" 선택 — 필터 없이. 갤러리 사진은 기본값이 원본.
+  late bool _original = widget.fromGallery;
 
   @override
   void initState() {
@@ -126,7 +143,9 @@ class _PhotoEditScreenState extends State<PhotoEditScreen> {
       lat: lat,
       lng: lng,
       date: DateTime.now(),
-      photo: _source!,
+      // 컨트롤러가 사진을 소유하고 교체 시 dispose하므로 복제본을 넘긴다
+      // (원본 _source는 이 화면이 계속 쓰고 dispose도 이 화면이 함).
+      photo: _source!.clone(),
       routePath: routePath,
     );
     if (!mounted) {
@@ -162,6 +181,10 @@ class _PhotoEditScreenState extends State<PhotoEditScreen> {
   void _applyPreviewColorMatrix() {
     final shareCtrl = _shareCardController;
     if (shareCtrl == null) return;
+    if (_original) {
+      shareCtrl.setPreviewColorMatrix(null);
+      return;
+    }
     final controller = widget.filterController;
     final matrix = lerpWithIdentity(
       fitColorMatrix(controller.selected.recipe),
@@ -224,7 +247,14 @@ class _PhotoEditScreenState extends State<PhotoEditScreen> {
   }
 
   void _onFilterTap(TracenFilter filter) {
+    setState(() => _original = false);
     widget.filterController.selectFilter(filter);
+    _applyPreviewColorMatrix(); // 같은 필터를 다시 눌러도 원본 → 필터로 복귀
+  }
+
+  void _onOriginalTap() {
+    setState(() => _original = true);
+    _applyPreviewColorMatrix();
   }
 
   @override
@@ -270,11 +300,92 @@ class _PhotoEditScreenState extends State<PhotoEditScreen> {
   /// 인스턴스가 새 프레임을 그릴 때까지 기다렸다가 캡처한다.
   Future<String> _renderFinal() async {
     final shareCtrl = _shareCardController!;
-    final baked = await _renderFullFiltered();
+    final baked = _original ? _source!.clone() : await _renderFullFiltered();
     shareCtrl.setPreviewColorMatrix(null);
     shareCtrl.updatePhoto(baked);
     await WidgetsBinding.instance.endOfFrame;
-    return ShareCardExporter.exportToTempFile(_exportKey);
+    final path = await ShareCardExporter.exportToTempFile(_exportKey);
+    // 미리보기를 다시 원본 + 실시간 필터 상태로 — 공유 후 필터를 바꿔도
+    // 이미 구운 사진 위에 필터가 한 번 더 입혀지지 않게.
+    if (mounted) {
+      shareCtrl.updatePhoto(_source!.clone());
+      _applyPreviewColorMatrix();
+    }
+    return path;
+  }
+
+  /// "저장" — 템플릿(공유 카드) 없이 **사진만** 저장한다.
+  ///
+  /// - 원본 + 자르기 없음(갤러리 사진): 파일을 그대로 쓴다(재인코딩 없음).
+  /// - 그 외: 원본 해상도에서 촬영 비율로 자르고, 선택한 필터를 정확한
+  ///   LUT로 입혀 JPEG로 저장.
+  /// 템플릿은 "공유"할 때만 입힌다.
+  Future<String> _renderPhotoOnly() async {
+    final crop = widget.cropAspect;
+    if (_original && crop == null) return widget.sourcePath;
+
+    final bytes = await File(widget.sourcePath).readAsBytes();
+    final codec = await ui.instantiateImageCodec(bytes);
+    final full = (await codec.getNextFrame()).image;
+    try {
+      final cropUv = crop == null
+          ? const Rect.fromLTWH(0, 0, 1, 1)
+          : _cropUvForAspect(full, crop);
+      final cropW = full.width * cropUv.width;
+      final cropH = full.height * cropUv.height;
+      // 너무 큰 사진은 긴 변 3200px로 — 메모리/저장 용량 보호
+      const maxSide = 3200.0;
+      final scale = math.min(1.0, maxSide / math.max(cropW, cropH));
+      final outW = (cropW * scale).round();
+      final outH = (cropH * scale).round();
+      final outRect = Rect.fromLTWH(0, 0, outW.toDouble(), outH.toDouble());
+
+      final recorder = ui.PictureRecorder();
+      final canvas = Canvas(recorder);
+      if (_original) {
+        canvas.drawImageRect(
+          full,
+          Rect.fromLTWH(
+            full.width * cropUv.left,
+            full.height * cropUv.top,
+            cropW,
+            cropH,
+          ),
+          outRect,
+          Paint()..filterQuality = FilterQuality.high,
+        );
+      } else {
+        final controller = widget.filterController;
+        final shader = await LutShaderService.configure(
+          filter: controller.selected,
+          source: full,
+          outSize: Size(outW.toDouble(), outH.toDouble()),
+          srcRectUv: cropUv,
+          strength: controller.strength,
+        );
+        canvas.drawRect(outRect, Paint()..shader = shader);
+        shader.dispose();
+      }
+      final picture = recorder.endRecording();
+      final out = await picture.toImage(outW, outH);
+      picture.dispose();
+      final rgba = await out.toByteData(format: ui.ImageByteFormat.rawRgba);
+      out.dispose();
+      if (rgba == null) throw StateError('photo encode failed');
+
+      final jpg = await compute(_encodeJpg, (
+        rgba: rgba.buffer.asUint8List(),
+        width: outW,
+        height: outH,
+      ));
+      final dir = await getTemporaryDirectory();
+      final path =
+          '${dir.path}/tracen_${DateTime.now().microsecondsSinceEpoch}.jpg';
+      await File(path).writeAsBytes(jpg);
+      return path;
+    } finally {
+      full.dispose();
+    }
   }
 
   Future<void> _save() async {
@@ -282,8 +393,13 @@ class _PhotoEditScreenState extends State<PhotoEditScreen> {
     final l10n = AppLocalizations.of(context);
     setState(() => _busy = true);
     try {
-      final path = await _renderFinal();
-      await ShareCardExporter.saveToGallery(path);
+      final path = await _renderPhotoOnly();
+      // 갤러리에서 고른 사진을 손대지 않았으면 이미 갤러리에 있으니 중복 저장 안 함
+      final untouchedGalleryPhoto =
+          widget.fromGallery && _original && widget.cropAspect == null;
+      if (!untouchedGalleryPhoto) {
+        await ShareCardExporter.saveToGallery(path);
+      }
       if (mounted) {
         // 표시 탭에서 사용자가 직접 고른 위치명이 있으면 핀에 반영되도록
         // 사진 경로와 함께 돌려준다(없으면 null — 호출부의 핀 저장 직후
@@ -361,8 +477,10 @@ class _PhotoEditScreenState extends State<PhotoEditScreen> {
                                 ),
                               ),
                             ),
+                            // 템플릿 썸네일(92) + 이름 + 여백이 다 들어가는 높이 —
+                            // 모자라면 이름이 아래 탭바 구분선과 겹친다.
                             SizedBox(
-                              height: 116,
+                              height: 132,
                               child: AnimatedSwitcher(
                                 duration: const Duration(milliseconds: 150),
                                 child: _buildToolPanel(l10n, filterController, shareCtrl),
@@ -427,13 +545,15 @@ class _PhotoEditScreenState extends State<PhotoEditScreen> {
   Widget _buildFilterTab(AppLocalizations l10n, CameraFilterController controller) {
     return ListView.separated(
       key: const ValueKey('filter'),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       scrollDirection: Axis.horizontal,
-      itemCount: TracenFilter.values.length,
+      // 0번 = "원본"(필터 없음), 그 뒤로 TRACEN 필터들
+      itemCount: TracenFilter.values.length + 1,
       separatorBuilder: (_, __) => const SizedBox(width: 14),
-      itemBuilder: (context, i) {
-        final filter = TracenFilter.values[i];
-        final isSelected = controller.selected == filter;
+      itemBuilder: (context, index) {
+        if (index == 0) return _buildOriginalThumb(l10n);
+        final filter = TracenFilter.values[index - 1];
+        final isSelected = !_original && controller.selected == filter;
         final thumb = _filterThumbnails[filter];
         return GestureDetector(
           onTap: () => _onFilterTap(filter),
@@ -471,11 +591,48 @@ class _PhotoEditScreenState extends State<PhotoEditScreen> {
     );
   }
 
+  Widget _buildOriginalThumb(AppLocalizations l10n) {
+    final isSelected = _original;
+    final proxy = _proxyImage;
+    return GestureDetector(
+      onTap: _onOriginalTap,
+      child: Column(
+        children: [
+          Container(
+            width: 56,
+            height: 84,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: isSelected ? AppColors.primary : Colors.white24,
+                width: isSelected ? 2 : 1,
+              ),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(9),
+              child: proxy == null
+                  ? const ColoredBox(color: Colors.white10)
+                  : RawImage(image: proxy, fit: BoxFit.cover),
+            ),
+          ),
+          const SizedBox(height: 7),
+          Text(
+            l10n.photoFilterOriginal,
+            style: AppTextStyles.caption.copyWith(
+              color: isSelected ? Colors.white : Colors.white70,
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildTemplateTab(ShareCardController shareCtrl) {
     final model = shareCtrl.viewModel;
     return ListView.separated(
       key: const ValueKey('template'),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       scrollDirection: Axis.horizontal,
       itemCount: ShareCardTemplate.values.length,
       separatorBuilder: (_, __) => const SizedBox(width: 14),
@@ -529,7 +686,7 @@ class _PhotoEditScreenState extends State<PhotoEditScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 7),
+              const SizedBox(height: 6),
               Text(
                 template.label,
                 style: AppTextStyles.caption.copyWith(
@@ -686,4 +843,18 @@ class _PhotoEditScreenState extends State<PhotoEditScreen> {
       ),
     );
   }
+}
+
+
+/// JPEG 인코딩 — 무거워서 별도 isolate에서.
+Uint8List _encodeJpg(({Uint8List rgba, int width, int height}) a) {
+  final image = img.Image.fromBytes(
+    width: a.width,
+    height: a.height,
+    bytes: a.rgba.buffer,
+    bytesOffset: a.rgba.offsetInBytes,
+    numChannels: 4,
+    order: img.ChannelOrder.rgba,
+  );
+  return img.encodeJpg(image, quality: 92);
 }

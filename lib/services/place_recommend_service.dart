@@ -40,8 +40,40 @@ class PlaceRecommendation {
   });
 }
 
+/// 추천 진행 단계 — 화면이 로딩 중 무엇을 하고 있는지 보여주는 데 사용.
+enum PlaceRecommendStage { searching, choosing }
+
+/// 추천 실패 종류 — 화면은 [kind]로 사용자용 문구를 고르고,
+/// 개발용 상세 내용([detail])은 로그에만 남긴다. (API 키, HTTP 본문 같은
+/// 내부 정보가 사용자 화면에 그대로 노출되지 않도록)
+enum PlaceRecommendErrorKind {
+  /// API 키 미설정 / 권한 거부 — 사용자가 고칠 수 없는 설정 문제
+  unavailable,
+
+  /// 사용량 한도 초과
+  busy,
+
+  /// 네트워크 실패 / 타임아웃
+  network,
+
+  /// 주변 후보가 부족
+  notEnough,
+
+  /// AI 응답을 해석하지 못함 — 다시 시도하면 대개 해결
+  aiFailed,
+}
+
+class PlaceRecommendException implements Exception {
+  final PlaceRecommendErrorKind kind;
+  final String detail;
+  const PlaceRecommendException(this.kind, [this.detail = '']);
+
+  @override
+  String toString() => 'PlaceRecommendException($kind): $detail';
+}
+
 /// AI 장소 추천 서비스.
-/// Claude → Gemini 1.5 Flash로 교체 (무료, 하루 1500회)
+/// 1단계 Google Places로 주변 후보 검색 → 2단계 Gemini가 요청에 맞게 선별.
 class PlaceRecommendService {
   PlaceRecommendService._();
 
@@ -94,16 +126,25 @@ class PlaceRecommendService {
     required String userInput,
     required List<String> chips,
     required int people,
+    void Function(PlaceRecommendStage stage)? onStage,
   }) async {
     if (!Env.hasGeminiKey) {
-      throw Strings.current.placeErrNoGeminiKey;
+      throw const PlaceRecommendException(
+        PlaceRecommendErrorKind.unavailable,
+        'GEMINI_API_KEY missing',
+      );
     }
 
+    onStage?.call(PlaceRecommendStage.searching);
     final candidates = await _searchCandidates(origin, chips);
     if (candidates.length < 2) {
-      throw Strings.current.placeErrNotEnough(candidates.length);
+      throw PlaceRecommendException(
+        PlaceRecommendErrorKind.notEnough,
+        'candidates=${candidates.length}',
+      );
     }
 
+    onStage?.call(PlaceRecommendStage.choosing);
     return _askGemini(
       origin: origin,
       userInput: userInput,
@@ -120,7 +161,12 @@ class PlaceRecommendService {
     List<String> chips,
   ) async {
     final key = Env.googleMapsApiKey;
-    if (key.isEmpty) throw Strings.current.placeErrNoMapsKey;
+    if (key.isEmpty) {
+      throw const PlaceRecommendException(
+        PlaceRecommendErrorKind.unavailable,
+        'GOOGLE_MAPS_API_KEY missing',
+      );
+    }
 
     final types = chips.isEmpty
         ? ['restaurant', 'cafe']
@@ -141,7 +187,7 @@ class PlaceRecommendService {
         'location': '${origin.latitude},${origin.longitude}',
         'radius': '2000',
         'type': type,
-        'language': 'ko',
+        'language': Strings.current.localeName,
         'key': key,
       });
 
@@ -200,16 +246,17 @@ class PlaceRecommendService {
     return all.where((p) => seen.add(p.name)).toList();
   }
 
-  static String _statusToMessage(String? status) {
+  static PlaceRecommendException _statusToMessage(String? status) {
+    final detail = 'Places status=$status';
     switch (status) {
       case 'REQUEST_DENIED':
-        return Strings.current.placeErrDenied;
+        return PlaceRecommendException(PlaceRecommendErrorKind.unavailable, detail);
       case 'OVER_QUERY_LIMIT':
-        return Strings.current.placeErrQuota;
+        return PlaceRecommendException(PlaceRecommendErrorKind.busy, detail);
       case 'INVALID_REQUEST':
-        return Strings.current.placeErrBadRequest;
+        return PlaceRecommendException(PlaceRecommendErrorKind.aiFailed, detail);
       default:
-        return Strings.current.placeErrSearchFailed(status ?? "UNKNOWN");
+        return PlaceRecommendException(PlaceRecommendErrorKind.network, detail);
     }
   }
 
@@ -288,13 +335,20 @@ Respond ONLY in the JSON format below, with no markdown code block:
           )
           .timeout(const Duration(seconds: 30));
     } catch (e) {
-      throw Strings.current.aiErrNetwork('$e');
+      throw PlaceRecommendException(PlaceRecommendErrorKind.network, 'Gemini: $e');
     }
 
     debugPrint('[Place] Gemini → HTTP ${res.statusCode}');
     if (res.statusCode != 200) {
       debugPrint('[Place] Gemini 에러 본문: ${res.body}');
-      throw Strings.current.aiErrResponse(res.statusCode, res.body);
+      throw PlaceRecommendException(
+        res.statusCode == 429
+            ? PlaceRecommendErrorKind.busy
+            : (res.statusCode == 400 || res.statusCode == 403)
+                ? PlaceRecommendErrorKind.unavailable
+                : PlaceRecommendErrorKind.aiFailed,
+        'Gemini HTTP ${res.statusCode}',
+      );
     }
 
     final data =
@@ -303,13 +357,13 @@ Respond ONLY in the JSON format below, with no markdown code block:
     // Gemini 응답 파싱: candidates[0].content.parts[0].text
     final geminiCandidates = data['candidates'] as List?;
     if (geminiCandidates == null || geminiCandidates.isEmpty) {
-      throw Strings.current.aiErrNoContent;
+      throw const PlaceRecommendException(PlaceRecommendErrorKind.aiFailed, 'no candidates');
     }
 
     final parts =
         geminiCandidates[0]['content']?['parts'] as List?;
     if (parts == null || parts.isEmpty) {
-      throw Strings.current.aiErrBadStructure;
+      throw const PlaceRecommendException(PlaceRecommendErrorKind.aiFailed, 'bad structure');
     }
 
     final text = parts[0]['text'] as String? ?? '';
@@ -333,7 +387,7 @@ Respond ONLY in the JSON format below, with no markdown code block:
     final start = cleaned.indexOf('{');
     final end = cleaned.lastIndexOf('}');
     if (start == -1 || end == -1 || end <= start) {
-      throw Strings.current.aiErrUnparsable(rawText);
+      throw PlaceRecommendException(PlaceRecommendErrorKind.aiFailed, 'unparsable: $rawText');
     }
 
     late final Map<String, dynamic> parsed;
@@ -341,7 +395,7 @@ Respond ONLY in the JSON format below, with no markdown code block:
       parsed = jsonDecode(cleaned.substring(start, end + 1))
           as Map<String, dynamic>;
     } catch (_) {
-      throw Strings.current.aiErrBadFormat;
+      throw const PlaceRecommendException(PlaceRecommendErrorKind.aiFailed, 'bad json');
     }
 
     final indices = (parsed['selected'] as List?)
@@ -350,14 +404,18 @@ Respond ONLY in the JSON format below, with no markdown code block:
             .toList() ??
         <int>[];
     final summary = parsed['summary'] as String? ?? Strings.current.aiDefaultReason;
-    final reasons = (parsed['reasons'] as List?)?.cast<String>() ?? [];
+    final reasons = (parsed['reasons'] as List?)?.map((e) => '$e').toList() ?? <String>[];
 
-    if (indices.isEmpty) throw Strings.current.aiErrNoPick;
+    if (indices.isEmpty) {
+      throw const PlaceRecommendException(PlaceRecommendErrorKind.aiFailed, 'no pick');
+    }
 
     final places = <Place>[];
+    final usedIdx = <int>{};
     for (var i = 0; i < indices.length; i++) {
       final idx = indices[i];
       if (idx < 0 || idx >= candidates.length) continue;
+      if (!usedIdx.add(idx)) continue; // AI가 같은 후보를 두 번 고른 경우
       final base = candidates[idx];
       places.add(Place(
         name: base.name,
@@ -369,7 +427,9 @@ Respond ONLY in the JSON format below, with no markdown code block:
       ));
     }
 
-    if (places.isEmpty) throw Strings.current.aiErrTooFewValid;
+    if (places.isEmpty) {
+      throw const PlaceRecommendException(PlaceRecommendErrorKind.aiFailed, 'no valid index');
+    }
 
     return PlaceRecommendation(
       places: places,

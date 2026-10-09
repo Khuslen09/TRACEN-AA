@@ -138,7 +138,31 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
   }
 
   void _showPinPreview(Pin pin) {
-    PinPreviewSheet.show(context, pin: pin, onDelete: () => _deletePin(pin));
+    PinPreviewSheet.show(
+      context,
+      pin: pin,
+      onDelete: () => _deletePin(pin),
+      onEdited: _onPinEdited,
+    );
+  }
+
+  void _onPinEdited(Pin updated) {
+    if (!mounted) return;
+    setState(() {
+      _pins = [for (final p in _pins) p.id == updated.id ? updated : p];
+      _markers = {
+        for (final m in _markers)
+          if (m.markerId.value != 'pin_${updated.id}') m,
+        Marker(
+          markerId: MarkerId('pin_${updated.id}'),
+          position: LatLng(updated.lat, updated.lng),
+          icon: BitmapDescriptor.defaultMarkerWithHue(
+            updated.category.markerHue,
+          ),
+          onTap: () => _showPinPreview(updated),
+        ),
+      };
+    });
   }
 
   Future<void> _deletePin(Pin pin) async {

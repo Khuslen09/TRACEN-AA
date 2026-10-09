@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import '../../../l10n/generated/app_localizations.dart';
 import '../../../l10n/strings.dart';
 import 'dart:io';
@@ -13,6 +14,7 @@ import '../../../models/pin_category.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_text_styles.dart';
 import '../../../theme/theme_extensions.dart';
+import '../../save_files_screen.dart';
 import '../../share/share_editor_screen.dart';
 
 /// 마커 탭 시 화면 하단에서 올라오는 핀 미리보기 시트.
@@ -21,12 +23,16 @@ import '../../share/share_editor_screen.dart';
 class PinPreviewSheet extends StatelessWidget {
   final Pin pin;
   final VoidCallback onDelete;
+
+  /// 수정 완료 시 호출 — null이면 수정 버튼을 숨긴다.
+  final ValueChanged<Pin>? onEdited;
   final ScrollController? scrollController;
 
   const PinPreviewSheet({
     super.key,
     required this.pin,
     required this.onDelete,
+    this.onEdited,
     this.scrollController,
   });
 
@@ -34,6 +40,7 @@ class PinPreviewSheet extends StatelessWidget {
     BuildContext context, {
     required Pin pin,
     required VoidCallback onDelete,
+    ValueChanged<Pin>? onEdited,
   }) {
     return showModalBottomSheet(
       context: context,
@@ -48,6 +55,7 @@ class PinPreviewSheet extends StatelessWidget {
         builder: (ctx, scrollController) => PinPreviewSheet(
           pin: pin,
           onDelete: onDelete,
+          onEdited: onEdited,
           scrollController: scrollController,
         ),
       ),
@@ -57,7 +65,8 @@ class PinPreviewSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final time = '${DateFormat.MMMd(Strings.current.localeName).format(pin.createdAt)} '
+    final time =
+        '${DateFormat.MMMd(Strings.current.localeName).format(pin.createdAt)} '
         '${DateFormat.jm(Strings.current.localeName).format(pin.createdAt)}';
 
     // 로컬 파일이 실제로 존재하는지 확인 후 판단
@@ -69,6 +78,40 @@ class PinPreviewSheet extends StatelessWidget {
     final hasPhoto = localExists || hasUrl;
     final hasMemo = pin.memo != null && pin.memo!.isNotEmpty;
 
+    // DraggableScrollableSheet가 주는 높이 = 지금 시트 높이. 시트를 위로
+    // 끌어올릴수록 사진이 같이 커진다 — 처음 높이(0.55)에선 220,
+    // 끝까지(0.95) 올리면 화면 대부분을 사진이 차지.
+    return LayoutBuilder(
+      builder: (context, constraints) => _buildSheet(
+        context,
+        l10n: l10n,
+        time: time,
+        localExists: localExists,
+        hasUrl: hasUrl,
+        hasPhoto: hasPhoto,
+        hasMemo: hasMemo,
+        photoHeight: constraints.hasBoundedHeight
+            ? math.max(_minPhotoHeight, constraints.maxHeight - _sheetChrome)
+            : _minPhotoHeight,
+      ),
+    );
+  }
+
+  static const double _minPhotoHeight = 220;
+
+  /// 사진 외 시트 구성요소(핸들·헤더·여백·메모 한두 줄)에 남겨둘 높이.
+  static const double _sheetChrome = 250;
+
+  Widget _buildSheet(
+    BuildContext context, {
+    required AppLocalizations l10n,
+    required String time,
+    required bool localExists,
+    required bool hasUrl,
+    required bool hasPhoto,
+    required bool hasMemo,
+    required double photoHeight,
+  }) {
     return Container(
       decoration: BoxDecoration(
         color: context.cardColor,
@@ -112,10 +155,19 @@ class PinPreviewSheet extends StatelessWidget {
                   color: AppColors.gray500,
                   onPressed: () => Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => ShareEditorScreen(pin: pin)),
+                    MaterialPageRoute(
+                      builder: (_) => ShareEditorScreen(pin: pin),
+                    ),
                   ),
                   tooltip: l10n.pinShareTooltip,
                 ),
+                if (onEdited != null)
+                  IconButton(
+                    icon: const Icon(Icons.edit_outlined, size: 20),
+                    color: AppColors.gray500,
+                    onPressed: () => _openEditor(context),
+                    tooltip: l10n.pinEditTooltip,
+                  ),
                 IconButton(
                   icon: const Icon(Icons.delete_outline_rounded, size: 20),
                   color: AppColors.gray500,
@@ -144,7 +196,7 @@ class PinPreviewSheet extends StatelessWidget {
                       child: _PinImage(
                         localPath: localExists ? pin.photoPath : null,
                         networkUrl: hasUrl ? pin.photoUrl : null,
-                        height: 220,
+                        height: photoHeight,
                       ),
                     ),
                     // 확대 힌트 아이콘
@@ -204,6 +256,30 @@ class PinPreviewSheet extends StatelessWidget {
     );
   }
 
+  /// 수정 화면을 열고, 저장되면 시트를 닫은 뒤 [onEdited]로 알려준다.
+  Future<void> _openEditor(BuildContext context) async {
+    final updated = await Navigator.push<Pin?>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => SaveFilesScreen(
+          lat: pin.lat,
+          lng: pin.lng,
+          runId: pin.runId,
+          editingPin: pin,
+        ),
+      ),
+    );
+    if (updated == null || !context.mounted) {
+      if (updated != null) onEdited?.call(updated);
+      return;
+    }
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final message = AppLocalizations.of(context).pinUpdated;
+    Navigator.pop(context); // 예전 내용이 보이는 시트 닫기
+    messenger?.showSnackBar(SnackBar(content: Text(message)));
+    onEdited?.call(updated);
+  }
+
   /// 전체화면 사진 뷰어.
   void _openFullPhoto(
     BuildContext context,
@@ -225,7 +301,11 @@ class PinPreviewSheet extends StatelessWidget {
 }
 
 /// 로컬 파일 → 네트워크 URL 순으로 fallback하는 이미지 위젯.
-class _PinImage extends StatelessWidget {
+///
+/// [height]는 최대 높이 — 사진 원본 비율로 꽉 차는 높이보다 커지지 않는다.
+/// 시트를 끝까지 올려도 BoxFit.cover가 사진 양옆을 잘라내지 않고 전체가
+/// 보이게 하기 위함.
+class _PinImage extends StatefulWidget {
   final String? localPath;
   final String? networkUrl;
   final double height;
@@ -233,21 +313,93 @@ class _PinImage extends StatelessWidget {
   const _PinImage({this.localPath, this.networkUrl, required this.height});
 
   @override
+  State<_PinImage> createState() => _PinImageState();
+}
+
+class _PinImageState extends State<_PinImage> {
+  /// 가로/세로 비율 — 디코딩 전엔 null(그동안은 [height] 그대로).
+  double? _aspect;
+  ImageStream? _stream;
+  ImageStreamListener? _listener;
+
+  String? get localPath => widget.localPath;
+  String? get networkUrl => widget.networkUrl;
+
+  ImageProvider? get _provider {
+    if (localPath != null) return FileImage(File(localPath!));
+    if (networkUrl != null) return CachedNetworkImageProvider(networkUrl!);
+    return null;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _resolveAspect();
+  }
+
+  @override
+  void didUpdateWidget(covariant _PinImage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.localPath != localPath ||
+        oldWidget.networkUrl != networkUrl) {
+      _resolveAspect();
+    }
+  }
+
+  void _resolveAspect() {
+    final provider = _provider;
+    if (provider == null) return;
+    final stream = provider.resolve(createLocalImageConfiguration(context));
+    if (stream.key == _stream?.key) return;
+    _stopListening();
+    _listener = ImageStreamListener((info, _) {
+      final img = info.image;
+      if (mounted && img.height > 0) {
+        setState(() => _aspect = img.width / img.height);
+      }
+    }, onError: (_, __) {});
+    _stream = stream..addListener(_listener!);
+  }
+
+  void _stopListening() {
+    if (_listener != null) _stream?.removeListener(_listener!);
+    _listener = null;
+  }
+
+  @override
+  void dispose() {
+    _stopListening();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final aspect = _aspect;
+        final height = aspect == null || !constraints.hasBoundedWidth
+            ? widget.height
+            : math.min(widget.height, constraints.maxWidth / aspect);
+        return _buildImage(height);
+      },
+    );
+  }
+
+  Widget _buildImage(double height) {
     if (localPath != null) {
       return Image.file(
         File(localPath!),
         width: double.infinity,
         height: height,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _networkFallback(),
+        errorBuilder: (_, __, ___) => _networkFallback(height),
       );
     }
-    return _networkFallback();
+    return _networkFallback(height);
   }
 
-  Widget _networkFallback() {
-    if (networkUrl == null) return _brokenImage();
+  Widget _networkFallback(double height) {
+    if (networkUrl == null) return _brokenImage(height);
     return CachedNetworkImage(
       imageUrl: networkUrl!,
       width: double.infinity,
@@ -259,11 +411,11 @@ class _PinImage extends StatelessWidget {
         alignment: Alignment.center,
         child: const CircularProgressIndicator(),
       ),
-      errorWidget: (_, __, ___) => _brokenImage(),
+      errorWidget: (_, __, ___) => _brokenImage(height),
     );
   }
 
-  Widget _brokenImage() {
+  Widget _brokenImage(double height) {
     return Container(
       height: height,
       color: AppColors.gray100,
@@ -306,14 +458,19 @@ class _FullPhotoViewer extends StatelessWidget {
       }
 
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context).photoSavedToGallery)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context).photoSavedToGallery),
+          ),
+        );
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context).saveFailedWith('$e')), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(AppLocalizations.of(context).saveFailedWith('$e')),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'pin_category.dart';
 import 'place_candidate.dart';
+import '../services/photo_storage.dart';
 
 /// 사용자가 지도에 남긴 지점 (사진/메모 + 카테고리).
 ///
@@ -107,7 +108,8 @@ class Pin {
     lat: (map['lat'] as num).toDouble(),
     lng: (map['lng'] as num).toDouble(),
     category: PinCategory.fromKey(map['category'] as String?),
-    photoPath: map['photo_path'] as String?,
+    // 앱 업데이트로 컨테이너 경로가 바뀌어도 사진을 찾도록 현재 경로로 보정
+    photoPath: PhotoStorage.resolve(map['photo_path'] as String?),
     photoUrl: map['photo_url'] as String?,
     photoStoragePath: map['photo_storage_path'] as String?,
     memo: map['memo'] as String?,

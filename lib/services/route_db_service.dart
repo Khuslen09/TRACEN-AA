@@ -21,7 +21,8 @@ import '../models/pin.dart';
 class RouteDBService {
   static Database? _db;
   static const _dbName = 'aa.db';
-  static const _dbVersion = 7; // v6 → v7 (pins.place_name/place_city/place_candidates — POI 캐시)
+  static const _dbVersion =
+      7; // v6 → v7 (pins.place_name/place_city/place_candidates — POI 캐시)
 
   static const _uuidGen = Uuid();
 
@@ -465,10 +466,7 @@ class RouteDBService {
     final database = await db;
     await database.update(
       'routes',
-      {
-        'distance': distance,
-        'last_active_at': lastActiveAt.toIso8601String(),
-      },
+      {'distance': distance, 'last_active_at': lastActiveAt.toIso8601String()},
       where: 'id = ?',
       whereArgs: [routeId],
     );
@@ -821,7 +819,9 @@ class RouteDBService {
       whereClauses.add("p.memo IS NOT NULL AND p.memo != ''");
     }
     if (query != null && query.trim().isNotEmpty) {
-      whereClauses.add('(p.memo LIKE ? OR p.place_name LIKE ? OR r.title LIKE ?)');
+      whereClauses.add(
+        '(p.memo LIKE ? OR p.place_name LIKE ? OR r.title LIKE ?)',
+      );
       final like = '%${query.trim()}%';
       args.addAll([like, like, like]);
     }
@@ -1008,7 +1008,10 @@ class RouteDBService {
     );
     return [
       for (final row in rows)
-        (lat: (row['lat'] as num).toDouble(), lng: (row['lng'] as num).toDouble()),
+        (
+          lat: (row['lat'] as num).toDouble(),
+          lng: (row['lng'] as num).toDouble(),
+        ),
     ];
   }
 
@@ -1043,10 +1046,12 @@ class RouteDBService {
 
     final routeRows = await database.rawQuery('''
       SELECT
+        activity_type,
         COUNT(*) AS route_count,
         COALESCE(SUM(distance), 0) AS total_distance
       FROM routes
       WHERE $routeWhere
+      GROUP BY activity_type
     ''', routeArgs);
 
     // pins: v5부터 route_id가 아니라 user_id로 독립 소유 — route 조인은
@@ -1061,10 +1066,22 @@ class RouteDBService {
       $pinWhere
     ''', pinArgs);
 
+    final byType = {
+      for (final t in ActivityType.values) t: const ActivityTotals.zero(),
+    };
+    for (final row in routeRows) {
+      // fromKey는 모르는/빈 값(v6 이전 기록)을 running으로 돌려준다.
+      final type = ActivityType.fromKey(row['activity_type'] as String?);
+      byType[type] =
+          byType[type]! +
+          ActivityTotals(
+            count: (row['route_count'] as int?) ?? 0,
+            meters: ((row['total_distance'] as num?) ?? 0).toDouble(),
+          );
+    }
+
     return UserStats(
-      routeCount: (routeRows.first['route_count'] as int?) ?? 0,
-      totalDistanceMeters: ((routeRows.first['total_distance'] as num?) ?? 0)
-          .toDouble(),
+      byType: byType,
       pinCount: (pinRows.first['pin_count'] as int?) ?? 0,
     );
   }
@@ -1091,23 +1108,32 @@ class RouteDBService {
   }
 }
 
-/// 사용자 누적 통계 — Profile 화면 표시용.
-class UserStats {
-  final int routeCount;
-  final double totalDistanceMeters;
-  final int pinCount;
+/// 활동 종류 하나의 누적 — 저장한 여정 수와 거리(m).
+class ActivityTotals {
+  final int count;
+  final double meters;
 
-  const UserStats({
-    required this.routeCount,
-    required this.totalDistanceMeters,
-    required this.pinCount,
-  });
+  const ActivityTotals({required this.count, required this.meters});
+  const ActivityTotals.zero() : count = 0, meters = 0;
+
+  ActivityTotals operator +(ActivityTotals other) =>
+      ActivityTotals(count: count + other.count, meters: meters + other.meters);
 
   /// "12.34 km" 형태로 포맷.
   String get formattedDistance {
-    if (totalDistanceMeters < 1000) {
-      return '${totalDistanceMeters.toStringAsFixed(0)} m';
-    }
-    return '${(totalDistanceMeters / 1000).toStringAsFixed(2)} km';
+    if (meters < 1000) return '${meters.toStringAsFixed(0)} m';
+    return '${(meters / 1000).toStringAsFixed(2)} km';
   }
+}
+
+/// 사용자 누적 통계 — Profile 화면 표시용. 러닝/걷기/자전거를 섞으면
+/// 거리가 의미 없어져서 종류별로 따로 집계한다.
+class UserStats {
+  final Map<ActivityType, ActivityTotals> byType;
+  final int pinCount;
+
+  const UserStats({required this.byType, required this.pinCount});
+
+  ActivityTotals operator [](ActivityType type) =>
+      byType[type] ?? const ActivityTotals.zero();
 }

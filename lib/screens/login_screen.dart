@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import '../l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 
@@ -15,7 +17,7 @@ import 'sign_up_screen.dart';
 /// 디자인 결정:
 ///   - SplashScreen 톤과 일관된 보라 그라데이션 로고
 ///   - Email/Password 폼 + 그림자 강조 보라 버튼
-///   - Google 로그인 (실제 작동), Apple 로그인 (추후 추가)
+///   - Google 로그인, Apple 로그인 (iOS, 가이드라인 4.8)
 ///   - 가입 화면으로 이동하는 명확한 CTA
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -84,6 +86,23 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Future<void> _handleAppleLogin() async {
+    setState(() => _loading = true);
+    try {
+      await AuthService.signInWithApple();
+      if (!mounted) return;
+      _goToHome();
+    } on AuthException catch (e) {
+      if (!e.cancelled && mounted) {
+        _showSnack(e.message, isError: true);
+      }
+    } catch (_) {
+      if (mounted) _showSnack(l10n.appleLoginFailed, isError: true);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
   void _handleForgotPassword() {
     Navigator.push(
       context,
@@ -117,6 +136,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: context.bgColor,
       body: SafeArea(
@@ -261,14 +281,19 @@ class _LoginScreenState extends State<LoginScreen> {
                     imagePath: 'assets/icon/google_logo.png',
                     onPressed: _loading ? null : _handleGoogleLogin,
                   ),
-                  const SizedBox(height: 10),
-                  _SocialButton(
-                    label: l10n.continueWithAppleSoon,
-                    icon: Icons.apple,
-                    iconColor: AppColors.gray400,
-                    iconSize: 22,
-                    onPressed: null, // TODO: sign_in_with_apple 패키지 추가 후 구현
-                  ),
+                  // Apple — iOS 전용 (App Store 가이드라인 4.8)
+                  if (Platform.isIOS) ...[
+                    const SizedBox(height: 10),
+                    _SocialButton(
+                      label: l10n.continueWithApple,
+                      icon: Icons.apple,
+                      iconColor: isDark ? Colors.black : Colors.white,
+                      iconSize: 24,
+                      backgroundColor: isDark ? Colors.white : Colors.black,
+                      foregroundColor: isDark ? Colors.black : Colors.white,
+                      onPressed: _loading ? null : _handleAppleLogin,
+                    ),
+                  ],
 
                   const Spacer(),
 
@@ -325,6 +350,8 @@ class _SocialButton extends StatelessWidget {
   final double iconSize;
   final VoidCallback? onPressed;
   final String? imagePath; // 있으면 아이콘 대신 이미지 사용 (Google 로고 등)
+  final Color? backgroundColor; // Apple 버튼처럼 브랜드 색이 정해진 경우
+  final Color? foregroundColor;
 
   const _SocialButton({
     required this.label,
@@ -333,13 +360,15 @@ class _SocialButton extends StatelessWidget {
     required this.onPressed,
     this.iconSize = 22,
     this.imagePath,
+    this.backgroundColor,
+    this.foregroundColor,
   });
 
   @override
   Widget build(BuildContext context) {
     final disabled = onPressed == null;
     return Material(
-      color: context.cardColor,
+      color: backgroundColor ?? context.cardColor,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         onTap: onPressed,
@@ -347,7 +376,9 @@ class _SocialButton extends StatelessWidget {
         child: Container(
           height: 52,
           decoration: BoxDecoration(
-            border: Border.all(color: context.borderColor, width: 1),
+            border: backgroundColor != null
+                ? null
+                : Border.all(color: context.borderColor, width: 1),
             borderRadius: BorderRadius.circular(14),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -371,7 +402,9 @@ class _SocialButton extends StatelessWidget {
                   label,
                   textAlign: TextAlign.center,
                   style: AppTextStyles.bodyBold.copyWith(
-                    color: disabled ? AppColors.gray400 : context.textPrimary,
+                    color: disabled
+                        ? AppColors.gray400
+                        : (foregroundColor ?? context.textPrimary),
                   ),
                 ),
               ),

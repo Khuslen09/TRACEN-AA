@@ -26,6 +26,7 @@ class InstagramStoryChannel(private val activity: Activity) : MethodChannel.Meth
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
             "share" -> result.success(share(call))
+            "shareToApp" -> result.success(shareToApp(call.argument<String>("path")))
             else -> result.notImplemented()
         }
     }
@@ -52,6 +53,24 @@ class InstagramStoryChannel(private val activity: Activity) : MethodChannel.Meth
         }
         if (activity.packageManager.resolveActivity(intent, 0) == null) return false
         activity.startActivityForResult(intent, 0)
+        return true
+    }
+
+    /**
+     * 인스타 앱으로 일반 이미지 공유(ACTION_SEND) — 인스타가 피드/스토리/
+     * 릴스/메시지 선택 화면을 띄운다. 앱 ID가 필요 없다.
+     */
+    private fun shareToApp(path: String?): Boolean {
+        if (path == null) return false
+        val uri = uriFor(path)
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            setPackage(INSTAGRAM_PACKAGE)
+            type = "image/png"
+            putExtra(Intent.EXTRA_STREAM, uri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        if (activity.packageManager.resolveActivity(intent, 0) == null) return false
+        activity.startActivity(intent)
         return true
     }
 

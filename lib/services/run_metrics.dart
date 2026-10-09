@@ -1,5 +1,8 @@
 import 'dart:math';
 
+import '../models/route_pause.dart';
+import '../models/route_point.dart';
+
 /// 러닝 통계 계산 유틸.
 ///
 /// 책임:
@@ -139,4 +142,146 @@ class RunMetrics {
   }
 
   static double _toRad(double deg) => deg * pi / 180.0;
+
+  // ─────────────────────────────────────────────
+  // 결과 화면용 — 이동 시간 / 고도 상승 / 구간 기록
+  // ─────────────────────────────────────────────
+
+  /// [startedAt]~[at] 사이에서 일시정지 구간을 뺀 실제 이동 시간.
+  /// [ActivityRecorder]의 타임스탬프 기반 계산과 같은 규칙.
+  static Duration movingDurationAt({
+    required DateTime startedAt,
+    required DateTime at,
+    required List<RoutePause> pauses,
+  }) {
+    var paused = Duration.zero;
+    for (final p in pauses) {
+      final pStart = p.startedAt.isBefore(startedAt) ? startedAt : p.startedAt;
+      final pEnd = p.endedAt ?? at;
+      final end = pEnd.isAfter(at) ? at : pEnd;
+      if (end.isAfter(pStart)) paused += end.difference(pStart);
+    }
+    final total = at.difference(startedAt) - paused;
+    return total.isNegative ? Duration.zero : total;
+  }
+
+  /// GPS 고도 상승(m). GPS 고도는 오차가 커서 그대로 더하면 평지도 크게
+  /// 부풀려진다 → ① 수직 정확도가 나쁜 점(>15m) 제외 ② 5점 이동평균으로
+  /// 스무딩 ③ 마지막 기준점보다 3m 이상 오를 때만 누적(히스테리시스).
+  /// altitudeAccuracy가 0이면(기기가 값을 안 줌) 그 점은 그대로 사용.
+  static double elevationGain(List<RoutePoint> points) {
+    final alts = <double>[
+      for (final p in points)
+        if (p.altitudeAccuracy <= 15 && p.altitude != 0) p.altitude,
+    ];
+    if (alts.length < 5) return 0;
+
+    const window = 5;
+    final smoothed = <double>[];
+    for (var i = 0; i < alts.length; i++) {
+      final from = max(0, i - window ~/ 2);
+      final to = min(alts.length, i + window ~/ 2 + 1);
+      var sum = 0.0;
+      for (var j = from; j < to; j++) {
+        sum += alts[j];
+      }
+      smoothed.add(sum / (to - from));
+    }
+
+    const hysteresis = 3.0;
+    var gain = 0.0;
+    var ref = smoothed.first;
+    for (final a in smoothed.skip(1)) {
+      if (a - ref >= hysteresis) {
+        gain += a - ref;
+        ref = a;
+      } else if (a < ref) {
+        ref = a; // 내려가면 기준점을 낮춰 다음 오르막을 새로 잰다
+      }
+    }
+    return gain;
+  }
+
+  /// [splitMeters](러닝/걷기 1km, 자전거 5km)마다 구간 기록.
+  ///
+  /// 경계를 넘는 두 점 사이를 선형 보간해 정확한 경계 시각을 구하고,
+  /// 구간 시간은 일시정지를 뺀 이동 시간 기준. 마지막 남은 거리가
+  /// 50m 이상이면 [Split.isPartial] 구간으로 덧붙인다.
+  static List<Split> computeSplits({
+    required List<RoutePoint> points,
+    required List<RoutePause> pauses,
+    required DateTime startedAt,
+    double splitMeters = 1000,
+  }) {
+    if (points.length < 2) return const [];
+
+    Duration movingAt(DateTime t) =>
+        movingDurationAt(startedAt: startedAt, at: t, pauses: pauses);
+
+    final splits = <Split>[];
+    var cumulative = 0.0;
+    var nextBoundary = splitMeters;
+    var lastBoundaryMoving = movingAt(points.first.time);
+
+    for (var i = 1; i < points.length; i++) {
+      final a = points[i - 1], b = points[i];
+      final seg = haversineMeters(a.lat, a.lng, b.lat, b.lng);
+      if (seg <= 0) continue;
+      while (cumulative + seg >= nextBoundary) {
+        final ratio = (nextBoundary - cumulative) / seg;
+        final ms = b.time.difference(a.time).inMilliseconds * ratio;
+        final crossAt = a.time.add(Duration(milliseconds: ms.round()));
+        final moving = movingAt(crossAt);
+        splits.add(
+          Split(
+            index: splits.length + 1,
+            distanceMeters: splitMeters,
+            duration: moving - lastBoundaryMoving,
+          ),
+        );
+        lastBoundaryMoving = moving;
+        nextBoundary += splitMeters;
+      }
+      cumulative += seg;
+    }
+
+    final remaining = cumulative - (nextBoundary - splitMeters);
+    if (remaining >= 50) {
+      splits.add(
+        Split(
+          index: splits.length + 1,
+          distanceMeters: remaining,
+          duration: movingAt(points.last.time) - lastBoundaryMoving,
+          isPartial: true,
+        ),
+      );
+    }
+    return splits;
+  }
+}
+
+/// 한 구간(1km 또는 5km) 기록.
+class Split {
+  final int index;
+  final double distanceMeters;
+  final Duration duration;
+
+  /// 마지막 자투리 구간(정해진 거리보다 짧음).
+  final bool isPartial;
+
+  const Split({
+    required this.index,
+    required this.distanceMeters,
+    required this.duration,
+    this.isPartial = false,
+  });
+
+  /// 초/km — 자투리 구간도 km 환산이라 다른 구간과 비교 가능.
+  double get paceSecondsPerKm => distanceMeters <= 0
+      ? 0
+      : duration.inMilliseconds / 1000 / (distanceMeters / 1000);
+
+  double get speedKmh => duration.inMilliseconds <= 0
+      ? 0
+      : (distanceMeters / 1000) / (duration.inMilliseconds / 3600000);
 }

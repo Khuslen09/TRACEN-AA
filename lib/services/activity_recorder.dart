@@ -26,7 +26,9 @@ import 'run_metrics.dart';
 class ActivityRecorder {
   ActivityRecorder(this.activityType);
 
-  final ActivityType activityType;
+  /// 기록할 활동 종류. 시작 대기(idle) 화면에서 사용자가 타입을 바꿀 수
+  /// 있도록 [start] 전까지는 변경 가능 — 시작 후에는 바꾸지 않는다.
+  ActivityType activityType;
 
   final ValueNotifier<TrackingMetrics> metrics = ValueNotifier(
     TrackingMetrics.zero,
@@ -48,12 +50,24 @@ class ActivityRecorder {
     null,
   );
 
+  /// 가장 최근 원본 GPS 픽스의 수평 정확도(m). 시작 대기 화면의
+  /// "GPS 찾는 중… / 준비 완료" 표시에 쓰인다. 첫 픽스 전에는 null.
+  final ValueNotifier<double?> lastAccuracy = ValueNotifier(null);
+
+  /// [_accuracyThreshold]와 같은 기준 — 화면에서 "준비 완료" 판단용.
+  static const double readyAccuracyMeters = _accuracyThreshold;
+
   /// 지금 어떤 route가 기록 중인지 — 앱 전역에서 1개뿐이어야 한다.
   /// `HomeScreen`의 복구 로직이 이 값을 확인해 같은 route에 GPS 스트림이
   /// 두 번 붙는 걸 막는다.
   static int? activeRouteId;
 
   int? _routeId;
+
+  /// [start]/[resumeExisting]으로 route가 만들어졌는지 — 시작 직후
+  /// (route 생성 전)에 종료 버튼이 눌리는 경우를 화면에서 걸러낼 때 씀.
+  bool get hasRoute => _routeId != null;
+
   int get routeId {
     final id = _routeId;
     if (id == null) throw StateError('ActivityRecorder not started yet');
@@ -97,6 +111,16 @@ class ActivityRecorder {
   // ─────────────────────────────────────────────
   // 시작 / 재개 / 일시정지 / 정지
   // ─────────────────────────────────────────────
+
+  /// 시작 대기(idle) 상태 — route를 만들지 않고 GPS만 미리 켜서 지도에
+  /// 현재 위치와 정확도를 보여준다. 이 상태에서 들어온 위치는 경로/거리에
+  /// 절대 누적되지 않는다([_handlePosition]이 route 없으면 바로 반환).
+  /// 이후 [start]를 부르면 같은 인스턴스가 그대로 기록을 시작한다.
+  Future<void> warmUp() async {
+    unawaited(_seedLastKnownPosition());
+    unawaited(_refreshLocationStatus());
+    await _subscribeGps();
+  }
 
   Future<void> start() async {
     final id = await RouteDBService.startRoute(activityType: activityType);
@@ -235,6 +259,7 @@ class ActivityRecorder {
     mapState.dispose();
     debugGpsInfo.dispose();
     accuracyStatus.dispose();
+    lastAccuracy.dispose();
     if (activeRouteId == _routeId) activeRouteId = null;
   }
 
@@ -270,7 +295,10 @@ class ActivityRecorder {
 
   Future<void> _subscribeGps() async {
     await _posSub?.cancel();
-    _posSub = LocationService.positionStream().listen(_handlePosition);
+    _posSub = LocationService.positionStream().listen(
+      _handlePosition,
+      onError: (Object e) => debugPrint('위치 스트림 오류: $e'),
+    );
   }
 
   /// 첫 실시간 픽스가 들어오기 전, 캐시된 마지막 위치로 마커를 최대한
@@ -328,8 +356,11 @@ class ActivityRecorder {
       position: rawLatLng,
       path: mapState.value.path,
     );
+    lastAccuracy.value = p.accuracy;
     _publishDebugInfo();
 
+    // 시작 대기 상태(route 없음) — 위치 표시만 하고 기록은 하지 않는다.
+    if (_routeId == null) return;
     if (_manualPaused) return;
     if (p.accuracy > _accuracyThreshold) return;
 

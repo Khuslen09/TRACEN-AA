@@ -20,8 +20,7 @@ import '../../theme/theme_extensions.dart';
 import '../../utils/marker_bitmap_util.dart';
 import 'widgets/scratch_tile_provider.dart';
 import '../profile/profile_screen.dart';
-import '../../models/activity_type.dart';
-import '../run/running_live_screen.dart'; // ignore: unused_import — 다음 단계에서 복원
+import '../run/activity_result_screen.dart';
 import '../run/tracking/activity_tracking_screen.dart';
 import '../save_files_screen.dart';
 import 'place_input_screen.dart';
@@ -279,30 +278,30 @@ class _HomeScreenState extends State<HomeScreen> {
   // ─────────────────────────────────────────────
 
   /// 진행 중('recording') 또는 저장 대기 중('pending_review')인 route가
-  /// 있으면 복구한다 — **더 이상 조용히 백그라운드에서 이어 기록하지
-  /// 않는다.** recording이면 기록 화면을 직접 열어 [ActivityRecorder]가
-  /// 이어받게 하고, pending_review는 결과 화면으로 돌아가야 하지만 그
-  /// 화면은 3단계에서 생기므로 지금은 보류(데이터는 안전하게 남아있음).
+  /// 있으면 복구한다 — **조용히 백그라운드에서 이어 기록하지 않는다.**
+  /// recording이면 기록 화면을 열어 [ActivityRecorder]가 이어받게 하고,
+  /// pending_review면 결과 화면을 다시 열어 저장/버리기를 고르게 한다.
   Future<void> _restoreActiveRouteIfAny() async {
     final resumable = await RouteDBService.getResumableRoute();
     if (resumable == null || !mounted) return;
 
-    if (resumable.status != RouteStatus.recording) {
-      // TODO(3단계): ActivityResultScreen(runId: resumable.id)으로 push.
-      return;
-    }
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
-      Navigator.push(
+      await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => ActivityTrackingScreen(
-            activityType: resumable.activityType,
-            resumeRouteId: resumable.id,
-          ),
+          builder: (_) => resumable.status == RouteStatus.recording
+              ? ActivityTrackingScreen(
+                  activityType: resumable.activityType,
+                  resumeRouteId: resumable.id,
+                )
+              : ActivityResultScreen(routeId: resumable.id!),
         ),
       );
+      if (mounted) {
+        await _loadAllSavedRoutes();
+        await _loadStandalonePins();
+      }
     });
   }
 
@@ -550,18 +549,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: InkWell(
                     customBorder: const CircleBorder(),
                     onTap: () async {
-                      // TODO(다음 단계): 2분할 mock UI(ActivityTrackingScreen)
-                      // 검증이 끝나면 실제 엔진을 붙여서 아래 원래 줄로
-                      // 되돌리거나(RunningLiveScreen) 정식 교체할지 결정.
-                      // 원래: await Navigator.push(context, MaterialPageRoute(
-                      //   builder: (_) => const RunningLiveScreen(),
-                      // ));
+                      // 활동 선택(러닝/걷기/자전거)은 기록 화면의 시작
+                      // 대기 상태에서 — 마지막 선택을 기억해 기본값으로.
                       await Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const ActivityTrackingScreen(
-                            activityType: ActivityType.running,
-                          ),
+                          builder: (_) => const ActivityTrackingScreen(),
                         ),
                       );
                       // 경로 + 핀 새로고침

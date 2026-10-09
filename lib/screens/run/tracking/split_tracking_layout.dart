@@ -27,12 +27,19 @@ class SplitTrackingLayout extends StatefulWidget {
   final Widget controlsBar;
   final TrackingSnapState initialSnapState;
 
+  /// null이 아니면 지표 패널 높이를 이 값으로 고정하고 드래그를 막는다 —
+  /// 시작 대기(idle) 화면처럼 내용 높이가 정해진 상태용. 값이 null로 바뀌면
+  /// (= 기록 시작) 고정 높이에서 [TrackingSnapState.balanced]로 부드럽게
+  /// 애니메이션된다. 지도 패널은 같은 자리에 그대로 있어 다시 만들어지지 않음.
+  final double? lockedMetricsHeight;
+
   const SplitTrackingLayout({
     super.key,
     required this.metricsPanelBuilder,
     required this.mapPanel,
     required this.controlsBar,
     this.initialSnapState = TrackingSnapState.balanced,
+    this.lockedMetricsHeight,
   });
 
   @override
@@ -55,6 +62,7 @@ class _SplitTrackingLayoutState extends State<SplitTrackingLayout>
   /// 드래그가 끝나면 애니메이션이 이 값을 목표 스냅 높이까지 옮긴다.
   double? _height;
   double _dragStartHeight = 0;
+  double? _lastContentHeight;
 
   @override
   void initState() {
@@ -67,6 +75,24 @@ class _SplitTrackingLayoutState extends State<SplitTrackingLayout>
           ),
         );
       });
+  }
+
+  @override
+  void didUpdateWidget(covariant SplitTrackingLayout oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final wasLocked = oldWidget.lockedMetricsHeight;
+    final contentHeight = _lastContentHeight;
+    if (wasLocked != null &&
+        widget.lockedMetricsHeight == null &&
+        contentHeight != null) {
+      final begin = wasLocked.clamp(0.0, contentHeight);
+      _height = begin;
+      _heightTween = Tween(
+        begin: begin,
+        end: _heightFor(TrackingSnapState.balanced, contentHeight),
+      );
+      _anim.forward(from: 0);
+    }
   }
 
   @override
@@ -137,6 +163,12 @@ class _SplitTrackingLayoutState extends State<SplitTrackingLayout>
     return LayoutBuilder(
       builder: (context, constraints) {
         final contentHeight = constraints.maxHeight - _handleAreaHeight;
+        _lastContentHeight = contentHeight;
+        final locked = widget.lockedMetricsHeight;
+        if (locked != null) {
+          // 지도가 너무 작아지지 않게 최소 160px은 남겨둔다(작은 화면 대비).
+          _height = locked.clamp(0.0, (contentHeight - 160).clamp(0.0, contentHeight));
+        }
         _height ??= _heightFor(widget.initialSnapState, contentHeight);
         final metricsHeight = _height!.clamp(0.0, contentHeight);
         final mapHeight = (contentHeight - metricsHeight).clamp(
@@ -152,10 +184,13 @@ class _SplitTrackingLayoutState extends State<SplitTrackingLayout>
                 // 지도 팬/줌과 절대 충돌하지 않는다.
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
-                  onVerticalDragStart: _onDragStart,
-                  onVerticalDragUpdate: (d) =>
-                      _onDragUpdate(d, contentHeight),
-                  onVerticalDragEnd: (d) => _onDragEnd(d, contentHeight),
+                  onVerticalDragStart: locked != null ? null : _onDragStart,
+                  onVerticalDragUpdate: locked != null
+                      ? null
+                      : (d) => _onDragUpdate(d, contentHeight),
+                  onVerticalDragEnd: locked != null
+                      ? null
+                      : (d) => _onDragEnd(d, contentHeight),
                   child: Column(
                     children: [
                       ClipRect(

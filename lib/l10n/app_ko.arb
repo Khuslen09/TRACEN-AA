@@ -498,5 +498,78 @@
   "poiPickerManualEntry": "직접 입력",
   "poiPickerManualHint": "위치명을 입력하세요",
   "poiPickerConfirm": "확인",
-  "poiPickerNoCandidates": "근처 장소를 찾지 못했어요"
+  "poiPickerNoCandidates": "근처 장소를 찾지 못했어요",
+  "trackingIdleTitle": "어떤 여정을 기록할까요?",
+  "trackingIdleHintRunning": "페이스 기록",
+  "trackingIdleHintWalking": "페이스·걸음",
+  "trackingIdleHintCycling": "속도 기록",
+  "trackingGpsSearching": "GPS 신호 찾는 중…",
+  "trackingGpsReady": "준비 완료",
+  "trackingStartActivity": "{activity} 시작",
+  "@trackingStartActivity": {
+    "placeholders": {
+      "activity": {
+        "type": "String"
+      }
+    }
+  },
+  "trackingWeakGpsTitle": "GPS 신호가 약해요",
+  "trackingWeakGpsBody": "지금 시작하면 처음 몇십 미터가 부정확할 수 있어요. 그래도 시작할까요?",
+  "trackingWait": "기다리기",
+  "trackingStartAnyway": "시작",
+  "trackingCountdownSkip": "탭하면 바로 시작",
+  "trackingPermTitle": "위치 권한이 필요해요",
+  "trackingPermBody": "여정을 지도에 그리려면 위치 접근을 허용해 주세요. 화면을 꺼도 기록하려면 '항상 허용'이 필요해요.",
+  "trackingPermWhileUsing": "앱 사용 중 허용",
+  "trackingPermAlways": "항상 허용 (백그라운드 기록)",
+  "trackingPermSettings": "설정에서 허용하기",
+  "trackingShortTitle": "짧은 기록이에요",
+  "trackingShortBody": "{summary} 기록이에요. 저장할까요?",
+  "@trackingShortBody": {
+    "placeholders": {
+      "summary": {
+        "type": "String"
+      }
+    }
+  },
+  "resultDone": "오늘의 여정 완료",
+  "resultMovingTime": "이동 시간",
+  "resultElevationGain": "고도 상승",
+  "resultSplitsKm": "km별 구간",
+  "resultSplits5Km": "5km 구간",
+  "resultFastestHint": "가장 빠른 구간 강조",
+  "resultPhotos": "여정 속 사진",
+  "resultMemo": "한 줄 메모",
+  "resultMemoHint": "오늘 여정은 어땠나요?",
+  "resultSave": "여정 저장",
+  "resultSaveShort": "저장",
+  "resultSaved": "여정을 저장했어요",
+  "resultDiscardTitle": "기록을 버릴까요?",
+  "resultDiscardBody": "저장하지 않으면 이 여정은 삭제돼요.",
+  "resultDiscard": "버리기",
+  "resultCancel": "취소",
+  "resultTimeMorning": "아침",
+  "resultTimeAfternoon": "오후",
+  "resultTimeEvening": "저녁",
+  "resultTimeNight": "밤",
+  "resultAutoTitle": "{date} {timeOfDay} {activity}",
+  "@resultAutoTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "timeOfDay": {
+        "type": "String"
+      },
+      "activity": {
+        "type": "String"
+      }
+    }
+  },
+  "activityShareTitle": "여정 공유",
+  "activityShareTemplateRoute": "경로",
+  "activityShareTemplateStats": "기록",
+  "activityShareTemplatePhoto": "사진",
+  "activityShareTemplateSticker": "투명 스티커",
+  "activityShareStickerHint": "투명 배경 PNG — 스토리에서 사진 위에 올려 쓰세요"
 }

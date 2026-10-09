@@ -11,5 +11,9 @@ class MainActivity : FlutterActivity() {
             flutterEngine.dartExecutor.binaryMessenger,
             CameraLensChannel.CHANNEL_NAME
         ).setMethodCallHandler(CameraLensChannel(applicationContext))
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            InstagramStoryChannel.CHANNEL_NAME
+        ).setMethodCallHandler(InstagramStoryChannel(this))
     }
 }

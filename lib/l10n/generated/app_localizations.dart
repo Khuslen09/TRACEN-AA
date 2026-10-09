@@ -2455,8 +2455,38 @@ abstract class AppLocalizations {
   /// No description provided for @activityShareStickerHint.
   ///
   /// In ko, this message translates to:
-  /// **'투명 배경 PNG — 스토리에서 사진 위에 올려 쓰세요'**
+  /// **'사진을 추가해 위에 얹거나, 인스타에서 스티커로 붙여 쓰세요'**
   String get activityShareStickerHint;
+
+  /// No description provided for @activityShareAddPhoto.
+  ///
+  /// In ko, this message translates to:
+  /// **'사진 추가'**
+  String get activityShareAddPhoto;
+
+  /// No description provided for @activityShareChangePhoto.
+  ///
+  /// In ko, this message translates to:
+  /// **'사진 변경'**
+  String get activityShareChangePhoto;
+
+  /// No description provided for @activityShareRemovePhoto.
+  ///
+  /// In ko, this message translates to:
+  /// **'사진 빼기'**
+  String get activityShareRemovePhoto;
+
+  /// No description provided for @activityShareTakePhoto.
+  ///
+  /// In ko, this message translates to:
+  /// **'카메라로 촬영'**
+  String get activityShareTakePhoto;
+
+  /// No description provided for @shareInstagramUnavailable.
+  ///
+  /// In ko, this message translates to:
+  /// **'인스타그램을 열 수 없어 공유 시트로 열어요'**
+  String get shareInstagramUnavailable;
 }
 
 class _AppLocalizationsDelegate

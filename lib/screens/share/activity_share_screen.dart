@@ -1,23 +1,30 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/activity_share_template.dart';
 import '../../models/share_ink_color.dart';
+import '../../services/instagram_story_service.dart';
 import '../../services/share_card_exporter.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../widgets/share_card/activity_share_card.dart';
 
-export '../../widgets/share_card/activity_share_card.dart' show ActivityShareData;
+export '../../widgets/share_card/activity_share_card.dart'
+    show ActivityShareData;
 
 /// 러닝/워킹/사이클링 기록 공유 편집 화면 — 핀 공유(`ShareEditorScreen`)와
 /// 같은 다크 풀스크린 구조(상단바 / 미리보기 / 템플릿·색상 / 공유 버튼).
 ///
-/// 미리보기는 화면 크기에 맞춰 축소(FittedBox)해서 보여주고, 내보내기는
-/// 화면 밖에서 360×640 원본 크기로 그린 [RepaintBoundary]를 캡처한다 —
-/// `ShareCardPreviewBox`와 같은 방식.
+/// 미리보기는 360×640 카드를 화면 크기에 맞춰 축소(FittedBox)해서 보여주고,
+/// 내보내기는 그 안의 [RepaintBoundary]를 캡처한다 — FittedBox 변환은
+/// 경계 바깥이라 캡처는 항상 원본 크기 기준.
+///
+/// 투명 스티커 템플릿은 사진을 깔 수 있다: 저장/다른 앱 공유는 사진+스티커
+/// 합성본, 인스타 스토리는 사진을 배경·스티커를 따로 넘겨 인스타에서
+/// 스티커를 옮기고 크기 조절할 수 있게 한다.
 class ActivityShareScreen extends StatefulWidget {
   final ActivityShareData data;
 
@@ -28,7 +35,14 @@ class ActivityShareScreen extends StatefulWidget {
 }
 
 class _ActivityShareScreenState extends State<ActivityShareScreen> {
+  /// 사진 배경 + 카드 합성본 (저장 / 다른 앱 공유 / 일반 템플릿 인스타 배경).
   final _exportKey = GlobalKey();
+
+  /// 카드만 — 스티커 템플릿이면 투명 PNG(인스타 스티커).
+  final _cardKey = GlobalKey();
+
+  /// 스티커 밑에 깐 사진만 9:16로 잘린 것(인스타 배경).
+  final _stickerPhotoKey = GlobalKey();
   final _shareButtonKey = GlobalKey();
   final _otherButtonKey = GlobalKey();
 
@@ -38,6 +52,12 @@ class _ActivityShareScreenState extends State<ActivityShareScreen> {
   ShareInkColor _ink = ShareInkColor.white;
   int _photoIndex = 0;
   bool _busy = false;
+
+  /// 투명 스티커 밑에 깔 사용자가 고른 사진 — 스티커 템플릿에서만 쓰인다.
+  String? _stickerPhotoPath;
+
+  bool get _isSticker => _template == ActivityShareTemplate.sticker;
+  String? get _stickerBackground => _isSticker ? _stickerPhotoPath : null;
 
   List<ActivityShareTemplate> get _templates => [
     for (final t in ActivityShareTemplate.values)
@@ -56,16 +76,136 @@ class _ActivityShareScreenState extends State<ActivityShareScreen> {
     if (_busy) return;
     setState(() => _busy = true);
     try {
-      final path = await ShareCardExporter.exportToTempFile(_exportKey);
-      final box = originKey.currentContext?.findRenderObject() as RenderBox?;
-      final origin = box == null
-          ? null
-          : (box.localToGlobal(Offset.zero) & box.size);
-      await ShareCardExporter.shareFile(path, origin: origin);
+      await _shareViaSheet(originKey);
     } catch (_) {
       // 공유 실패/취소는 조용히 무시 — 핀 공유 화면과 같은 정책.
     } finally {
       if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _shareViaSheet(GlobalKey originKey) async {
+    final path = await ShareCardExporter.exportToTempFile(_exportKey);
+    final box = originKey.currentContext?.findRenderObject() as RenderBox?;
+    final origin = box == null
+        ? null
+        : (box.localToGlobal(Offset.zero) & box.size);
+    await ShareCardExporter.shareFile(path, origin: origin);
+  }
+
+  /// 인스타 스토리 편집 화면으로 바로 보낸다. 스티커 템플릿은 카드를
+  /// 스티커로(사진이 있으면 사진을 배경으로, 없으면 잉크에 맞는 단색
+  /// 그라데이션), 나머지 템플릿은 카드 전체를 배경으로 넘긴다. 인스타를 열
+  /// 수 없으면 공유 시트로 폴백.
+  Future<void> _shareToInstagram() async {
+    if (_busy) return;
+    final l10n = AppLocalizations.of(context);
+    setState(() => _busy = true);
+    try {
+      final bool opened;
+      if (_isSticker) {
+        final sticker = await ShareCardExporter.exportToTempFile(_cardKey);
+        final background = _stickerBackground == null
+            ? null
+            : await ShareCardExporter.exportToTempFile(_stickerPhotoKey);
+        final (top, bottom) = _stickerBackdrop(_ink);
+        opened = await InstagramStoryService.share(
+          backgroundPath: background,
+          stickerPath: sticker,
+          topColor: top,
+          bottomColor: bottom,
+        );
+      } else {
+        opened = await InstagramStoryService.share(
+          backgroundPath: await ShareCardExporter.exportToTempFile(_exportKey),
+        );
+      }
+      if (!opened && mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.shareInstagramUnavailable)));
+        await _shareViaSheet(_shareButtonKey);
+      }
+    } catch (_) {
+      // 공유 실패/취소는 조용히 무시 — 핀 공유 화면과 같은 정책.
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  /// 사진 없이 스티커만 인스타로 보낼 때의 배경 — 잉크가 잘 보이는 색.
+  static (Color, Color) _stickerBackdrop(ShareInkColor ink) => switch (ink) {
+    ShareInkColor.white => (const Color(0xFF2A1B66), const Color(0xFF0B0820)),
+    ShareInkColor.black => (const Color(0xFFF4F1EA), const Color(0xFFE4DFD3)),
+    ShareInkColor.purple => (const Color(0xFFF3F0FF), const Color(0xFFDCD3FF)),
+  };
+
+  Future<void> _pickStickerPhoto() async {
+    final l10n = AppLocalizations.of(context);
+    final source = await showModalBottomSheet<ImageSource?>(
+      context: context,
+      backgroundColor: AppColors.darkBackground,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(
+                Icons.photo_library_rounded,
+                color: Colors.white,
+              ),
+              title: Text(
+                l10n.chooseFromGallery,
+                style: const TextStyle(color: Colors.white),
+              ),
+              onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+            ),
+            ListTile(
+              leading: const Icon(
+                Icons.photo_camera_rounded,
+                color: Colors.white,
+              ),
+              title: Text(
+                l10n.activityShareTakePhoto,
+                style: const TextStyle(color: Colors.white),
+              ),
+              onTap: () => Navigator.pop(ctx, ImageSource.camera),
+            ),
+            if (_stickerPhotoPath != null)
+              ListTile(
+                leading: const Icon(
+                  Icons.hide_image_rounded,
+                  color: Colors.white70,
+                ),
+                title: Text(
+                  l10n.activityShareRemovePhoto,
+                  style: const TextStyle(color: Colors.white70),
+                ),
+                onTap: () {
+                  setState(() => _stickerPhotoPath = null);
+                  Navigator.pop(ctx);
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+    if (source == null) return;
+    try {
+      final picked = await ImagePicker().pickImage(
+        source: source,
+        maxWidth: 2160,
+        maxHeight: 2160,
+        imageQuality: 92,
+      );
+      if (picked != null && mounted) {
+        setState(() => _stickerPhotoPath = picked.path);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$e'), backgroundColor: Colors.red),
+      );
     }
   }
 
@@ -110,14 +250,7 @@ class _ActivityShareScreenState extends State<ActivityShareScreen> {
                 child: _buildPreview(),
               ),
             ),
-            if (_template == ActivityShareTemplate.sticker)
-              Padding(
-                padding: const EdgeInsets.only(top: 10),
-                child: Text(
-                  l10n.activityShareStickerHint,
-                  style: AppTextStyles.caption.copyWith(color: Colors.white54),
-                ),
-              ),
+            if (_isSticker) _buildStickerPhotoRow(l10n),
             const SizedBox(height: 12),
             _buildTemplateChips(),
             if (_template == ActivityShareTemplate.photo &&
@@ -173,6 +306,44 @@ class _ActivityShareScreenState extends State<ActivityShareScreen> {
     photoPath: _photoPath,
   );
 
+  Widget _buildStickerPhotoRow(AppLocalizations l10n) {
+    final hasPhoto = _stickerPhotoPath != null;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              l10n.activityShareStickerHint,
+              style: AppTextStyles.caption.copyWith(color: Colors.white54),
+            ),
+          ),
+          const SizedBox(width: 10),
+          TextButton.icon(
+            onPressed: _busy ? null : _pickStickerPhoto,
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: Colors.white10,
+              shape: const StadiumBorder(),
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+            ),
+            icon: Icon(
+              hasPhoto
+                  ? Icons.swap_horiz_rounded
+                  : Icons.add_photo_alternate_rounded,
+              size: 18,
+            ),
+            label: Text(
+              hasPhoto
+                  ? l10n.activityShareChangePhoto
+                  : l10n.activityShareAddPhoto,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPreview() {
     const size = ActivityShareCard.cardSize;
     return LayoutBuilder(
@@ -187,51 +358,39 @@ class _ActivityShareScreenState extends State<ActivityShareScreen> {
           child: SizedBox(
             width: w,
             height: h,
-            child: Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Stack(
-                    children: [
-                      // 투명 스티커는 배경이 없으니 체커보드로 투명함을 표시
-                      // (미리보기 전용 — 내보내기 이미지엔 안 들어감).
-                      if (_template == ActivityShareTemplate.sticker)
-                        const Positioned.fill(
-                          child: CustomPaint(painter: _CheckerPainter()),
-                        ),
-                      FittedBox(
-                        fit: BoxFit.contain,
-                        child: SizedBox(
-                          width: size.width,
-                          height: size.height,
-                          child: _card(),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // 화면엔 안 보이지만 원본 크기로 페인트되는 캡처용 인스턴스.
-                SizedBox(
-                  width: 0,
-                  height: 0,
-                  child: OverflowBox(
-                    minWidth: size.width,
-                    maxWidth: size.width,
-                    minHeight: size.height,
-                    maxHeight: size.height,
-                    alignment: Alignment.topLeft,
-                    child: IgnorePointer(
-                      child: Opacity(
-                        opacity: 0,
-                        child: RepaintBoundary(
-                          key: _exportKey,
-                          child: _card(),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Stack(
+                children: [
+                  // 투명 스티커는 배경이 없으니 체커보드로 투명함을 표시
+                  // (미리보기 전용 — 내보내기 경계 바깥이라 이미지엔 안 들어감).
+                  if (_isSticker && _stickerBackground == null)
+                    const Positioned.fill(
+                      child: CustomPaint(painter: _CheckerPainter()),
+                    ),
+                  FittedBox(
+                    fit: BoxFit.contain,
+                    child: SizedBox(
+                      width: size.width,
+                      height: size.height,
+                      child: RepaintBoundary(
+                        key: _exportKey,
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            if (_stickerBackground case final bg?)
+                              RepaintBoundary(
+                                key: _stickerPhotoKey,
+                                child: Image.file(File(bg), fit: BoxFit.cover),
+                              ),
+                            RepaintBoundary(key: _cardKey, child: _card()),
+                          ],
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
@@ -344,7 +503,7 @@ class _ActivityShareScreenState extends State<ActivityShareScreen> {
           Expanded(
             child: ElevatedButton(
               key: _shareButtonKey,
-              onPressed: _busy ? null : () => _share(_shareButtonKey),
+              onPressed: _busy ? null : _shareToInstagram,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,

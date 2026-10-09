@@ -1273,5 +1273,21 @@ class AppLocalizationsMn extends AppLocalizations {
 
   @override
   String get activityShareStickerHint =>
-      'Тунгалаг PNG — сторидоо зураг дээр байрлуулна уу';
+      'Доор нь зураг нэмэх эсвэл Instagram-д стикер болгон нийтлээрэй';
+
+  @override
+  String get activityShareAddPhoto => 'Зураг нэмэх';
+
+  @override
+  String get activityShareChangePhoto => 'Зураг солих';
+
+  @override
+  String get activityShareRemovePhoto => 'Зураг хасах';
+
+  @override
+  String get activityShareTakePhoto => 'Зураг авах';
+
+  @override
+  String get shareInstagramUnavailable =>
+      'Instagram нээгдсэнгүй — хуваалцах цонхоор нээж байна';
 }

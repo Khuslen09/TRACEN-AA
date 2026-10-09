@@ -1237,5 +1237,20 @@ class AppLocalizationsKo extends AppLocalizations {
   String get activityShareTemplateSticker => '투명 스티커';
 
   @override
-  String get activityShareStickerHint => '투명 배경 PNG — 스토리에서 사진 위에 올려 쓰세요';
+  String get activityShareStickerHint => '사진을 추가해 위에 얹거나, 인스타에서 스티커로 붙여 쓰세요';
+
+  @override
+  String get activityShareAddPhoto => '사진 추가';
+
+  @override
+  String get activityShareChangePhoto => '사진 변경';
+
+  @override
+  String get activityShareRemovePhoto => '사진 빼기';
+
+  @override
+  String get activityShareTakePhoto => '카메라로 촬영';
+
+  @override
+  String get shareInstagramUnavailable => '인스타그램을 열 수 없어 공유 시트로 열어요';
 }

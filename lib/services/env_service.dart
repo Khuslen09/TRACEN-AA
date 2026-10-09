@@ -24,4 +24,8 @@ class Env {
   static String get kakaoRestApiKey => dotenv.env['KAKAO_REST_API_KEY'] ?? '';
 
   static bool get hasKakaoKey => kakaoRestApiKey.isNotEmpty;
+
+  /// Meta(Facebook) 앱 ID — 인스타 스토리 공유의 source_application 값.
+  /// 2023년부터 인스타가 이 값 없이는 스토리 공유를 거부한다.
+  static String get facebookAppId => dotenv.env['FACEBOOK_APP_ID'] ?? '';
 }

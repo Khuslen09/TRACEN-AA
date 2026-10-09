@@ -252,7 +252,10 @@ class ActivityRecorder {
     if (activeRouteId == _routeId) activeRouteId = null;
   }
 
+  bool _disposed = false;
+
   void dispose() {
+    _disposed = true;
     _ticker?.cancel();
     _posSub?.cancel();
     metrics.dispose();
@@ -299,6 +302,33 @@ class ActivityRecorder {
       _handlePosition,
       onError: (Object e) => debugPrint('위치 스트림 오류: $e'),
     );
+    unawaited(_pollCurrentFix());
+  }
+
+  /// geolocator는 위치 스트림을 앱 전역 broadcast 스트림 하나로 공유한다 —
+  /// 홈 화면이 이미 구독 중이면 나중에 붙은 이 구독은 다음 이벤트
+  /// (distanceFilter 5m 이동)까지 아무것도 못 받는다. 가만히 서 있는 시작
+  /// 대기 화면에선 영영 안 올 수 있어, 정확도 기준을 통과할 때까지 1회
+  /// 조회로 직접 픽스를 채운다.
+  Future<void> _pollCurrentFix() async {
+    for (var attempt = 0; attempt < 10; attempt++) {
+      if (_disposed || _posSub == null) return;
+      final last = _lastRawPosition;
+      if (last != null && last.accuracy <= _accuracyThreshold) return;
+      try {
+        final p = await LocationService.currentPosition().timeout(
+          const Duration(seconds: 15),
+        );
+        if (_disposed || _posSub == null) return;
+        final latest = _lastRawPosition;
+        if (latest == null || p.timestamp.isAfter(latest.timestamp)) {
+          _handlePosition(p);
+        }
+      } catch (e) {
+        debugPrint('현재 위치 조회 실패: $e');
+      }
+      await Future<void>.delayed(const Duration(seconds: 2));
+    }
   }
 
   /// 첫 실시간 픽스가 들어오기 전, 캐시된 마지막 위치로 마커를 최대한

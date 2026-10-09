@@ -75,3 +75,8 @@ android {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    // InstagramStoryChannel의 FileProvider
+    implementation("androidx.core:core-ktx:1.13.1")
+}

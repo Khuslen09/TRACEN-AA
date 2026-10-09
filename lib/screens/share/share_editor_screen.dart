@@ -5,6 +5,7 @@ import '../../l10n/generated/app_localizations.dart';
 import '../../l10n/strings.dart';
 import '../../models/pin.dart';
 import '../../models/sticker_id.dart';
+import '../../services/instagram_story_service.dart';
 import '../../services/pin_place_lookup_service.dart';
 import '../../services/share_card_exporter.dart';
 import '../../theme/app_colors.dart';
@@ -79,6 +80,28 @@ class _ShareEditorScreenState extends State<ShareEditorScreen> {
       await ShareCardExporter.shareFile(path, origin: origin);
     } catch (_) {
       // 공유 실패/취소는 조용히 무시 — photo_edit_screen.dart의 _share와 동일한 정책.
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  /// 카드 전체를 인스타 스토리 배경으로 바로 보낸다 — 열 수 없으면 공유 시트.
+  Future<void> _shareToInstagram() async {
+    if (_busy) return;
+    final l10n = AppLocalizations.of(context);
+    setState(() => _busy = true);
+    try {
+      final path = await ShareCardExporter.exportToTempFile(_exportKey);
+      if (await InstagramStoryService.share(backgroundPath: path)) return;
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.shareInstagramUnavailable)),
+      );
+      final box = _instaButtonKey.currentContext?.findRenderObject() as RenderBox?;
+      final origin = box == null ? null : (box.localToGlobal(Offset.zero) & box.size);
+      await ShareCardExporter.shareFile(path, origin: origin);
+    } catch (_) {
+      // 공유 실패/취소는 조용히 무시 — _share와 같은 정책.
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -204,7 +227,7 @@ class _ShareEditorScreenState extends State<ShareEditorScreen> {
           Expanded(
             child: ElevatedButton(
               key: _instaButtonKey,
-              onPressed: _busy ? null : () => _share(_instaButtonKey),
+              onPressed: _busy ? null : _shareToInstagram,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,

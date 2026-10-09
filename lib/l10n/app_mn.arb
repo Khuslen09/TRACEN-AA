@@ -534,5 +534,10 @@
   "activityShareTemplateStats": "Үзүүлэлт",
   "activityShareTemplatePhoto": "Зураг",
   "activityShareTemplateSticker": "Тунгалаг наалт",
-  "activityShareStickerHint": "Тунгалаг PNG — сторидоо зураг дээр байрлуулна уу"
+  "activityShareStickerHint": "Доор нь зураг нэмэх эсвэл Instagram-д стикер болгон нийтлээрэй",
+  "activityShareAddPhoto": "Зураг нэмэх",
+  "activityShareChangePhoto": "Зураг солих",
+  "activityShareRemovePhoto": "Зураг хасах",
+  "activityShareTakePhoto": "Зураг авах",
+  "shareInstagramUnavailable": "Instagram нээгдсэнгүй — хуваалцах цонхоор нээж байна"
 }

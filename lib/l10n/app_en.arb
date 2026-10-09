@@ -534,5 +534,10 @@
   "activityShareTemplateStats": "Stats",
   "activityShareTemplatePhoto": "Photo",
   "activityShareTemplateSticker": "Clear sticker",
-  "activityShareStickerHint": "Transparent PNG — place it over a photo in your story"
+  "activityShareStickerHint": "Add a photo underneath, or post it as a sticker in Instagram",
+  "activityShareAddPhoto": "Add photo",
+  "activityShareChangePhoto": "Change photo",
+  "activityShareRemovePhoto": "Remove photo",
+  "activityShareTakePhoto": "Take a photo",
+  "shareInstagramUnavailable": "Couldn't open Instagram — opening the share sheet instead"
 }

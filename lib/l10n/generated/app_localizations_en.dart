@@ -1270,5 +1270,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get activityShareStickerHint =>
-      'Transparent PNG — place it over a photo in your story';
+      'Add a photo underneath, or post it as a sticker in Instagram';
+
+  @override
+  String get activityShareAddPhoto => 'Add photo';
+
+  @override
+  String get activityShareChangePhoto => 'Change photo';
+
+  @override
+  String get activityShareRemovePhoto => 'Remove photo';
+
+  @override
+  String get activityShareTakePhoto => 'Take a photo';
+
+  @override
+  String get shareInstagramUnavailable =>
+      'Couldn\'t open Instagram — opening the share sheet instead';
 }

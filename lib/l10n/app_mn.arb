@@ -54,7 +54,6 @@
   "loginError": "Нэвтрэх үед алдаа гарлаа",
   "googleLoginFailed": "Google-ээр нэвтрэх амжилтгүй боллоо",
   "loginWelcome": "Тавтай морил",
-  "loginSubtitle": "Өнөөдрийн аяллаа тэмдэглэх үү?",
   "passwordHint": "Нууц үгээ оруулна уу",
   "forgotPasswordLink": "Нууц үгээ мартсан уу?",
   "continueWithGoogle": "Google-ээр үргэлжлүүлэх",
@@ -126,7 +125,6 @@
   "permStatusNotRequested": "Хараахан хүсээгүй",
   "permDeniedNotice": "Зарим зөвшөөрлийг татгалзсан байна. Тохиргооноос өөрөө асаана уу.",
   "permOpenSettings": "Тохиргоо руу очих",
-  "splashTagline": "Аяллаа тэмдэглээрэй",
   "pinAdded": "Тэмдэг нэмэгдлээ 📍",
   "pinDeleted": "Тэмдгийг устгалаа",
   "locationNotFound": "Байршлыг олж чадсангүй",
@@ -562,5 +560,10 @@
   "pinEditTitle": "Пин засах",
   "pinEditTooltip": "Засах",
   "pinUpdated": "Пин шинэчлэгдлээ",
-  "photoFilterOriginal": "Эх хувь"
+  "photoFilterOriginal": "Эх хувь",
+  "shareTemplateOriginal": "Эх хувь",
+  "categoryAdd": "Ангилал нэмэх",
+  "categoryNew": "Шинэ ангилал",
+  "categoryDeleteTitle": "'{category}' ангиллыг устгах уу?",
+  "categoryDeleteBody": "Энэ ангиллын пинүүд устахгүй — үндсэн дүрсээр харагдана."
 }

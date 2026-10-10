@@ -1,17 +1,20 @@
 import 'dart:math' as math;
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import '../../../theme/app_colors.dart';
 
-/// 지도 위 보라 톤 오버레이 + 발자취 경로 마스킹 — **타일로 직접 그려서**
-/// 지도 렌더링 파이프라인의 일부가 되게 함.
+/// 발자취("내가 간 길")를 보라 지도 위에 밝게 긁어낸 자국으로 그리는
+/// 타일 오버레이 — **타일로 직접 그려서** 지도 렌더링 파이프라인의 일부가
+/// 되게 함.
 ///
-/// **목표**: "내가 간 길은 보라 막이 벗겨져서 원래 지도가 보이는" 스크래치
-/// 카드 효과를, 팬/줌(그리고 회전) 중에도 지도와 한 치의 오차 없이 붙어있게.
+/// 지도 자체는 [purpleMapStyle]로 보라색이다. 예전엔 원래 지도 위에 반투명
+/// 보라 타일을 빈틈없이 깔고 가본 길만 구멍을 뚫었는데, 줌/팬 중 타일이
+/// 갈아끼워지는 순간마다 원래 색 지도가 비쳐 깨져 보였다. 이제 발자취가
+/// 없는 타일은 아예 안 그리고([TileProvider.noTile]), 발자취가 있는 타일만
+/// 투명 배경에 밝은 선을 긋는다 — 타일이 늦게 떠도 보라 지도가 그대로라
+/// 틈이 보이지 않는다.
 ///
 /// **이전 방식과의 차이**: 화면 전체를 덮는 별도의 Flutter CustomPaint
 /// 레이어로 그리면, 계산이 아무리 빨라도 "네이티브 지도 뷰"와 "Flutter가
@@ -24,22 +27,22 @@ import '../../../theme/app_colors.dart';
 ///    (경로별 위경도 바운딩 박스로 1차 필터 — 점 하나하나 비교 안 함)
 /// 2. 겹치는 게 하나도 없으면 [TileProvider.noTile]을 바로 반환 (제일 흔한
 ///    경우 — 발자취가 없는 지역은 이미지 생성 자체가 없음)
-/// 3. 있으면 256x256(레티나는 더 큰 래스터) 타일 이미지에 보라 막을 깔고
-///    경로를 두꺼운 stroke로 그려 `BlendMode.dstOut`으로 구멍을 뚫는다.
+/// 3. 있으면 256x256(레티나는 더 큰 래스터) 투명 타일에 경로를 두꺼운
+///    밝은 stroke로 그린다.
 ///
 /// **좌표계**: 표준 웹 메르카토르. zoom z에서 전체 지도는 256 * 2^z 월드
 /// 픽셀이고, 타일 (x, y)는 월드 픽셀 [x*256, (x+1)*256) × [y*256, (y+1)*256)
 /// 영역을 담당한다 (Google Maps 타일 좌표계 정의 그대로).
 class ScratchTileProvider implements TileProvider {
-  ScratchTileProvider({this.strokeWidth = 72, this.overlayAlpha = 0.30});
+  ScratchTileProvider({this.strokeWidth = 72, this.revealAlpha = 0.65});
 
   /// 발자취 stroke 두께 (논리 픽셀). 모든 zoom에서 같은 값을 쓰는 게 맞다 —
   /// 정수 zoom의 타일은 항상 화면에 1:1로 그려지므로, zoom별로 다르게 주면
   /// 오히려 화면상 두께가 zoom마다 달라져 버린다.
   final double strokeWidth;
 
-  /// 보라 막 알파 (0.0~1.0).
-  final double overlayAlpha;
+  /// 긁어낸 자국(흰색)의 알파 (0.0~1.0) — 높을수록 밑의 보라 지도가 덜 비친다.
+  final double revealAlpha;
 
   /// 타일을 선명하게 그리기 위한 레티나 배율. 선언하는 타일 크기는 항상
   /// 256(logical)이고, 실제 래스터는 이 배율만큼 더 크게 그려서 반환한다.
@@ -57,37 +60,8 @@ class ScratchTileProvider implements TileProvider {
     ];
   }
 
-  /// 발자취가 하나도 안 지나가는 타일 전용 — 보라 막만 깔린 이미지.
-  /// 모든 "구멍 없는" 타일이 똑같이 생겼으니 한 번만 그려서 재사용한다.
-  Uint8List? _blankTileBytes;
-
-  Future<Tile> _blankTile() async {
-    final cached = _blankTileBytes;
-    if (cached != null) return Tile(_tileSize, _tileSize, cached);
-
-    final raster = _tileSize * _rasterScale;
-    final rasterD = raster.toDouble();
-    final recorder = ui.PictureRecorder();
-    final canvas = Canvas(recorder, Rect.fromLTWH(0, 0, rasterD, rasterD));
-    canvas.drawRect(
-      Rect.fromLTWH(0, 0, rasterD, rasterD),
-      Paint()..color = AppColors.primary.withValues(alpha: overlayAlpha),
-    );
-    final image = await recorder.endRecording().toImage(raster, raster);
-    final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
-    image.dispose();
-    if (bytes == null) return TileProvider.noTile;
-
-    final data = bytes.buffer.asUint8List();
-    _blankTileBytes = data;
-    return Tile(_tileSize, _tileSize, data);
-  }
-
   @override
   Future<Tile> getTile(int x, int y, int? zoom) async {
-    // 발자취가 하나도 지나가지 않는 타일도 보라 막은 그대로 덮여있어야 함
-    // ("아직 안 가본 곳"이 원래 지도로 비쳐 보이면 안 됨) — 그래서 여기서
-    // noTile로 건너뛰지 않고 [_blankTile]을 깐다.
     final z = (zoom ?? 0).toDouble();
     final mapSize = _tileSize * math.pow(2, z).toDouble();
 
@@ -113,26 +87,26 @@ class ScratchTileProvider implements TileProvider {
           pyMin <= tileBottom;
       if (overlaps) hits.add(path);
     }
-    if (hits.isEmpty) return _blankTile();
+    if (hits.isEmpty) return TileProvider.noTile;
 
     final raster = _tileSize * _rasterScale;
     final rasterD = raster.toDouble();
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder, Rect.fromLTWH(0, 0, rasterD, rasterD));
 
-    canvas.saveLayer(Rect.fromLTWH(0, 0, rasterD, rasterD), Paint());
-    canvas.drawRect(
+    // 경로끼리 겹치는 곳이 더 진해지지 않게 불투명하게 그린 뒤 레이어
+    // 전체에 알파를 한 번만 적용한다.
+    canvas.saveLayer(
       Rect.fromLTWH(0, 0, rasterD, rasterD),
-      Paint()..color = AppColors.primary.withValues(alpha: overlayAlpha),
+      Paint()..color = Colors.white.withValues(alpha: revealAlpha),
     );
 
     final scratchPaint = Paint()
-      ..color = Colors.black // dstOut 모드에선 색은 무관, alpha만 사용
+      ..color = Colors.white
       ..strokeWidth = strokeWidth * _rasterScale
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round
-      ..style = PaintingStyle.stroke
-      ..blendMode = BlendMode.dstOut;
+      ..style = PaintingStyle.stroke;
 
     final originX = x * _tileSize;
     final originY = y * _tileSize;

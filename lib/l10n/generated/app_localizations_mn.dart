@@ -179,9 +179,6 @@ class AppLocalizationsMn extends AppLocalizations {
   String get loginWelcome => 'Тавтай морил';
 
   @override
-  String get loginSubtitle => 'Өнөөдрийн аяллаа тэмдэглэх үү?';
-
-  @override
   String get passwordHint => 'Нууц үгээ оруулна уу';
 
   @override
@@ -384,9 +381,6 @@ class AppLocalizationsMn extends AppLocalizations {
 
   @override
   String get permOpenSettings => 'Тохиргоо руу очих';
-
-  @override
-  String get splashTagline => 'Аяллаа тэмдэглээрэй';
 
   @override
   String get pinAdded => 'Тэмдэг нэмэгдлээ 📍';
@@ -1369,4 +1363,22 @@ class AppLocalizationsMn extends AppLocalizations {
 
   @override
   String get photoFilterOriginal => 'Эх хувь';
+
+  @override
+  String get shareTemplateOriginal => 'Эх хувь';
+
+  @override
+  String get categoryAdd => 'Ангилал нэмэх';
+
+  @override
+  String get categoryNew => 'Шинэ ангилал';
+
+  @override
+  String categoryDeleteTitle(String category) {
+    return '\'$category\' ангиллыг устгах уу?';
+  }
+
+  @override
+  String get categoryDeleteBody =>
+      'Энэ ангиллын пинүүд устахгүй — үндсэн дүрсээр харагдана.';
 }

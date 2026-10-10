@@ -173,9 +173,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get loginWelcome => '환영합니다';
 
   @override
-  String get loginSubtitle => '오늘의 여정을 기록해볼까요';
-
-  @override
   String get passwordHint => '비밀번호를 입력하세요';
 
   @override
@@ -370,9 +367,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get permOpenSettings => '설정으로 이동';
-
-  @override
-  String get splashTagline => '나의 여정을 기록하다';
 
   @override
   String get pinAdded => '핀이 추가되었어요 📍';
@@ -1329,4 +1323,21 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get photoFilterOriginal => '원본';
+
+  @override
+  String get shareTemplateOriginal => '원본';
+
+  @override
+  String get categoryAdd => '카테고리 추가';
+
+  @override
+  String get categoryNew => '새 카테고리';
+
+  @override
+  String categoryDeleteTitle(String category) {
+    return '\'$category\' 카테고리를 삭제할까요?';
+  }
+
+  @override
+  String get categoryDeleteBody => '이 카테고리의 핀은 지워지지 않고 기본 아이콘으로 표시돼요.';
 }

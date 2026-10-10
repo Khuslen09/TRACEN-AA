@@ -1,29 +1,25 @@
-import '../l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 import '../services/auth_service.dart';
+import '../services/category_sync_service.dart';
 import '../services/cloud_sync_service.dart';
 import '../services/onboarding_service.dart';
 import '../services/permission_service.dart';
-import '../theme/app_colors.dart';
-import '../theme/app_text_styles.dart';
 import '../theme/theme_extensions.dart';
-import '../widgets/tracen_logo.dart';
 import 'home/home_screen.dart';
 import 'login_screen.dart';
 import 'onboarding_screen.dart';
 import 'permission_request_screen.dart';
 
-/// 앱 시작 시 1.8초간 로고를 보여주고, 로그인 상태에 따라 분기.
+/// 앱 시작 시 첫 화면 — 아무것도 그리지 않고(배경색만) 첫 프레임 직후
+/// 바로 다음 화면으로 분기한다. 예전엔 1.8초간 로고·태그라인을 보여줬지만
+/// 뺐다.
 ///
 /// 분기 로직:
-///   - currentUser가 있으면 → HomeScreen (자동 로그인)
-///   - 없으면 → LoginScreen
-///
-/// 디자인 결정:
-///   - 페이드인 + 살짝 확대(scale 0.8 → 1.0) 모션
-///   - 로고 아래 보라 글로우
-///   - 1.8초 — 너무 짧으면 어색, 너무 길면 답답
+///   - 첫 실행이면 → OnboardingScreen
+///   - currentUser가 없으면 → LoginScreen
+///   - 권한이 빠져있으면 → PermissionRequestScreen
+///   - 모두 OK → HomeScreen (자동 로그인)
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -31,29 +27,11 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
-    with SingleTickerProviderStateMixin {
-  AppLocalizations get l10n => AppLocalizations.of(context);
-
-  late final AnimationController _controller;
-  late final Animation<double> _fade;
-  late final Animation<double> _scale;
-
+class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900),
-    );
-    _fade = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
-    _scale = Tween(
-      begin: 0.8,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
-    _controller.forward();
-
-    Future.delayed(const Duration(milliseconds: 1800), _navigateNext);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _navigateNext());
   }
 
   Future<void> _navigateNext() async {
@@ -80,6 +58,8 @@ class _SplashScreenState extends State<SplashScreen>
 
       // 자동 로그인 케이스: 오프라인 중 쌓인 큐 처리 (fire-and-forget)
       CloudSyncService.flushQueue();
+      // 다른 기기에서 바꾼 카테고리 받기 (fire-and-forget — 오면 화면이 갱신됨)
+      CategorySyncService.pull();
 
       if (!allGranted) {
         _push(const PermissionRequestScreen());
@@ -108,60 +88,7 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: context.bgColor,
-      body: Stack(
-        children: [
-          // 로고 뒤 부드러운 보라 글로우
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  center: Alignment.center,
-                  radius: 0.6,
-                  colors: [
-                    AppColors.primaryLight.withValues(alpha: 0.6),
-                    Colors.white.withValues(alpha: 0),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          // 로고 + 워드마크
-          Center(
-            child: AnimatedBuilder(
-              animation: _controller,
-              builder: (_, __) => Opacity(
-                opacity: _fade.value,
-                child: Transform.scale(
-                  scale: _scale.value,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TracenLogo(size: 72), // 40% 축소
-                      SizedBox(height: 16),
-                      Text(
-                        l10n.splashTagline,
-                        style: AppTextStyles.small.copyWith(
-                          color: context.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+    return Scaffold(backgroundColor: context.bgColor);
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../services/category_sync_service.dart';
 import '../services/cloud_sync_service.dart';
 import '../services/permission_service.dart';
 import 'home/home_screen.dart';
@@ -27,6 +28,9 @@ class AuthGate {
     } catch (e) {
       debugPrint('[AuthGate] pullAll failed: $e');
     }
+
+    // 1b. 카테고리 커스터마이즈(추가 카테고리 포함) — 핀 화면이 뜨기 전에.
+    await CategorySyncService.pull();
 
     // 2. 오프라인 중 쌓였던 큐 비우기 (fire-and-forget).
     CloudSyncService.flushQueue();

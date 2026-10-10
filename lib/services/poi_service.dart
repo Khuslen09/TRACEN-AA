@@ -93,6 +93,7 @@ class PoiService {
               'Content-Type': 'application/json',
               'X-Goog-Api-Key': key,
               'X-Goog-FieldMask': 'places.displayName,places.location,places.types',
+              ...Env.googleApiHeaders,
             },
             body: jsonEncode({
               'maxResultCount': _maxCandidates,

@@ -54,7 +54,6 @@
   "loginError": "Something went wrong while logging in",
   "googleLoginFailed": "Google sign-in failed",
   "loginWelcome": "Welcome",
-  "loginSubtitle": "Ready to record today's journey?",
   "passwordHint": "Enter your password",
   "forgotPasswordLink": "Forgot your password?",
   "continueWithGoogle": "Continue with Google",
@@ -126,7 +125,6 @@
   "permStatusNotRequested": "Not requested",
   "permDeniedNotice": "Some permissions were denied. Please turn them on in Settings.",
   "permOpenSettings": "Go to Settings",
-  "splashTagline": "Record your journey",
   "pinAdded": "Pin added 📍",
   "pinDeleted": "Pin deleted",
   "locationNotFound": "Couldn't find your location",
@@ -562,5 +560,10 @@
   "pinEditTitle": "Edit pin",
   "pinEditTooltip": "Edit",
   "pinUpdated": "Pin updated",
-  "photoFilterOriginal": "Original"
+  "photoFilterOriginal": "Original",
+  "shareTemplateOriginal": "Original",
+  "categoryAdd": "Add category",
+  "categoryNew": "New category",
+  "categoryDeleteTitle": "Delete the '{category}' category?",
+  "categoryDeleteBody": "Pins in this category won't be deleted — they'll show with the default icon."
 }

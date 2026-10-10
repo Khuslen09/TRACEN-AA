@@ -427,7 +427,11 @@ class _PhotoEditScreenState extends State<PhotoEditScreen> {
     if (_busy) return;
     setState(() => _busy = true);
     try {
-      final path = await _renderFinal();
+      // 원본 템플릿이면 카드(9:16 크롭) 대신 저장과 같은 사진 그대로를 공유.
+      final path =
+          _shareCardController?.template == ShareCardTemplate.original
+              ? await _renderPhotoOnly()
+              : await _renderFinal();
       final box = _shareButtonKey.currentContext?.findRenderObject() as RenderBox?;
       final origin = box == null ? null : (box.localToGlobal(Offset.zero) & box.size);
       await ShareCardExporter.shareFile(path, origin: origin);

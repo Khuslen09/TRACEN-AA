@@ -11,6 +11,7 @@ import '../theme/app_colors.dart';
 ///   `category_color_{key}` → ARGB int
 ///   `category_icon_{key}`  → [CategoryIconCatalog]의 문자열 키
 ///   `category_name_{key}`  → 사용자가 입력한 이름 (비우면 삭제 = 기본값)
+///   `custom_category_keys` → 사용자가 추가한 카테고리 key 목록(추가한 순서)
 ///
 /// 기본값은 각각 [PinCategory.defaultColor]/[PinCategory.icon]/
 /// [PinCategory.label].
@@ -20,6 +21,82 @@ class CategoryColorService {
   static const _colorPrefix = 'category_color_';
   static const _iconPrefix = 'category_icon_';
   static const _namePrefix = 'category_name_';
+  static const _customKeysKey = 'custom_category_keys';
+
+  static Future<List<String>> loadCustomKeys() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getStringList(_customKeysKey) ?? const [];
+  }
+
+  static Future<void> saveCustomKeys(List<String> keys) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_customKeysKey, keys);
+  }
+
+  /// 클라우드 동기화용 — 저장된 커스터마이즈 전체를 Firestore에 넣을 수
+  /// 있는 맵으로. 사용자가 바꾼 값만 담는다(없는 항목 = 기본값).
+  ///
+  /// `{customKeys: [key...], items: {key: {name?, icon?, color?}}}`
+  static Future<Map<String, dynamic>> exportAll() async {
+    final prefs = await SharedPreferences.getInstance();
+    final customKeys = prefs.getStringList(_customKeysKey) ?? const [];
+    final items = <String, dynamic>{};
+    for (final key in [
+      for (final c in PinCategory.builtIns) c.key,
+      ...customKeys,
+    ]) {
+      final item = <String, dynamic>{
+        'name': ?prefs.getString('$_namePrefix$key'),
+        'icon': ?prefs.getString('$_iconPrefix$key'),
+        'color': ?prefs.getInt('$_colorPrefix$key'),
+      };
+      if (item.isNotEmpty) items[key] = item;
+    }
+    return {'customKeys': customKeys, 'items': items};
+  }
+
+  /// [exportAll] 형식의 맵으로 로컬 저장값을 통째로 교체한다 — 클라우드에서
+  /// 받아올 때. 호출 뒤 CategoryColorNotifier.init으로 다시 읽어야 화면 반영.
+  static Future<void> importAll(Map<String, dynamic> data) async {
+    final prefs = await SharedPreferences.getInstance();
+    final oldCustom = prefs.getStringList(_customKeysKey) ?? const [];
+    final newCustom = [
+      for (final k in (data['customKeys'] as List? ?? const []))
+        if (k is String) k,
+    ];
+    for (final key in {
+      for (final c in PinCategory.builtIns) c.key,
+      ...oldCustom,
+      ...newCustom,
+    }) {
+      await prefs.remove('$_colorPrefix$key');
+      await prefs.remove('$_iconPrefix$key');
+      await prefs.remove('$_namePrefix$key');
+    }
+    await prefs.setStringList(_customKeysKey, newCustom);
+
+    final items = data['items'];
+    if (items is! Map) return;
+    for (final entry in items.entries) {
+      final key = entry.key;
+      final item = entry.value;
+      if (key is! String || item is! Map) continue;
+      final name = item['name'];
+      final icon = item['icon'];
+      final color = item['color'];
+      if (name is String) await prefs.setString('$_namePrefix$key', name);
+      if (icon is String) await prefs.setString('$_iconPrefix$key', icon);
+      if (color is int) await prefs.setInt('$_colorPrefix$key', color);
+    }
+  }
+
+  /// 추가 카테고리 하나의 저장값(색상/아이콘/이름)을 모두 지운다.
+  static Future<void> removeCategory(PinCategory category) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('$_colorPrefix${category.key}');
+    await prefs.remove('$_iconPrefix${category.key}');
+    await prefs.remove('$_namePrefix${category.key}');
+  }
 
   static Future<Map<PinCategory, Color>> loadAll() async {
     final prefs = await SharedPreferences.getInstance();
@@ -70,10 +147,11 @@ class CategoryColorService {
     }
   }
 
-  /// 모든 커스터마이즈(색상/아이콘/이름) 기본값으로 초기화.
+  /// 기본 6종의 커스터마이즈(색상/아이콘/이름)를 기본값으로 초기화.
+  /// 사용자가 추가한 카테고리는 이름 자체가 정의라 건드리지 않는다.
   static Future<void> resetAll() async {
     final prefs = await SharedPreferences.getInstance();
-    for (final cat in PinCategory.values) {
+    for (final cat in PinCategory.builtIns) {
       await prefs.remove('$_colorPrefix${cat.key}');
       await prefs.remove('$_iconPrefix${cat.key}');
       await prefs.remove('$_namePrefix${cat.key}');
@@ -125,10 +203,17 @@ class CategoryIconCatalog {
   }
 }
 
-/// 앱 전체에서 카테고리 커스터마이즈(색상/아이콘/이름)를 공유하는 Notifier.
+/// 앱 전체에서 카테고리 커스터마이즈(색상/아이콘/이름)와 추가 카테고리를
+/// 공유하는 Notifier.
 ///
-/// HomeScreen, SaveFilesScreen, PinPreviewSheet 등이 모두 같은 값을 참조.
+/// 앱에 하나뿐인 [instance]를 HomeScreen, SaveFilesScreen, PinPreviewSheet
+/// 등이 모두 같이 쓴다 — 예전엔 화면마다 따로 만들거나 안 넘겨받아서, 한
+/// 곳에서 바꾼 이름/아이콘이 다른 화면엔 반영되지 않았다.
 class CategoryColorNotifier extends ChangeNotifier {
+  CategoryColorNotifier._();
+
+  static final CategoryColorNotifier instance = CategoryColorNotifier._();
+
   Map<PinCategory, Color> _colors = {
     for (final c in PinCategory.values) c: c.defaultColor,
   };
@@ -144,6 +229,10 @@ class CategoryColorNotifier extends ChangeNotifier {
 
   IconData iconOf(PinCategory category) => _icons[category] ?? category.icon;
 
+  /// 사용자가 고른 색의 마커 hue(0–360) — 기본 핀 마커(defaultMarkerWithHue)용.
+  double markerHueOf(PinCategory category) =>
+      HSVColor.fromColor(colorOf(category)).hue;
+
   /// 커스텀 이름이 있으면 그걸, 없으면 언어별 기본 라벨([Strings.current] 기반).
   String labelOf(PinCategory category) {
     final custom = _names[category];
@@ -151,8 +240,10 @@ class CategoryColorNotifier extends ChangeNotifier {
     return category.label;
   }
 
-  /// 앱 시작 시 저장된 커스터마이즈 로드.
+  /// 앱 시작 시 저장된 커스터마이즈 로드 — 핀을 DB에서 읽기 전에 불러야
+  /// 추가 카테고리 key가 제대로 풀린다(main에서 호출).
   Future<void> init() async {
+    PinCategory.setCustom(await CategoryColorService.loadCustomKeys());
     _colors = await CategoryColorService.loadAll();
     _icons = await CategoryColorService.loadAllIcons();
     _names = await CategoryColorService.loadAllNames();
@@ -181,11 +272,56 @@ class CategoryColorNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 새 카테고리를 만들고 돌려준다 — 목록 맨 뒤에 붙는다.
+  Future<PinCategory> addCategory({
+    required String name,
+    required String iconKey,
+    required Color color,
+  }) async {
+    final category = PinCategory.custom(
+      '${PinCategory.customKeyPrefix}${DateTime.now().microsecondsSinceEpoch}',
+    );
+    final keys = [
+      for (final c in PinCategory.values)
+        if (c.isCustom) c.key,
+      category.key,
+    ];
+    await CategoryColorService.saveCustomKeys(keys);
+    PinCategory.setCustom(keys);
+    await updateName(category, name);
+    await updateIcon(category, iconKey);
+    await updateColor(category, color);
+    return category;
+  }
+
+  /// 추가한 카테고리 삭제(기본 6종은 불가). 이 카테고리의 핀은 key를 그대로
+  /// 가진 채 대체값(일반 아이콘·보라)으로 보인다.
+  Future<void> deleteCategory(PinCategory category) async {
+    if (!category.isCustom) return;
+    final keys = [
+      for (final c in PinCategory.values)
+        if (c.isCustom && c != category) c.key,
+    ];
+    await CategoryColorService.saveCustomKeys(keys);
+    await CategoryColorService.removeCategory(category);
+    PinCategory.setCustom(keys);
+    _colors = Map.from(_colors)..remove(category);
+    _icons = Map.from(_icons)..remove(category);
+    _names = Map.from(_names)..remove(category);
+    notifyListeners();
+  }
+
+  /// 기본 6종만 초기화 — 추가 카테고리는 유지.
   Future<void> reset() async {
     await CategoryColorService.resetAll();
-    _colors = {for (final c in PinCategory.values) c: c.defaultColor};
-    _icons = {for (final c in PinCategory.values) c: c.icon};
-    _names = {};
+    _colors = Map.from(_colors);
+    _icons = Map.from(_icons);
+    _names = Map.from(_names);
+    for (final c in PinCategory.builtIns) {
+      _colors[c] = c.defaultColor;
+      _icons[c] = c.icon;
+      _names.remove(c);
+    }
     notifyListeners();
   }
 }

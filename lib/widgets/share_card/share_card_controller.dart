@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 
 import '../../models/country_outline.dart';
 import '../../models/pin.dart';
@@ -62,7 +63,7 @@ class ShareCardController extends ChangeNotifier {
   /// 핀이면 핀이 찍힌 **그날**의 일상 경로(day track)에서 가져온다.
   static Future<ShareCardController> forPin(Pin pin) async {
     final results = await Future.wait([
-      _decodePhoto(pin.photoPath),
+      _decodePhoto(pin.photoPath, pin.photoUrl),
       CountryOutlineService.findCountryAt(pin.lat, pin.lng),
       PlaceNameService.placeNameFor(pin.lat, pin.lng),
       _routePathForPin(pin),
@@ -122,12 +123,24 @@ class ShareCardController extends ChangeNotifier {
     );
   }
 
-  static Future<ui.Image?> _decodePhoto(String? path) async {
-    if (path == null || path.isEmpty) return null;
-    final file = File(path);
-    if (!file.existsSync()) return null;
+  /// 기기 파일 → 클라우드 URL 순으로 사진을 읽는다. 앱을 지웠다 다시 깔거나
+  /// 다른 기기에서 받은 핀은 로컬 파일 없이 [url]만 있어서, 파일만 보던
+  /// 예전엔 공유 카드가 사진 없이 검게 나왔다(핀 미리보기는 이미 URL로
+  /// 폴백하고 있었음).
+  static Future<ui.Image?> _decodePhoto(String? path, String? url) async {
     try {
-      final bytes = await file.readAsBytes();
+      final Uint8List bytes;
+      if (path != null && path.isNotEmpty && File(path).existsSync()) {
+        bytes = await File(path).readAsBytes();
+      } else if (url != null && url.isNotEmpty) {
+        final res = await http
+            .get(Uri.parse(url))
+            .timeout(const Duration(seconds: 15));
+        if (res.statusCode != 200) return null;
+        bytes = res.bodyBytes;
+      } else {
+        return null;
+      }
       final codec = await ui.instantiateImageCodec(bytes, targetWidth: 1200);
       final frame = await codec.getNextFrame();
       return frame.image;

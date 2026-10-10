@@ -61,6 +61,7 @@ class ShareCard extends StatelessWidget {
   });
 
   List<StickerId> get _activeStickerIds {
+    if (model.template == ShareCardTemplate.original) return const [];
     if (model.template == ShareCardTemplate.stamp) {
       // 날짜/위치명처럼 경로도 도장 안에 녹여넣지 않고 그냥 생략 — 스탬프는
       // 지도+로고만 독립 스티커.
@@ -105,7 +106,9 @@ class ShareCard extends StatelessWidget {
   /// 사진 위에 텍스트/지도가 잘 읽히게 위/아래를 살짝 어둡게 — 스탬프
   /// 템플릿이거나 잉크색이 먹색이면 그 자체로 이미 충분히 대비돼서 끔.
   Widget _buildScrim() {
-    if (model.template == ShareCardTemplate.stamp || model.inkColor == ShareInkColor.black) {
+    if (model.template == ShareCardTemplate.original ||
+        model.template == ShareCardTemplate.stamp ||
+        model.inkColor == ShareInkColor.black) {
       return const SizedBox.shrink();
     }
     return DecoratedBox(

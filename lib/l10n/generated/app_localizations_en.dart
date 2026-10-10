@@ -181,9 +181,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loginWelcome => 'Welcome';
 
   @override
-  String get loginSubtitle => 'Ready to record today\'s journey?';
-
-  @override
   String get passwordHint => 'Enter your password';
 
   @override
@@ -385,9 +382,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get permOpenSettings => 'Go to Settings';
-
-  @override
-  String get splashTagline => 'Record your journey';
 
   @override
   String get pinAdded => 'Pin added 📍';
@@ -1369,4 +1363,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get photoFilterOriginal => 'Original';
+
+  @override
+  String get shareTemplateOriginal => 'Original';
+
+  @override
+  String get categoryAdd => 'Add category';
+
+  @override
+  String get categoryNew => 'New category';
+
+  @override
+  String categoryDeleteTitle(String category) {
+    return 'Delete the \'$category\' category?';
+  }
+
+  @override
+  String get categoryDeleteBody =>
+      'Pins in this category won\'t be deleted — they\'ll show with the default icon.';
 }

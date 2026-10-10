@@ -9,6 +9,7 @@ import '../../theme/theme_extensions.dart';
 import '../../utils/marker_bitmap_util.dart';
 
 /// 카테고리별 이름/아이콘/색상을 사용자가 직접 커스터마이즈하는 화면.
+/// 새 카테고리 추가, 추가한 카테고리 삭제도 여기서.
 ///
 /// 설정 화면 또는 핀 추가 화면의 카테고리 섹션에서 진입.
 /// 변경 즉시 저장 + notifier 알림 → 지도 마커·선택 칩 등 전체 실시간 갱신.
@@ -39,9 +40,36 @@ class _CategoryColorScreenState extends State<CategoryColorScreen> {
     if (result == null) return;
 
     MarkerBitmapUtil.clearCache();
+    if (result.delete) {
+      await widget.notifier.deleteCategory(category);
+      if (mounted) setState(() {});
+      return;
+    }
     await widget.notifier.updateName(category, result.name);
     await widget.notifier.updateIcon(category, result.iconKey);
     await widget.notifier.updateColor(category, result.color);
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _addCategory() async {
+    final result = await showModalBottomSheet<_CategoryEditResult>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => const _CategoryEditSheet(
+        category: null,
+        currentName: '',
+        currentIcon: Icons.star_rounded,
+        currentColor: AppColors.primary,
+      ),
+    );
+    if (result == null || result.name.trim().isEmpty) return;
+    MarkerBitmapUtil.clearCache();
+    await widget.notifier.addCategory(
+      name: result.name,
+      iconKey: result.iconKey,
+      color: result.color,
+    );
     if (mounted) setState(() {});
   }
 
@@ -97,14 +125,30 @@ class _CategoryColorScreenState extends State<CategoryColorScreen> {
         animation: widget.notifier,
         builder: (context, _) => ListView.separated(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          itemCount: PinCategory.values.length,
+          itemCount: PinCategory.values.length + 1,
           separatorBuilder: (_, __) => const SizedBox(height: 12),
           itemBuilder: (_, i) {
+            if (i == PinCategory.values.length) {
+              return OutlinedButton.icon(
+                onPressed: _addCategory,
+                icon: const Icon(Icons.add_rounded),
+                label: Text(l10n.categoryAdd),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(52),
+                  foregroundColor: AppColors.primary,
+                  side: const BorderSide(color: AppColors.primary),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
+                  ),
+                ),
+              );
+            }
             final cat = PinCategory.values[i];
             final color = widget.notifier.colorOf(cat);
             final icon = widget.notifier.iconOf(cat);
             final label = widget.notifier.labelOf(cat);
-            final isDefault = color.toARGB32() == cat.defaultColor.toARGB32() &&
+            final isDefault = !cat.isCustom &&
+                color.toARGB32() == cat.defaultColor.toARGB32() &&
                 icon == cat.icon &&
                 label == cat.label;
 
@@ -183,16 +227,21 @@ class _CategoryEditResult {
   final String name;
   final String iconKey;
   final Color color;
+
+  /// 추가한 카테고리를 지우기로 했을 때 true(나머지 값은 무시).
+  final bool delete;
   const _CategoryEditResult({
     required this.name,
     required this.iconKey,
     required this.color,
+    this.delete = false,
   });
 }
 
 /// 카테고리 이름/아이콘/색상을 한 번에 편집하는 바텀시트.
+/// [category]가 null이면 새 카테고리 만들기.
 class _CategoryEditSheet extends StatefulWidget {
-  final PinCategory category;
+  final PinCategory? category;
   final String currentName;
   final IconData currentIcon;
   final Color currentColor;
@@ -228,6 +277,41 @@ class _CategoryEditSheetState extends State<_CategoryEditSheet> {
   void dispose() {
     _nameController.dispose();
     super.dispose();
+  }
+
+  bool get _isNew => widget.category == null;
+
+  Future<void> _confirmDelete() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.categoryDeleteTitle(widget.currentName)),
+        content: Text(l10n.categoryDeleteBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              l10n.commonDelete,
+              style: const TextStyle(color: AppColors.danger),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    Navigator.pop(
+      context,
+      _CategoryEditResult(
+        name: '',
+        iconKey: _selectedIconKey,
+        color: _selectedColor,
+        delete: true,
+      ),
+    );
   }
 
   void _apply() {
@@ -277,7 +361,9 @@ class _CategoryEditSheetState extends State<_CategoryEditSheet> {
             ),
 
             Text(
-              l10n.categoryColorTitle(widget.category.label),
+              _isNew
+                  ? l10n.categoryNew
+                  : l10n.categoryColorTitle(widget.currentName),
               style: AppTextStyles.h3,
             ),
             const SizedBox(height: 20),
@@ -311,6 +397,8 @@ class _CategoryEditSheetState extends State<_CategoryEditSheet> {
             TextField(
               controller: _nameController,
               decoration: InputDecoration(hintText: l10n.categoryNameHint),
+              // 새 카테고리는 이름이 있어야 만들 수 있어서 버튼 상태 갱신용.
+              onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: 24),
 
@@ -397,10 +485,25 @@ class _CategoryEditSheetState extends State<_CategoryEditSheet> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _apply,
-                child: Text(l10n.apply),
+                onPressed: _isNew && _nameController.text.trim().isEmpty
+                    ? null
+                    : _apply,
+                child: Text(_isNew ? l10n.categoryAdd : l10n.apply),
               ),
             ),
+            if (widget.category?.isCustom ?? false) ...[
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: _confirmDelete,
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.danger,
+                  ),
+                  child: Text(l10n.commonDelete),
+                ),
+              ),
+            ],
           ],
         ),
       ),

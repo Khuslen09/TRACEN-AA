@@ -12,6 +12,8 @@ import 'firebase_options.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'l10n/strings.dart';
 import 'screens/splash_screen.dart';
+import 'services/category_color_service.dart';
+import 'services/category_sync_service.dart';
 import 'services/env_service.dart';
 import 'services/photo_storage.dart';
 import 'services/tracking_service.dart';
@@ -51,6 +53,9 @@ Future<void> main() async {
 
   // 사진 경로 보정용 Documents 경로 캐시 — 핀을 DB에서 읽기 전에 필요
   await PhotoStorage.init();
+  // 추가 카테고리 key를 핀을 읽기 전에 등록해야 해서 여기서 로드.
+  await CategoryColorNotifier.instance.init();
+  CategorySyncService.start();
 
   // SQLite warm-up
   try {

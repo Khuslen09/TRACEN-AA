@@ -31,7 +31,8 @@ class ShareCardLayout {
 
   static Rect baseRectFor(StickerId id, ShareCardTemplate template) {
     return switch (template) {
-      ShareCardTemplate.minimal => _minimalRect(id),
+      // 원본은 스티커를 안 그리지만 switch를 완결하려고 미니멀 배치를 쓴다.
+      ShareCardTemplate.original || ShareCardTemplate.minimal => _minimalRect(id),
       ShareCardTemplate.film => _filmRect(id),
       ShareCardTemplate.stamp => _stampRect(id),
     };

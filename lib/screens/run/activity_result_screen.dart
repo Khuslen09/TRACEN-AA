@@ -3,13 +3,16 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/activity_type.dart';
 import '../../models/pin.dart';
 import '../../models/route.dart';
 import '../../models/route_point.dart';
+import '../../services/category_color_service.dart';
 import '../../services/cloud_sync_service.dart';
 import '../../services/route_db_service.dart';
 import '../../services/run_metrics.dart';
@@ -72,11 +75,8 @@ class _ActivityResultScreenState extends State<ActivityResultScreen> {
       splitMeters: route.activityType == ActivityType.cycling ? 5000 : 1000,
     );
     final photos = [
-      for (final p in pins)
-        if (p.photoPath != null &&
-            p.photoPath!.isNotEmpty &&
-            File(p.photoPath!).existsSync())
-          p,
+      for (final p in await Future.wait(pins.map(_withLocalPhoto)))
+        if (p != null) p,
     ];
 
     final data = ActivityResultData(
@@ -114,6 +114,31 @@ class _ActivityResultScreenState extends State<ActivityResultScreen> {
   // ─────────────────────────────────────────────
   // 저장 / 버리기 / 공유
   // ─────────────────────────────────────────────
+
+  /// 사진이 기기에 있으면 그대로, 없고 클라우드 URL만 있으면(재설치·다른
+  /// 기기 기록) 임시 폴더에 받아 그 경로로 바꾼 핀을 돌려준다 — 사진 카드와
+  /// 공유 사진 템플릿이 파일 경로만 다루기 때문. 사진이 아예 없으면 null.
+  /// DB의 핀은 건드리지 않는다.
+  static Future<Pin?> _withLocalPhoto(Pin pin) async {
+    final path = pin.photoPath;
+    if (path != null && path.isNotEmpty && File(path).existsSync()) return pin;
+    final url = pin.photoUrl;
+    if (url == null || url.isEmpty) return null;
+    try {
+      final dir = await getTemporaryDirectory();
+      final cached = File('${dir.path}/pin_photo_${pin.uuid}.jpg');
+      if (!cached.existsSync()) {
+        final res = await http
+            .get(Uri.parse(url))
+            .timeout(const Duration(seconds: 15));
+        if (res.statusCode != 200) return null;
+        await cached.writeAsBytes(res.bodyBytes);
+      }
+      return pin.copyWith(photoPath: cached.path);
+    } catch (_) {
+      return null;
+    }
+  }
 
   Future<void> _save(ActivityResultData data) async {
     if (_saving) return;
@@ -559,7 +584,7 @@ class _RouteMapCard extends StatelessWidget {
                       markerId: MarkerId('pin_${pin.id}'),
                       position: LatLng(pin.lat, pin.lng),
                       icon: BitmapDescriptor.defaultMarkerWithHue(
-                        pin.category.markerHue,
+                        CategoryColorNotifier.instance.markerHueOf(pin.category),
                       ),
                     ),
                 },

@@ -2,7 +2,7 @@ name: tracen
 description: "TRACEN - GPS 기반 라이프로그 앱."
 publish_to: 'none'
 
-version: 1.1.0+1
+version: 1.1.0+3
 
 environment:
   sdk: ^3.9.2

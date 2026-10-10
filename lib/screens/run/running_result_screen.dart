@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../../models/pin.dart';
 import '../../models/route.dart';
 import '../../models/route_point.dart';
+import '../../services/category_color_service.dart';
 import '../../services/route_db_service.dart';
 import '../../services/run_metrics.dart';
 import '../../theme/app_colors.dart';
@@ -476,7 +477,7 @@ class _MapPreview extends StatelessWidget {
                     markerId: MarkerId('pin_${pin.id}'),
                     position: LatLng(pin.lat, pin.lng),
                     icon: BitmapDescriptor.defaultMarkerWithHue(
-                      pin.category.markerHue,
+                      CategoryColorNotifier.instance.markerHueOf(pin.category),
                     ),
                   ),
               },

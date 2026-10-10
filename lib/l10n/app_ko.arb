@@ -64,7 +64,6 @@
   "loginError": "로그인 중 오류가 발생했어요",
   "googleLoginFailed": "Google 로그인에 실패했어요",
   "loginWelcome": "환영합니다",
-  "loginSubtitle": "오늘의 여정을 기록해볼까요",
   "passwordHint": "비밀번호를 입력하세요",
   "forgotPasswordLink": "비밀번호를 잊으셨나요?",
   "continueWithGoogle": "Google로 계속하기",
@@ -136,7 +135,6 @@
   "permStatusNotRequested": "미요청",
   "permDeniedNotice": "거부된 권한이 있어요. 설정에서 직접 켜주세요.",
   "permOpenSettings": "설정으로 이동",
-  "splashTagline": "나의 여정을 기록하다",
   "pinAdded": "핀이 추가되었어요 📍",
   "pinDeleted": "핀을 삭제했어요",
   "locationNotFound": "위치를 찾을 수 없어요",
@@ -623,5 +621,17 @@
   "pinEditTitle": "핀 수정",
   "pinEditTooltip": "수정",
   "pinUpdated": "핀을 수정했어요",
-  "photoFilterOriginal": "원본"
+  "photoFilterOriginal": "원본",
+  "shareTemplateOriginal": "원본",
+  "categoryAdd": "카테고리 추가",
+  "categoryNew": "새 카테고리",
+  "categoryDeleteTitle": "'{category}' 카테고리를 삭제할까요?",
+  "categoryDeleteBody": "이 카테고리의 핀은 지워지지 않고 기본 아이콘으로 표시돼요.",
+  "@categoryDeleteTitle": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  }
 }

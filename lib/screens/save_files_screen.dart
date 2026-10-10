@@ -75,6 +75,11 @@ class SaveFilesScreen extends StatefulWidget {
 }
 
 class _SaveFilesScreenState extends State<SaveFilesScreen> {
+  /// 넘겨받은 게 없어도(카메라·러닝·AI 추천·핀 수정 경로) 앱 공용
+  /// 인스턴스를 써서 카테고리 꾸미기 버튼과 커스텀 이름/아이콘이 항상 보이게.
+  CategoryColorNotifier get _colorNotifier =>
+      widget.colorNotifier ?? CategoryColorNotifier.instance;
+
   AppLocalizations get l10n => AppLocalizations.of(context);
 
   final _memoController = TextEditingController();
@@ -314,13 +319,12 @@ class _SaveFilesScreenState extends State<SaveFilesScreen> {
                     Row(
                       children: [
                         Expanded(child: _SectionLabel(l10n.categoryLabel)),
-                        if (widget.colorNotifier != null)
-                          TextButton.icon(
+                        TextButton.icon(
                             onPressed: () => Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (_) => CategoryColorScreen(
-                                  notifier: widget.colorNotifier!,
+                                  notifier: _colorNotifier,
                                 ),
                               ),
                             ),
@@ -333,7 +337,7 @@ class _SaveFilesScreenState extends State<SaveFilesScreen> {
                     _CategorySelector(
                       selected: _selectedCategory,
                       onChanged: (c) => setState(() => _selectedCategory = c),
-                      colorNotifier: widget.colorNotifier,
+                      colorNotifier: _colorNotifier,
                     ),
 
                     SizedBox(height: 24),
@@ -630,6 +634,18 @@ class _CategorySelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final notifier = colorNotifier;
+    // 꾸미기 화면에서 이름/아이콘을 바꾸거나 카테고리를 추가하면 바로 반영.
+    if (notifier != null) {
+      return AnimatedBuilder(
+        animation: notifier,
+        builder: (context, _) => _buildChips(context),
+      );
+    }
+    return _buildChips(context);
+  }
+
+  Widget _buildChips(BuildContext context) {
     return SizedBox(
       height: 44,
       child: ListView.separated(

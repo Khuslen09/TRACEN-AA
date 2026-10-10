@@ -192,7 +192,9 @@ class PlaceRecommendService {
       });
 
       try {
-        final res = await http.get(uri).timeout(const Duration(seconds: 10));
+        final res = await http
+            .get(uri, headers: Env.googleApiHeaders)
+            .timeout(const Duration(seconds: 10));
         debugPrint('[Place] $type → HTTP ${res.statusCode}');
 
         if (res.statusCode != 200) {
@@ -318,7 +320,10 @@ Respond ONLY in the JSON format below, with no markdown code block:
       res = await http
           .post(
             Uri.parse(_geminiEndpoint),
-            headers: {'Content-Type': 'application/json'},
+            headers: {
+              'Content-Type': 'application/json',
+              ...Env.googleApiHeaders,
+            },
             body: jsonEncode({
               'contents': [
                 {

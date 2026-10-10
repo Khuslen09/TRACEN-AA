@@ -18,6 +18,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/theme_extensions.dart';
 import '../../utils/marker_bitmap_util.dart';
+import 'widgets/purple_map_style.dart';
 import 'widgets/scratch_tile_provider.dart';
 import '../profile/profile_screen.dart';
 import '../run/activity_result_screen.dart';
@@ -48,7 +49,7 @@ class _HomeScreenState extends State<HomeScreen>
   GoogleMapController? _mapController;
 
   // ─── 카테고리 색상 ───
-  final CategoryColorNotifier _colorNotifier = CategoryColorNotifier();
+  final CategoryColorNotifier _colorNotifier = CategoryColorNotifier.instance;
 
   // ─── 내 위치 커스텀 마커 ───
   Marker? _myLocationMarker;
@@ -90,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void initState() {
     super.initState();
-    _colorNotifier.init(); // 저장된 색상 로드
+    // 저장된 색상은 main에서 이미 로드됨 — 앱 공용 인스턴스라 여기선 구독만.
     _colorNotifier.addListener(_onColorChanged);
     _restoreActiveRouteIfAny();
     _loadAllSavedRoutes();
@@ -272,7 +273,6 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void dispose() {
     _colorNotifier.removeListener(_onColorChanged);
-    _colorNotifier.dispose();
     _eraseSub?.cancel();
     _dayTrackRefresh?.cancel();
     WidgetsBinding.instance.removeObserver(this);
@@ -536,6 +536,7 @@ class _HomeScreenState extends State<HomeScreen>
           Positioned.fill(
             child: GoogleMap(
               initialCameraPosition: _initialPosition,
+              style: purpleMapStyle,
               onMapCreated: (c) {
                 _mapController = c;
                 // 지도가 준비된 뒤에야 타일을 요청하므로, 이미 로드돼있던

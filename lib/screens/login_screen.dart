@@ -162,12 +162,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     textAlign: TextAlign.center,
                     style: AppTextStyles.display.copyWith(height: 1.2),
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    l10n.loginSubtitle,
-                    textAlign: TextAlign.center,
-                    style: AppTextStyles.bodyMuted,
-                  ),
 
                   const SizedBox(height: 44),
 

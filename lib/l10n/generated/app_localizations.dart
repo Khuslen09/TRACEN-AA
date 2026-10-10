@@ -424,12 +424,6 @@ abstract class AppLocalizations {
   /// **'환영합니다'**
   String get loginWelcome;
 
-  /// No description provided for @loginSubtitle.
-  ///
-  /// In ko, this message translates to:
-  /// **'오늘의 여정을 기록해볼까요'**
-  String get loginSubtitle;
-
   /// No description provided for @passwordHint.
   ///
   /// In ko, this message translates to:
@@ -813,12 +807,6 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'설정으로 이동'**
   String get permOpenSettings;
-
-  /// No description provided for @splashTagline.
-  ///
-  /// In ko, this message translates to:
-  /// **'나의 여정을 기록하다'**
-  String get splashTagline;
 
   /// No description provided for @pinAdded.
   ///
@@ -2625,6 +2613,36 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'원본'**
   String get photoFilterOriginal;
+
+  /// No description provided for @shareTemplateOriginal.
+  ///
+  /// In ko, this message translates to:
+  /// **'원본'**
+  String get shareTemplateOriginal;
+
+  /// No description provided for @categoryAdd.
+  ///
+  /// In ko, this message translates to:
+  /// **'카테고리 추가'**
+  String get categoryAdd;
+
+  /// No description provided for @categoryNew.
+  ///
+  /// In ko, this message translates to:
+  /// **'새 카테고리'**
+  String get categoryNew;
+
+  /// No description provided for @categoryDeleteTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'\'{category}\' 카테고리를 삭제할까요?'**
+  String categoryDeleteTitle(String category);
+
+  /// No description provided for @categoryDeleteBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 카테고리의 핀은 지워지지 않고 기본 아이콘으로 표시돼요.'**
+  String get categoryDeleteBody;
 }
 
 class _AppLocalizationsDelegate

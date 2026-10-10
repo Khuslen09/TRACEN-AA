@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import '../../../l10n/generated/app_localizations.dart';
 import '../../../l10n/strings.dart';
+import '../../../services/category_color_service.dart';
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -604,21 +605,34 @@ class _CategoryBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 사용자가 바꾼 이름/아이콘/색상 — 예전엔 기본값만 보여서 꾸며도 안 바뀌었음.
+    final notifier = CategoryColorNotifier.instance;
+    return AnimatedBuilder(
+      animation: notifier,
+      builder: (context, _) => _buildBadge(
+        notifier.colorOf(category),
+        notifier.iconOf(category),
+        notifier.labelOf(category),
+      ),
+    );
+  }
+
+  Widget _buildBadge(Color color, IconData icon, String label) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: category.color.withValues(alpha: 0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(AppRadius.full),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(category.icon, size: 14, color: category.color),
+          Icon(icon, size: 14, color: color),
           const SizedBox(width: 4),
           Text(
-            category.label,
+            label,
             style: AppTextStyles.caption.copyWith(
-              color: category.color,
+              color: color,
               fontWeight: FontWeight.w600,
               fontSize: 11,
             ),

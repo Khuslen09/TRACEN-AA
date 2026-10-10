@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 
 import '../../models/pin.dart';
 import '../../models/route.dart';
+import '../../services/category_color_service.dart';
 import '../../services/cloud_sync_service.dart';
 import '../../services/photo_storage.dart';
 import '../../services/route_db_service.dart';
@@ -84,7 +85,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
           Marker(
             markerId: MarkerId('pin_${pin.id}'),
             position: LatLng(pin.lat, pin.lng),
-            icon: BitmapDescriptor.defaultMarkerWithHue(pin.category.markerHue),
+            icon: BitmapDescriptor.defaultMarkerWithHue(CategoryColorNotifier.instance.markerHueOf(pin.category)),
             onTap: () => _showPinPreview(pin),
           ),
       };
@@ -157,7 +158,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
           markerId: MarkerId('pin_${updated.id}'),
           position: LatLng(updated.lat, updated.lng),
           icon: BitmapDescriptor.defaultMarkerWithHue(
-            updated.category.markerHue,
+            CategoryColorNotifier.instance.markerHueOf(updated.category),
           ),
           onTap: () => _showPinPreview(updated),
         ),

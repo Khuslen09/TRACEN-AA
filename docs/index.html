@@ -53,7 +53,7 @@
 
       <h3>1. 수집하는 정보</h3>
       <ul>
-        <li><b>계정 정보</b>: 이메일 주소, 이름(닉네임), 프로필 사진. Google 또는 Apple 로그인을 사용하면 해당 서비스가 제공하는 이메일·이름을 받습니다. Apple의 "나의 이메일 가리기"를 선택하면 Apple이 제공하는 대리 이메일만 받습니다.</li>
+        <li><b>계정 정보</b>: 이메일 주소, 이름(닉네임), 프로필 사진. Google 또는 Apple 로그인을 사용하면 해당 서비스가 제공하는 이메일·이름을 받습니다. 카카오 로그인을 사용하면 카카오계정 이메일과 닉네임을 받습니다. Apple의 "나의 이메일 가리기"를 선택하면 Apple이 제공하는 대리 이메일만 받습니다.</li>
         <li><b>위치 정보</b>: 이동 경로 및 활동(러닝·워킹·사이클링) 기록을 위한 GPS 좌표. 이용자가 기록을 시작했을 때, 또는 "항상 허용"을 선택한 경우 기록 중 화면이 꺼져 있을 때에만 수집합니다.</li>
         <li><b>사진·메모</b>: 이용자가 직접 촬영하거나 선택해 핀에 첨부한 사진과 작성한 메모.</li>
         <li><b>이용자가 만든 기록</b>: 경로, 활동 기록(거리·시간·페이스 등), 핀, 장소명.</li>
@@ -66,6 +66,7 @@
         <li>사진·메모가 담긴 핀(추억 기록) 관리</li>
         <li>현재 위치 주변 장소명 표시 및 AI 장소 추천</li>
         <li>로그인 및 여러 기기 간 데이터 동기화</li>
+        <li>회원 식별, 로그인 방식 간 계정 중복 방지, 계정 관련 공지 및 문의 응대 (이메일·이름·닉네임)</li>
       </ul>
 
       <h3>3. 처리 위탁 및 외부 서비스</h3>
@@ -75,7 +76,7 @@
         <li><b>Google Maps Platform</b> (Maps SDK, Places API) — 지도 표시, 주변 장소 검색 (위치 좌표 전송)</li>
         <li><b>Google Gemini API</b> — AI 장소 추천 (위치 좌표와 이용자가 입력한 요청 문구 전송, 계정 정보 미전송)</li>
         <li><b>Kakao Local API</b> — 한국 내 주변 장소명 검색 (위치 좌표 전송)</li>
-        <li><b>Google 로그인 / Apple로 로그인</b> — 이용자가 선택한 경우의 로그인 인증</li>
+        <li><b>Google 로그인 / Apple로 로그인 / 카카오 로그인</b> — 이용자가 선택한 경우의 로그인 인증 (카카오: 카카오계정 이메일·닉네임)</li>
         <li><b>Instagram 및 기타 공유 대상 앱</b> — 이용자가 "공유"를 직접 눌렀을 때에만, 이용자가 만든 이미지가 선택한 앱으로 전달됩니다.</li>
       </ul>
       <p>위 서비스 중 일부는 해외(미국 등)에 서버를 두고 있어, 해당 정보가 국외로 이전·보관될 수 있습니다.</p>
@@ -147,7 +148,7 @@
 
       <h3>1. Information we collect</h3>
       <ul>
-        <li><b>Account information</b>: email address, name (nickname) and profile photo. If you sign in with Google or Apple, we receive the email and name provided by that service. If you choose Apple's "Hide My Email", we only receive Apple's relay address.</li>
+        <li><b>Account information</b>: email address, name (nickname) and profile photo. If you sign in with Google or Apple, we receive the email and name provided by that service. If you sign in with Kakao, we receive your Kakao Account email and nickname. If you choose Apple's "Hide My Email", we only receive Apple's relay address.</li>
         <li><b>Location</b>: GPS coordinates to record your routes and activities (running, walking, cycling). Collected only while you are recording, or — if you choose "Always Allow" — while a recording continues with the screen off.</li>
         <li><b>Photos and notes</b>: photos you take or select and notes you write and attach to pins.</li>
         <li><b>Content you create</b>: routes, activity records (distance, time, pace, etc.), pins and place names.</li>
@@ -160,6 +161,7 @@
         <li>Managing pins (memories) with photos and notes</li>
         <li>Showing nearby place names and AI place recommendations</li>
         <li>Sign-in and syncing your data across devices</li>
+        <li>Identifying your account, preventing duplicate accounts across sign-in methods, and account notices and support (email, name, nickname)</li>
       </ul>
 
       <h3>3. Service providers</h3>
@@ -169,7 +171,7 @@
         <li><b>Google Maps Platform</b> (Maps SDK, Places API) — maps and nearby place search (location coordinates)</li>
         <li><b>Google Gemini API</b> — AI place recommendations (location coordinates and the request text you enter; no account information)</li>
         <li><b>Kakao Local API</b> — nearby place names in Korea (location coordinates)</li>
-        <li><b>Sign in with Google / Sign in with Apple</b> — authentication, if you choose them</li>
+        <li><b>Sign in with Google / Sign in with Apple / Kakao Login</b> — authentication, if you choose them (Kakao: Kakao Account email and nickname)</li>
         <li><b>Instagram and other share targets</b> — only when you tap "Share", the image you created is passed to the app you choose</li>
       </ul>
       <p>Some of these providers store data on servers outside your country (for example in the United States).</p>
@@ -241,7 +243,7 @@
 
       <h3>1. Цуглуулдаг мэдээлэл</h3>
       <ul>
-        <li><b>Бүртгэлийн мэдээлэл</b>: имэйл хаяг, нэр (хоч), профайл зураг. Google эсвэл Apple-ээр нэвтэрвэл тухайн үйлчилгээнээс өгсөн имэйл, нэрийг хүлээн авна. Apple-ийн "Имэйлээ нуух" (Hide My Email)-ыг сонговол зөвхөн Apple-ийн дамжуулах хаягийг авна.</li>
+        <li><b>Бүртгэлийн мэдээлэл</b>: имэйл хаяг, нэр (хоч), профайл зураг. Google эсвэл Apple-ээр нэвтэрвэл тухайн үйлчилгээнээс өгсөн имэйл, нэрийг хүлээн авна. Kakao-гаар нэвтэрвэл Kakao бүртгэлийн имэйл болон хочийг хүлээн авна. Apple-ийн "Имэйлээ нуух" (Hide My Email)-ыг сонговол зөвхөн Apple-ийн дамжуулах хаягийг авна.</li>
         <li><b>Байршил</b>: маршрут болон дасгал (гүйлт, алхалт, дугуй унах)-ыг бүртгэх GPS координат. Зөвхөн та бүртгэл эхлүүлсэн үед, эсвэл "Үргэлж зөвшөөрөх"-ийг сонгосон бол бүртгэл үргэлжилж байх хооронд дэлгэц унтарсан үед цуглуулна.</li>
         <li><b>Зураг ба тэмдэглэл</b>: таны авсан эсвэл сонгосон зураг, пин-д хавсаргасан тэмдэглэл.</li>
         <li><b>Таны үүсгэсэн контент</b>: маршрут, дасгалын бүртгэл (зай, хугацаа, хурд гэх мэт), пин болон газрын нэр.</li>
@@ -254,6 +256,7 @@
         <li>Зураг, тэмдэглэл бүхий пин (дурсамж)-ийг удирдах</li>
         <li>Ойролцоох газрын нэр харуулах, AI-аар газар санал болгох</li>
         <li>Нэвтрэх болон төхөөрөмж хооронд өгөгдөл синк хийх</li>
+        <li>Бүртгэлийг таних, нэвтрэх аргуудын хооронд давхардсан бүртгэлээс сэргийлэх, бүртгэлтэй холбоотой мэдэгдэл ба тусламж (имэйл, нэр, хоч)</li>
       </ul>
 
       <h3>3. Гуравдагч талын үйлчилгээ</h3>
@@ -263,7 +266,7 @@
         <li><b>Google Maps Platform</b> (Maps SDK, Places API) — газрын зураг, ойролцоох газар хайх (байршлын координат)</li>
         <li><b>Google Gemini API</b> — AI газар санал болгох (байршлын координат болон таны оруулсан хүсэлтийн текст; бүртгэлийн мэдээлэл илгээхгүй)</li>
         <li><b>Kakao Local API</b> — Солонгос дахь ойролцоох газрын нэр (байршлын координат)</li>
-        <li><b>Google-ээр нэвтрэх / Apple-ээр нэвтрэх</b> — сонгосон тохиолдолд нэвтрэлт баталгаажуулах</li>
+        <li><b>Google-ээр нэвтрэх / Apple-ээр нэвтрэх / Kakao-гаар нэвтрэх</b> — сонгосон тохиолдолд нэвтрэлт баталгаажуулах (Kakao: Kakao бүртгэлийн имэйл, хоч)</li>
         <li><b>Instagram болон бусад хуваалцах апп</b> — зөвхөн та "Хуваалцах" дарсан үед таны үүсгэсэн зургийг сонгосон апп руу дамжуулна</li>
       </ul>
       <p>Эдгээр үйлчилгээний зарим нь таны улсаас гадна (жишээ нь АНУ) серверт өгөгдөл хадгалдаг.</p>
